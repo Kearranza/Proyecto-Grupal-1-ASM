@@ -1,0 +1,36 @@
+{
+  "id": "caso_2",
+  "nombre": "Ruido blanco sobre todo el espectro",
+  "semilla": 20261002,
+  "tipo_senal": "multitono",
+  "frecuencias_utiles_hz": [
+    440,
+    880,
+    1320
+  ],
+  "amplitudes_utiles": [
+    1.0,
+    0.55,
+    0.3
+  ],
+  "fases_utiles_grados": [
+    0,
+    35,
+    -50
+  ],
+  "tipo_ruido": "blanco",
+  "frecuencia_interferencia_hz": null,
+  "banda_ruido_hz": null,
+  "snr_objetivo_db": 0.0,
+  "fs_hz": 16000,
+  "muestras": 32768,
+  "duracion_s": 2.048,
+  "ganancia_comun": 0.1659048509485622,
+  "snr_obtenida_db": 9.64327466553287e-16,
+  "snr_tras_cuantizar_db": -0.0003481921862580985,
+  "archivos": {
+    "limpia": "limpia.wav",
+    "ruido": "ruido.wav",
+    "contaminada": "contaminada.wav"
+  }
+}
