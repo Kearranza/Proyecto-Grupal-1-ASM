@@ -125,7 +125,9 @@ def _redondear(fila):
 def escribir(filas):
     ARCHIVO_CSV.parent.mkdir(parents=True, exist_ok=True)
     with open(ARCHIVO_CSV, 'w', newline='', encoding='utf-8') as archivo:
-        escritor = csv.DictWriter(archivo, fieldnames=COLUMNAS)
+        # lineterminator fijo: por omision csv usa CRLF y el archivo saldria
+        # distinto en Windows que en Linux, ensuciando el diff en cada corrida
+        escritor = csv.DictWriter(archivo, fieldnames=COLUMNAS, lineterminator='\n')
         escritor.writeheader()
         for fila in filas:
             escritor.writerow(_redondear({k: fila[k] for k in COLUMNAS}))
