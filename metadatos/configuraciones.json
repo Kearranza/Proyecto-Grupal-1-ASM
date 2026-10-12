@@ -1,0 +1,54 @@
+{
+  "version": "0.1",
+  "comun": {
+    "fs_hz": 16000,
+    "duracion_s": 2.0,
+    "n_bloque": 1024,
+    "solapamiento": 0.5,
+    "ventana": "hann",
+    "pico_maximo": 0.8,
+    "fade_ms": 20,
+    "formato_wav": "PCM_16"
+  },
+  "casos": [
+    {
+      "id": "caso_1",
+      "nombre": "Interferencia tonal separada de la banda util",
+      "semilla": 20261001,
+      "tipo_senal": "multitono",
+      "frecuencias_utiles_hz": [440, 880, 1320],
+      "amplitudes_utiles": [1.0, 0.55, 0.3],
+      "fases_utiles_grados": [0, 35, -50],
+      "tipo_ruido": "tonal",
+      "frecuencia_interferencia_hz": 3500,
+      "banda_ruido_hz": null,
+      "snr_objetivo_db": 2.0
+    },
+    {
+      "id": "caso_2",
+      "nombre": "Ruido de banda ancha sobre todo el espectro",
+      "semilla": 20261002,
+      "tipo_senal": "multitono",
+      "frecuencias_utiles_hz": [440, 880, 1320],
+      "amplitudes_utiles": [1.0, 0.55, 0.3],
+      "fases_utiles_grados": [0, 35, -50],
+      "tipo_ruido": "blanco",
+      "frecuencia_interferencia_hz": null,
+      "banda_ruido_hz": null,
+      "snr_objetivo_db": 0.0
+    },
+    {
+      "id": "caso_3",
+      "nombre": "Ruido de banda que se solapa parcialmente con la banda util",
+      "semilla": 20261003,
+      "tipo_senal": "multitono",
+      "frecuencias_utiles_hz": [440, 880, 1320],
+      "amplitudes_utiles": [1.0, 0.55, 0.3],
+      "fases_utiles_grados": [0, 35, -50],
+      "tipo_ruido": "banda",
+      "frecuencia_interferencia_hz": null,
+      "banda_ruido_hz": [800, 1500],
+      "snr_objetivo_db": 3.0
+    }
+  ]
+}
