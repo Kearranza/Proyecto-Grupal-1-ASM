@@ -1,2 +1,11 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# Binarios: git nunca debe normalizar saltos de linea en estos
+*.wav binary
+*.png binary
+*.pdf binary
+*.zip binary
+
+# El notebook es JSON: texto, pero sin normalizar para que no cambie solo
+*.ipynb -text

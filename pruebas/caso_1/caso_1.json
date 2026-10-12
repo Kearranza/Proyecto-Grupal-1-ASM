@@ -1,0 +1,36 @@
+{
+  "id": "caso_1",
+  "nombre": "Interferencia tonal separada de la banda útil",
+  "semilla": 20261001,
+  "tipo_senal": "multitono",
+  "frecuencias_utiles_hz": [
+    440,
+    880,
+    1320
+  ],
+  "amplitudes_utiles": [
+    1.0,
+    0.55,
+    0.3
+  ],
+  "fases_utiles_grados": [
+    0,
+    35,
+    -50
+  ],
+  "tipo_ruido": "tonal",
+  "frecuencia_interferencia_hz": 3500,
+  "banda_ruido_hz": null,
+  "snr_objetivo_db": 2.0,
+  "fs_hz": 16000,
+  "muestras": 32768,
+  "duracion_s": 2.048,
+  "ganancia_comun": 0.3353234076131053,
+  "snr_obtenida_db": 2.0000000000000004,
+  "snr_tras_cuantizar_db": 1.9998578689864368,
+  "archivos": {
+    "limpia": "limpia.wav",
+    "ruido": "ruido.wav",
+    "contaminada": "contaminada.wav"
+  }
+}
