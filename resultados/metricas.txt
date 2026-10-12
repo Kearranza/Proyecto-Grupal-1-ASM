@@ -1,0 +1,5 @@
+       caso       metodo          MSE       SNR dB      dSNR dB       E util      aten dB      retardo    ms/bloque        bytes
+--------------------------------------------------------------------------------------------------------------------------------
+     caso_1  sin filtrar    4.879e-02         2.00         0.00        1.000         0.00            0                          
+     caso_2  sin filtrar    1.893e-02        -0.00         0.00        1.051         0.00            0                          
+     caso_3  sin filtrar    1.939e-02         3.00         0.00        1.159         0.00            0                          
