@@ -1,0 +1,59 @@
+% Apartado 2.5 - Comparacion y propuesta para el sistema embebido (20 puntos) - BLOQUE 1
+%
+% Necesita las salidas de los bloques 3 y 4 en resultados/salidas/.
+% Los numeros de la tabla salen de resultados/metricas.csv, que escribe
+% src/comparacion.py.
+%
+% Incisos del enunciado:
+%   a) cual metodo ofrece el mejor compromiso entre reduccion y distorsion
+%   b) en cual condicion falla cada metodo y por que
+%   c) tamano de bloque, frecuencia de muestreo y formato numerico propuestos
+%   d) bibliotecas de FFT y filtrado disponibles para el hardware escogido,
+%      con licencia, precision numerica y limitaciones conocidas
+%   e) diagrama de bloques definitivo de los tres nodos, que informacion se
+%      transmite, cuantos bytes por bloque y cual es la tasa minima
+
+\section{Comparación y propuesta para el sistema embebido}
+\label{sec:comparacion}
+
+\subsection{Métricas}
+
+Se comparan tres señales contra la referencia limpia: la contaminada sin
+filtrar, la salida del filtro temporal y la salida del método espectral. Las
+definiciones son las del enunciado,
+\begin{align}
+\mathrm{MSE} &= \frac{1}{L}\sum_{n=0}^{L-1}\bigl(s[n]-\hat{s}[n]\bigr)^2, \\
+\mathrm{SNR}_{\mathrm{dB}} &= 10\log_{10}
+  \left(\frac{\sum_{n=0}^{L-1}s^2[n]}{\sum_{n=0}^{L-1}(s[n]-\hat{s}[n])^2}\right), \\
+\Delta\mathrm{SNR} &= \mathrm{SNR}_{\mathrm{salida}}-\mathrm{SNR}_{\mathrm{entrada}}.
+\end{align}
+
+Antes de medir se compensa el retardo que introduce cada método, estimado por
+correlación cruzada entre la salida y la referencia. Sin esa compensación el
+MSE penalizaría el retardo de grupo del filtro y no su distorsión, que es lo
+que se quiere comparar. El retardo detectado se reporta como una columna más,
+porque también es un dato de diseño: en el sistema en tiempo real se traduce en
+latencia.
+
+\textit{(pendiente: tabla desde \texttt{resultados/metricas.csv})}
+
+\subsection{Mejor compromiso entre reducción de ruido y distorsión}
+
+\textit{(pendiente — inciso a)}
+
+\subsection{Condiciones en las que falla cada método}
+
+\textit{(pendiente — inciso b; enlazar con la sección \ref{sec:limite})}
+
+\subsection{Tamaño de bloque, muestreo y formato numérico}
+
+\textit{(pendiente — inciso c)}
+
+\subsection{Bibliotecas disponibles para el hardware escogido}
+
+\textit{(pendiente — inciso d: licencia, precisión numérica y limitaciones)}
+
+\subsection{Arquitectura propuesta de los tres nodos}
+
+\textit{(pendiente — inciso e: diagrama, información transmitida, bytes por
+bloque y tasa mínima de comunicación)}

@@ -31,6 +31,7 @@ reducción adaptativa de ruido en tiempo real*.
 │   ├── senales.py            # generación reproducible de los tres casos
 │   ├── metricas.py           # MSE, SNR, ΔSNR, energía por bandas
 │   ├── graficas.py           # figuras del punto 2.2
+│   ├── comparacion.py        # métricas del punto 2.5 contra las salidas
 │   ├── filtros_temporales.py # filtro FIR/IIR (bloque 3)
 │   └── filtrado_espectral.py # reducción por FFT/IFFT (bloque 4)
 ├── pruebas/
@@ -44,8 +45,11 @@ reducción adaptativa de ruido en tiempo real*.
 │   └── metricas.csv          # tabla comparativa final
 ├── metadatos/
 │   └── configuraciones.json  # parámetros y semillas de los tres casos
-├── docs/                     # enunciados, generador del profesor y secciones del informe
-└── informe/                  # fuentes LaTeX del informe
+├── docs/                     # enunciados, generador del profesor y borradores
+└── informe/
+    ├── informe.tex           # documento principal
+    ├── referencias.bib
+    └── secciones/            # un .tex por apartado, uno por persona
 ```
 
 ## Los tres casos
@@ -81,6 +85,7 @@ Las piezas también corren solas, sin el notebook:
 python src/senales.py          # regenera los nueve WAV y los JSON de cada caso
 python src/graficas.py         # regenera las figuras del punto 2.2
 python pruebas/test_senales.py # 11 pruebas automáticas de la generación
+python src/comparacion.py      # tabla del 2.5 con las salidas que ya existan
 ```
 
 ## Ramas
@@ -93,8 +98,13 @@ python pruebas/test_senales.py # 11 pruebas automáticas de la generación
 | `filtrado-temporal` | filtro FIR/IIR (2.3) |
 | `filtrado-espectral` | reducción por FFT/IFFT (2.4) |
 | `pruebas` | fundamentos y FFT (2.1) y pruebas automáticas |
+| `comparacion` | métricas y comparación de métodos (2.5) |
+| `informe` | fuentes LaTeX del informe |
 
-Cada bloque sale de `dev` y vuelve a `dev`. A `main` solo se mergea la entrega.
+Cada bloque sale de `dev` y vuelve a `dev` con `merge --no-ff`. A `main` solo se
+mergea la entrega, etiquetada. **Nadie commitea directo sobre `dev` ni sobre
+`main`**, ni siquiera para un arreglo pequeño: así cada bloque queda aislado y se
+puede revisar o descartar como una unidad.
 
 ## Estado
 
@@ -102,5 +112,5 @@ Cada bloque sale de `dev` y vuelve a `dev`. A `main` solo se mergea la entrega.
 - [x] 2.2 Generación y caracterización de señales — `docs/2_2_senales.md`
 - [ ] 2.3 Filtro temporal FIR o IIR
 - [ ] 2.4 Reducción espectral FFT/IFFT
-- [ ] 2.5 Comparación y propuesta embebida — necesita `resultados/salidas/`
-- [ ] Informe PDF
+- [ ] 2.5 Comparación y propuesta embebida — maquinaria lista, faltan las salidas
+- [ ] Informe PDF — esqueleto en `informe/`, con 2.2 ya escrito

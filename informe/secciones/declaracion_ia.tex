@@ -1,0 +1,37 @@
+% Declaracion de uso de IA - lineamiento 2 del enunciado
+%
+% "Se permite utilizar herramientas de inteligencia artificial, pero el grupo
+%  debera declarar donde se utilizaron, que informacion se suministro y como se
+%  verificaron sus resultados."
+%
+% Cada integrante agrega su propia fila. Si alguien no uso IA, lo dice.
+
+\section*{Declaración de uso de herramientas de inteligencia asistida}
+\addcontentsline{toc}{section}{Declaración de uso de IA}
+
+\subsection*{Generación y caracterización de señales (apartado 2.2)}
+
+\textbf{Dónde se utilizó.} Se usó Claude (Anthropic) para escribir los módulos
+\texttt{senales.py}, \texttt{metricas.py}, \texttt{graficas.py} y
+\texttt{comparacion.py}, las pruebas automáticas de
+\texttt{pruebas/test\_senales.py} y un borrador del texto de este apartado.
+
+\textbf{Qué información se suministró.} El enunciado de la tarea, el enunciado
+del proyecto, el notebook generador entregado por el profesor, y los parámetros
+de los tres casos decididos por el grupo. No se suministró código de terceros ni
+material ajeno al curso.
+
+\textbf{Cómo se verificaron los resultados.} Las once pruebas automáticas de
+\texttt{pruebas/test\_senales.py} comprueban de forma independiente la
+reproducibilidad por semilla, la exactitud de la SNR antes y después de
+cuantizar, la ausencia de saturación, el cumplimiento de Nyquist y que el ruido
+de cada caso concentre su energía donde corresponde. Además se ejecutó el
+notebook completo y se verificó que regenera exactamente los archivos ya
+versionados, de modo que ningún resultado del informe depende de una ejecución
+que no se pueda repetir. Las cifras citadas en el texto se leyeron de esa
+ejecución, no del borrador.
+
+\subsection*{Resto de los apartados}
+
+\textit{(cada integrante completa aquí su propia declaración, con las mismas
+tres preguntas: dónde, qué se suministró y cómo se verificó)}
