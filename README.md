@@ -17,7 +17,7 @@ reducción adaptativa de ruido en tiempo real*.
 | Integrante | Carné | Bloque |
 |---|---|---|
 | Kevin Carranza Blanco | — | señales (2.2), comparación (2.5), informe |
-| *(por completar)* | | fundamentos y FFT (2.1) |
+| Gretchell Ochoa Quintero | — | fundamentos y FFT (2.1) |
 | *(por completar)* | | filtro temporal (2.3) |
 | *(por completar)* | | filtrado espectral (2.4) |
 
@@ -38,6 +38,7 @@ reducción adaptativa de ruido en tiempo real*.
 │   ├── caso_1/               # limpia.wav, ruido.wav, contaminada.wav y caso_1.json
 │   ├── caso_2/
 │   ├── caso_3/
+│   ├── test_fft.py           
 │   └── test_senales.py       # pruebas automáticas de la generación
 ├── resultados/
 │   ├── figuras/              # figuras del informe, con prefijo del punto
@@ -85,6 +86,7 @@ Las piezas también corren solas, sin el notebook:
 python src/senales.py          # regenera los nueve WAV y los JSON de cada caso
 python src/graficas.py         # regenera las figuras del punto 2.2
 python pruebas/test_senales.py # 11 pruebas automáticas de la generación
+python pruebas/test_fft.py     # genera las figuras fig_21_* 
 python src/comparacion.py      # tabla del 2.5 con las salidas que ya existan
 ```
 
@@ -97,7 +99,7 @@ python src/comparacion.py      # tabla del 2.5 con las salidas que ya existan
 | `senales` | generación y análisis de señales (2.2) |
 | `filtrado-temporal` | filtro FIR/IIR (2.3) |
 | `filtrado-espectral` | reducción por FFT/IFFT (2.4) |
-| `pruebas` | fundamentos y FFT (2.1) y pruebas automáticas |
+| `fundamentos-y-fft` | fundamentos y FFT (2.1) y pruebas automáticas |
 | `comparacion` | métricas y comparación de métodos (2.5) |
 | `informe` | fuentes LaTeX del informe |
 
@@ -108,7 +110,7 @@ puede revisar o descartar como una unidad.
 
 ## Estado
 
-- [ ] 2.1 Fundamentos, muestreo y FFT
+- [x] 2.1 Fundamentos, muestreo y FFT
 - [x] 2.2 Generación y caracterización de señales — `docs/2_2_senales.md`
 - [ ] 2.3 Filtro temporal FIR o IIR
 - [ ] 2.4 Reducción espectral FFT/IFFT
