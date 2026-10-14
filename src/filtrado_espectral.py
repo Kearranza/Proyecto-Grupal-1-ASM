@@ -1,122 +1,170 @@
-# Reduccion espectral por FFT/IFFT
+# Reduccion espectral FFT/IFFT
 # Punto 2.4
 
 from pathlib import Path
 
 import numpy as np
 
-from dft_fft import fft, ifft
 import senales
-
+from dft_fft import fft, ifft
 
 RAIZ = Path(__file__).resolve().parent.parent
 CARPETA_SALIDAS = RAIZ / "resultados" / "salidas"
 
+FRECUENCIAS_UTILES = [440, 880, 1320]
+
 
 def planitud_espectral(magnitud):
     magnitud = np.maximum(magnitud, 1e-12)
-    return np.exp(np.mean(np.log(magnitud))) / np.mean(magnitud)
+    return float(
+        np.exp(np.mean(np.log(magnitud))) /
+        np.mean(magnitud)
+    )
+
+
+def bins_utiles(n_fft, fs):
+    return [
+        int(round(f * n_fft / fs))
+        for f in FRECUENCIAS_UTILES
+    ]
 
 
 def clasificar_ruido(magnitud):
-    mitad = magnitud[:len(magnitud) // 2]
+
+    mitad = magnitud[:len(magnitud)//2]
 
     flatness = planitud_espectral(mitad)
 
-    ratio_db = 20 * np.log10(
+    ratio = (
         np.max(mitad) /
         (np.median(mitad) + 1e-12)
     )
 
+    ratio_db = 20 * np.log10(ratio)
+
     if ratio_db > 40:
         return "tonal"
 
-    if flatness > 0.1:
+    if flatness > 0.10:
         return "blanco"
 
     return "banda"
 
 
-def filtrado_bloque(X):
+def conservar_simetria(X):
+
+    N = len(X)
+
+    for k in range(1, N // 2):
+        X[-k] = np.conj(X[k])
+
+    return X
+
+
+def filtrar_tonal(X, fs):
+
+    N = len(X)
+
+    magnitud = np.abs(X)
+
+    candidata = magnitud.copy()
+
+    for b in bins_utiles(N, fs):
+
+        candidata[max(0, b - 2):b + 3] = 0
+
+    k = np.argmax(candidata[:N // 2])
+
+    ancho = 2
+
+    for i in range(
+        max(1, k - ancho),
+        min(N // 2, k + ancho + 1)
+    ):
+        X[i] *= 0.05
+
+    return conservar_simetria(X)
+
+
+def filtrar_blanco(X):
 
     magnitud = np.abs(X)
     fase = np.angle(X)
 
-    tipo = clasificar_ruido(magnitud)
+    ruido = np.median(magnitud)
+
+    ganancia = np.maximum(
+        0.20,
+        1.0 - ruido / (magnitud + 1e-12)
+    )
+
+    Y = magnitud * ganancia * np.exp(1j * fase)
+
+    return conservar_simetria(Y)
+
+
+def filtrar_banda(X, fs):
+
+    N = len(X)
+
+    frecuencias = np.arange(N) * fs / N
+
+    banda = (
+        (frecuencias >= 800)
+        &
+        (frecuencias <= 1500)
+    )
 
     Y = X.copy()
 
+    Y[banda] *= 0.20
+
+    return conservar_simetria(Y)
+
+
+def procesar_bloque(X, fs):
+
+    tipo = clasificar_ruido(np.abs(X))
+
     if tipo == "tonal":
+        return filtrar_tonal(X.copy(), fs)
 
-        k = np.argmax(magnitud[1:len(magnitud)//2]) + 1
+    if tipo == "blanco":
+        return filtrar_blanco(X.copy())
 
-        ancho = 2
-
-        for i in range(
-                max(1, k - ancho),
-                min(len(magnitud)//2, k + ancho + 1)):
-            Y[i] *= 0.05
-            Y[-i] = np.conj(Y[i])
-
-    elif tipo == "blanco":
-
-        ruido = np.median(magnitud)
-
-        ganancia = np.maximum(
-            0.2,
-            1.0 - ruido/(magnitud + 1e-12)
-        )
-
-        Y = magnitud * ganancia * np.exp(1j * fase)
-
-    else:
-
-        mediana = np.median(magnitud)
-
-        umbral = 2 * mediana
-
-        bins = np.where(
-            magnitud[:len(magnitud)//2] > umbral
-        )[0]
-
-        if bins.size:
-
-            inicio = bins[0]
-            fin = bins[-1]
-
-            Y[inicio:fin+1] *= 0.15
-
-            for k in range(inicio, fin + 1):
-                Y[-k] = np.conj(Y[k])
-
-    return Y
-
+    return filtrar_banda(X.copy(), fs)
 
 def reducir_ruido(
         x,
+        fs,
         n_bloque=1024,
         solapamiento=0.5):
 
-    hop = int(n_bloque * (1 - solapamiento))
+    hop = int(
+        n_bloque * (1.0 - solapamiento)
+    )
 
     ventana = np.hanning(n_bloque)
 
     salida = np.zeros(len(x) + n_bloque)
 
-    normalizacion = np.zeros(len(x) + n_bloque)
+    normalizacion = np.zeros(
+        len(x) + n_bloque
+    )
 
     for inicio in range(
             0,
             len(x) - n_bloque + 1,
             hop):
 
-        bloque = x[
-            inicio:inicio+n_bloque
-        ] * ventana
+        bloque = (
+            x[inicio:inicio+n_bloque]
+            * ventana
+        )
 
         X = fft(bloque)
 
-        Y = filtrado_bloque(X)
+        Y = procesar_bloque(X, fs)
 
         reconstruida = np.real(ifft(Y))
 
@@ -126,23 +174,24 @@ def reducir_ruido(
 
         normalizacion[
             inicio:inicio+n_bloque
-        ] += ventana**2
+        ] += ventana ** 2
 
-    indices = normalizacion > 1e-12
+    validos = normalizacion > 1e-12
 
-    salida[indices] /= normalizacion[indices]
+    salida[validos] /= normalizacion[validos]
 
     return salida[:len(x)]
 
 
 def procesar_caso(identificador):
 
-    datos = senales.cargar_caso(identificador)
+    datos = senales.cargar_caso(
+        identificador
+    )
 
     salida = reducir_ruido(
         datos["contaminada"],
-        n_bloque=1024,
-        solapamiento=0.5
+        datos["fs"]
     )
 
     CARPETA_SALIDAS.mkdir(
@@ -167,10 +216,12 @@ def generar_todos():
             "caso_2",
             "caso_3"):
 
-        procesar_caso(identificador)
+        procesar_caso(
+            identificador
+        )
 
         print(
-            f"Procesado {identificador}"
+            f"procesado {identificador}"
         )
 
 
