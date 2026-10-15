@@ -39,7 +39,3 @@ desktop.ini
 # y resultados/metricas.csv, porque la tarea los pide como entregable.
 *.tmp.wav
 scratch/
-
-# El zip de entrega se arma con armar_entrega.py, no se versiona
-tarea1_grupo*.zip
-tarea1_grupo*/

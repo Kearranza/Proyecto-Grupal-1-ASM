@@ -88,7 +88,6 @@ python src/graficas.py         # regenera las figuras del punto 2.2
 python pruebas/test_senales.py # 11 pruebas automáticas de la generación
 python pruebas/test_fft.py     # genera las figuras fig_21_* 
 python src/comparacion.py      # tabla del 2.5 a partir de resultados/salidas/
-python armar_entrega.py 01     # arma tarea1_grupo01.zip con la estructura del enunciado
 ```
 
 ## Ramas
