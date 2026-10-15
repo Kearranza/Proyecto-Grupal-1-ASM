@@ -1,59 +1,248 @@
-% Apartado 2.5 - Comparacion y propuesta para el sistema embebido (20 puntos) - BLOQUE 1
-%
-% Necesita las salidas de los bloques 3 y 4 en resultados/salidas/.
-% Los numeros de la tabla salen de resultados/metricas.csv, que escribe
-% src/comparacion.py.
-%
-% Incisos del enunciado:
-%   a) cual metodo ofrece el mejor compromiso entre reduccion y distorsion
-%   b) en cual condicion falla cada metodo y por que
-%   c) tamano de bloque, frecuencia de muestreo y formato numerico propuestos
-%   d) bibliotecas de FFT y filtrado disponibles para el hardware escogido,
-%      con licencia, precision numerica y limitaciones conocidas
-%   e) diagrama de bloques definitivo de los tres nodos, que informacion se
-%      transmite, cuantos bytes por bloque y cual es la tasa minima
+% Apartado 2.5 - Comparacion y propuesta para el sistema embebido - BLOQUE 1
+% Los numeros salen de resultados/metricas.csv, que escribe src/comparacion.py
 
 \section{Comparación y propuesta para el sistema embebido}
 \label{sec:comparacion}
 
-\subsection{Métricas}
+\subsection{Cómo se midió}
 
-Se comparan tres señales contra la referencia limpia: la contaminada sin
-filtrar, la salida del filtro temporal y la salida del método espectral. Las
-definiciones son las del enunciado,
+Las tres señales que se comparan contra la referencia limpia son la contaminada
+sin filtrar, la salida del filtro temporal del apartado \ref{sec:temporal} y la
+salida del método espectral del apartado \ref{sec:espectral}. Las definiciones
+son las del enunciado,
 \begin{align}
-\mathrm{MSE} &= \frac{1}{L}\sum_{n=0}^{L-1}\bigl(s[n]-\hat{s}[n]\bigr)^2, \\
+\mathrm{MSE} &= \frac{1}{L}\sum_{n=0}^{L-1}\bigl(s[n]-\hat{s}[n]\bigr)^2,\\
 \mathrm{SNR}_{\mathrm{dB}} &= 10\log_{10}
-  \left(\frac{\sum_{n=0}^{L-1}s^2[n]}{\sum_{n=0}^{L-1}(s[n]-\hat{s}[n])^2}\right), \\
+  \left(\frac{\sum_{n} s^2[n]}{\sum_{n}(s[n]-\hat{s}[n])^2}\right),\\
 \Delta\mathrm{SNR} &= \mathrm{SNR}_{\mathrm{salida}}-\mathrm{SNR}_{\mathrm{entrada}}.
 \end{align}
 
-Antes de medir se compensa el retardo que introduce cada método, estimado por
-correlación cruzada entre la salida y la referencia. Sin esa compensación el
-MSE penalizaría el retardo de grupo del filtro y no su distorsión, que es lo
-que se quiere comparar. El retardo detectado se reporta como una columna más,
-porque también es un dato de diseño: en el sistema en tiempo real se traduce en
-latencia.
+Las tres las calcula \texttt{src/comparacion.py} leyendo los archivos de
+\texttt{resultados/salidas/}, no llamando al código de cada método. Así los dos
+se miden con la misma vara y ninguno puede reportarse a sí mismo.
 
-\textit{(pendiente: tabla desde \texttt{resultados/metricas.csv})}
+Antes de medir se estima por correlación cruzada el retardo entre cada salida y
+la referencia, y se compensa. Sin esa compensación el MSE castigaría el retardo
+de grupo del filtro en vez de su distorsión. En las seis salidas entregadas el
+retardo detectado fue de cero muestras, es decir que ambos métodos ya devuelven
+la señal alineada.
 
-\subsection{Mejor compromiso entre reducción de ruido y distorsión}
+La columna de energía útil conservada es la fracción de la energía que sobrevive
+en una ventana de $\pm 60$\,Hz alrededor de cada tono. La de atenuación mide la
+caída de energía en la banda donde vive el ruido de cada caso: el tono $\pm
+50$\,Hz en el primero, la banda 800--1500\,Hz en el tercero, y todo lo que queda
+por encima de la banda útil en el segundo, que por ser ruido blanco no tiene
+banda propia.
 
-\textit{(pendiente — inciso a)}
+\subsection{Resultados}
 
-\subsection{Condiciones en las que falla cada método}
+\begin{table}[H]
+\centering\small
+\caption{Comparación de los tres casos. Generada por \texttt{src/comparacion.py}
+en \texttt{resultados/metricas.csv}.}
+\begin{tabular}{llrrrrr}
+\toprule
+Caso & Método & MSE & SNR (dB) & $\Delta$SNR (dB) & E. útil & Atenuación (dB) \\
+\midrule
+\texttt{caso\_1} & sin filtrar & $4{,}88\cdot10^{-2}$ & 2,00 & 0,00 & 1,000 & 0,00 \\
+\texttt{caso\_1} & temporal    & $8{,}75\cdot10^{-5}$ & \textbf{29,46} & \textbf{+27,46} & 1,000 & \textbf{65,22} \\
+\texttt{caso\_1} & espectral   & $2{,}97\cdot10^{-4}$ & 24,15 & +22,15 & 1,000 & 25,33 \\
+\midrule
+\texttt{caso\_2} & sin filtrar & $1{,}89\cdot10^{-2}$ & $-0{,}00$ & 0,00 & 1,051 & 0,00 \\
+\texttt{caso\_2} & temporal    & $1{,}82\cdot10^{-2}$ & 0,18 & +0,18 & 1,050 & 0,23 \\
+\texttt{caso\_2} & espectral   & $5{,}34\cdot10^{-3}$ & \textbf{5,50} & \textbf{+5,50} & \textbf{0,867} & 6,11 \\
+\midrule
+\texttt{caso\_3} & sin filtrar & $1{,}94\cdot10^{-2}$ & 3,00 & 0,00 & 1,159 & 0,00 \\
+\texttt{caso\_3} & temporal    & $1{,}94\cdot10^{-2}$ & 3,00 & +0,00 & 1,158 & 0,00 \\
+\texttt{caso\_3} & espectral   & $1{,}73\cdot10^{-2}$ & 3,49 & +0,49 & 1,160 & 0,47 \\
+\bottomrule
+\end{tabular}
+\end{table}
 
-\textit{(pendiente — inciso b; enlazar con la sección \ref{sec:limite})}
+El tiempo de proceso del método espectral, medido sobre los 63 bloques de una
+señal completa, fue de 3,73\,ms por bloque en una computadora de escritorio con
+la FFT propia escrita en Python. El presupuesto en tiempo real es de 32\,ms por
+bloque, que es lo que dura el salto de 512 muestras a 16\,kHz. El filtro temporal
+cuesta 15 multiplicaciones-acumulaciones por muestra, es decir 240\,000\,MAC/s a
+esa frecuencia, según la medición del apartado \ref{sec:temporal}. La medición
+sobre el microcontrolador corresponde a la siguiente etapa del proyecto.
+
+\subsection{Cuál ofrece el mejor compromiso}
+
+No hay un ganador único, y esa es la conclusión más útil de la tabla.
+
+En el primer caso gana el filtro temporal con holgura: 27,5\,dB de ganancia
+contra 22,2\,dB, conservando ambos el 100\,\% de la energía útil. La diferencia
+grande está en la atenuación de la interferencia, 65,2\,dB contra 25,3\,dB. La
+razón es estructural: una muesca IIR puede hacerse arbitrariamente profunda sobre
+una frecuencia fija, mientras que la atenuación por bines tiene como piso la fuga
+de la ventana Hann, que reparte la energía del tono entre varios bines vecinos.
+Contra una interferencia tonal estacionaria y conocida, el filtro temporal es
+mejor herramienta.
+
+En el segundo caso se invierte por completo: el método espectral da 5,5\,dB y el
+temporal 0,18\,dB. Pero el espectral lo paga perdiendo el 13,3\,\% de la energía
+útil, el único caso de la tabla donde esa columna baja de 1,000.
+
+En el tercero ninguno sirve. El temporal no mueve la aguja y el espectral gana
+0,49\,dB, que es menos que la incertidumbre con la que alguien juzgaría la señal
+de oído.
+
+Si hay que escoger uno solo, el espectral ofrece el mejor compromiso
+\emph{promedio}, porque es el único que hace algo en los tres escenarios: su
+clasificación por bloque le permite cambiar de estrategia, mientras que el
+temporal tiene una $H(z)$ fija diseñada para un caso. Pero el sistema distribuido
+del proyecto no obliga a escoger: tiene un nodo para cada uno, y la tabla
+justifica esa decisión de arquitectura en lugar de contradecirla.
+
+\subsection{En qué condición falla cada método}
+
+\textbf{El filtro temporal falla cuando el ruido entra en su banda de paso.} Un
+sistema lineal e invariante en el tiempo solo puede discriminar por frecuencia:
+su respuesta $H(e^{j\omega})$ multiplica cada componente por un número que
+depende únicamente de $\omega$. Como la banda de paso tiene que contener los
+tonos útiles, cualquier ruido que caiga ahí se multiplica por el mismo factor que
+la señal y sale intacto. Eso es exactamente lo que ocurre en el segundo caso,
+donde el ruido blanco cubre la banda útil, y en el tercero, donde la banda de
+ruido la contiene. Sus ganancias de 0,18 y 0,00\,dB no son un defecto de diseño
+sino el límite de la clase de sistemas a la que pertenece.
+
+\textbf{El método espectral falla por dos razones distintas.} La primera es la
+misma del caso anterior llevada al dominio de la frecuencia: cuando señal y ruido
+comparten bin, atenuar el bin atenúa las dos cosas, y de ahí los 0,49\,dB del
+tercer caso y la caída de energía útil a 0,867 en el segundo. La segunda es
+propia del método: la profundidad de la atenuación está limitada por la fuga de
+la ventana. Por eso, incluso en el caso que le resulta fácil, llega a 25\,dB de
+atenuación donde el filtro temporal llega a 65.
+
+En resumen, el temporal falla por rigidez y el espectral por resolución. Las dos
+fallas se vuelven la misma cuando señal y ruido ocupan la misma frecuencia, que
+es el límite que el apartado \ref{sec:limite} ya había anticipado midiendo la SNR
+tono por tono antes de filtrar nada.
 
 \subsection{Tamaño de bloque, muestreo y formato numérico}
 
-\textit{(pendiente — inciso c)}
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+Parámetro & Propuesta & Justificación \\
+\midrule
+Frecuencia de muestreo & 16\,kHz & la componente más alta del banco es de 3500\,Hz \\
+Tamaño de bloque & 1024 muestras & $\Delta f = 15{,}6$\,Hz, potencia de dos \\
+Solapamiento & 50\,\% (salto de 512) & reconstrucción sin artefactos con Hann \\
+Latencia por bloque & 64\,ms de ventana, 32\,ms de salto & \\
+Formato numérico & \texttt{float32} & el estudio de cuantización lo respalda \\
+\bottomrule
+\end{tabular}
+\end{center}
 
-\subsection{Bibliotecas disponibles para el hardware escogido}
+Los 16\,kHz dejan un factor de 4,6 sobre la componente más alta del banco de
+pruebas, margen de sobra para el filtro antialias analógico. Bajar a 8\,kHz
+dejaría la interferencia de 3500\,Hz a solo 0,6\,kHz de Nyquist y obligaría a un
+antialias mucho más abrupto; subir a 44,1\,kHz triplicaría el costo sin aportar
+banda útil.
 
-\textit{(pendiente — inciso d: licencia, precisión numérica y limitaciones)}
+El bloque de 1024 es el punto donde la resolución de 15,6\,Hz alcanza para
+separar los tonos de 440 y 880\,Hz con holgura, y la latencia de 64\,ms todavía
+es tolerable. Duplicarlo a 2048 daría 7,8\,Hz pero 128\,ms de retardo, que en un
+sistema que procesa audio ya se percibe.
 
-\subsection{Arquitectura propuesta de los tres nodos}
+Sobre el formato, el estudio de cuantización del apartado \ref{sec:temporal}
+muestra que con \texttt{float32} la respuesta del filtro queda intacta, con 14
+bits fraccionarios la desviación en banda de paso es de 0,010\,dB, y con 8 bits
+el rizado casi se duplica y la atenuación cae por debajo de la especificación. La
+recomendación es \texttt{float32} siempre que el procesador tenga unidad de punto
+flotante; si no la tuviera, el formato Q2.14 con acumulador de mayor ancho es
+suficiente, y Q1.15 queda descartado porque $|a_1|$ puede superar la unidad.
 
-\textit{(pendiente — inciso e: diagrama, información transmitida, bytes por
-bloque y tasa mínima de comunicación)}
+\subsection{Hardware y bibliotecas disponibles}
+
+Se propone el \textbf{ESP32-WROOM-32} para los tres nodos. Pesan tres razones: el
+grupo ya tiene unidades y experiencia con él de un proyecto anterior del curso;
+trae unidad de punto flotante de precisión simple, que es lo que el formato
+propuesto pide; y sus 520\,kB de SRAM dejan el presupuesto de memoria del nodo
+espectral, estimado más abajo en unos 22\,kB, en territorio cómodo.
+
+\begin{table}[H]
+\centering\small
+\caption{Bibliotecas consideradas para la FFT y el filtrado.}
+\begin{tabular}{llp{6.4cm}}
+\toprule
+Biblioteca & Licencia & Precisión y limitaciones \\
+\midrule
+ESP-DSP \cite{espdsp} & Apache 2.0 & Biblioteca oficial de Espressif para ESP32 y ESP32-S3. Trae FFT, FIR e IIR con implementaciones en coma flotante de 32 bits y en enteros de 16 bits, varias escritas en ensamblador para el núcleo Xtensa, con referencias en C ANSI. Las rutas optimizadas están atadas a ese núcleo, de modo que migrar a otra arquitectura obliga a volver a las versiones en C. \\
+\addlinespace
+arduinoFFT \cite{arduinofft} & GPL-3.0 & Más simple de integrar desde el entorno de Arduino, sin optimización en ensamblador. Su licencia es \emph{copyleft}, lo que condiciona la distribución del firmware que la enlace; para un trabajo académico no es obstáculo, pero sí es un criterio a considerar. \\
+\addlinespace
+Implementación propia & --- & \texttt{src/dft\_fft.py} ya tiene la FFT radix-2 iterativa con reordenamiento bit-reverso, verificada contra la de biblioteca en \texttt{pruebas/test\_fft.py}. Portarla a C es directo y elimina toda dependencia externa, a costa de perder las optimizaciones en ensamblador. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+CMSIS-DSP, que sería la opción natural en un Cortex-M, no aplica al ESP32 por ser
+de arquitectura Xtensa; quedaría sobre la mesa solo si el grupo cambiara a un
+STM32.
+
+La recomendación es ESP-DSP por la licencia permisiva y las rutinas optimizadas,
+conservando la implementación propia como referencia de verificación: el nodo
+puede correr ambas sobre el mismo bloque y comparar, igual que el apartado
+\ref{sec:temporal} compara la ecuación de diferencias propia contra la de
+biblioteca.
+
+\subsection{Arquitectura de los tres nodos}
+
+\begin{center}\small
+\begin{tabular}{lp{10.2cm}}
+\toprule
+Nodo & Función \\
+\midrule
+1. Adquisición & Muestrea a 16\,kHz, elimina la componente de continua, aplica la ventana Hann, calcula la FFT y clasifica el ruido con las tres características del apartado \ref{sec:senales}. Reparte a los nodos 2 y 3. \\
+2. Filtrado temporal & Aplica la ecuación de diferencias del apartado \ref{sec:temporal} y entrega su salida. \\
+3. Filtrado espectral y evaluación & Aplica la cadena del apartado \ref{sec:espectral}, calcula MSE, SNR y energía, y muestra la comparación. \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Qué se transmite.} Por cada bloque, el nodo 1 envía las 512 muestras
+nuevas de la señal contaminada y un mensaje corto de parámetros: la clase de
+ruido detectada (1 byte), la frecuencia interferente estimada o los dos bordes de
+banda (2 o 4 bytes) y el nivel de piso de ruido (4 bytes). Los nodos 2 y 3 hacen
+su propio procesamiento sobre las muestras; los parámetros les ahorran repetir la
+clasificación y garantizan que los dos actúen sobre el mismo diagnóstico.
+
+\textbf{Cuántos bytes.} Con bloques de 1024 muestras, salto de 512 y 16 bits por
+muestra:
+\[
+512\ \text{muestras}\times 2\ \text{B} = 1024\ \text{B por bloque},
+\qquad
+\frac{16\,000}{512} = 31{,}25\ \text{bloques/s}.
+\]
+El flujo de muestras por enlace es entonces
+\[
+1024\ \text{B}\times 31{,}25\ \text{s}^{-1} = 32\,000\ \text{B/s} = 256\ \text{kbit/s},
+\]
+que es exactamente $f_s$ por los 16 bits de cada muestra, como tiene que ser. El
+mensaje de parámetros añade unos 16\,B por bloque, es decir 500\,B/s o 4\,kbit/s:
+menos del 2\,\% del total.
+
+\textbf{Tasa mínima.} Cada enlace necesita 260\,kbit/s de carga útil. El nodo 1
+alimenta dos nodos, de modo que su salida total es de 520\,kbit/s; los nodos 2 y
+3 devuelven su señal filtrada al nodo de comparación con otros 256\,kbit/s cada
+uno. Sobre UART con formato 8N1 el encuadre añade un 25\,\%, lo que sube el
+requisito por enlace a unos 325\,kbit/s: un UART a 460\,800 baudios alcanza con
+margen y uno a 921\,600 deja holgura para reintentos. Si se prefiere un solo bus
+compartido, SPI a 1\,MHz o más cubre los tres enlaces sin acercarse al límite.
+
+\textbf{Memoria estimada del nodo espectral.} Dos arreglos de 1024 valores en
+\texttt{float32} para la parte real e imaginaria son 8\,kB; la tabla de la
+ventana Hann, 4\,kB; el acumulador de solapamiento, 2\,kB; y los búferes de
+entrada y salida, unos 8\,kB. El total ronda los 22\,kB, holgado frente a los
+520\,kB de SRAM del ESP32. El nodo temporal necesita mucho menos: 84\,B de
+coeficientes y estados según el apartado \ref{sec:temporal}, más sus búferes.
+
+\textbf{Latencia de extremo a extremo.} El bloque impone 64\,ms de ventana más
+32\,ms de salto. A eso se suma el tiempo de proceso, que en el presupuesto de
+32\,ms por bloque deja margen suficiente según la medición de referencia, y el de
+transmisión, que a 460\,800 baudios es de unos 23\,ms por bloque de 1024\,B. El
+total queda por debajo de los 150\,ms, compatible con la operación en tiempo
+cuasi real que el proyecto pide.

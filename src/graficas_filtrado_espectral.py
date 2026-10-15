@@ -241,6 +241,19 @@ def generar_figura_compromiso():
         "Caso 3: compromiso ruido/distorsión"
     )
 
+    ax.set_xlabel(
+        "Frecuencia (Hz)"
+    )
+
+    ax.set_ylabel(
+        "Magnitud (dB)"
+    )
+
+    ax.grid(
+        True,
+        alpha=0.3
+    )
+
     ax.legend()
 
     ruta = (
