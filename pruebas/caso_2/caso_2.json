@@ -26,7 +26,7 @@
   "muestras": 32768,
   "duracion_s": 2.048,
   "ganancia_comun": 0.1659048509485622,
-  "snr_obtenida_db": 9.64327466553287e-16,
+  "snr_obtenida_db": 0.0,
   "snr_tras_cuantizar_db": -0.0003481921862580985,
   "archivos": {
     "limpia": "limpia.wav",
