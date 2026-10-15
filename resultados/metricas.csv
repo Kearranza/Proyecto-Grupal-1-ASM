@@ -1,0 +1,10 @@
+caso,metodo,mse,snr_db,delta_snr_db,energia_util_conservada,atenuacion_db,retardo_muestras,tiempo_por_bloque_ms,memoria_bytes
+caso_1,sin filtrar,4.879e-02,2.00,0.00,1.000,0.00,0,,
+caso_1,temporal,8.750e-05,29.46,27.46,1.000,65.22,0,,
+caso_1,espectral,2.972e-04,24.15,22.15,1.000,25.33,0,,
+caso_2,sin filtrar,1.893e-02,-0.00,0.00,1.051,0.00,0,,
+caso_2,temporal,1.815e-02,0.18,0.18,1.050,0.23,0,,
+caso_2,espectral,5.338e-03,5.50,5.50,0.867,6.11,0,,
+caso_3,sin filtrar,1.939e-02,3.00,0.00,1.159,0.00,0,,
+caso_3,temporal,1.938e-02,3.00,0.00,1.158,0.00,0,,
+caso_3,espectral,1.732e-02,3.49,0.49,1.160,0.47,0,,

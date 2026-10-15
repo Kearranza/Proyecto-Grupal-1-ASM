@@ -1,0 +1,91 @@
+% Informe de la Tarea 1 - CE 1110 Analisis de Senales Mixtas
+%
+% Compilar con pdfLaTeX + BibTeX. En Overleaf: subir el repositorio completo,
+% porque \graphicspath busca las figuras en ../resultados/figuras/.
+% Si solo se sube esta carpeta, copiar las figuras a informe/figuras/.
+%
+% Cada apartado vive en su propio archivo dentro de secciones/, para que
+% cuatro personas puedan escribir a la vez sin chocar.
+
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+% Con lmodern (Overleaf) microtype puede expandir; sin el, solo protrusion
+\IfFileExists{lmodern.sty}{\usepackage{lmodern}\def\microtipo{}}{}
+\IfFileExists{spanish.ldf}{\usepackage[spanish,es-nodecimaldot]{babel}}{%
+  % Sin babel-spanish (instalaciones minimas de TeX Live) se traducen a mano los
+  % rotulos que aparecen en el documento, para que el PDF salga igual en Overleaf
+  \AtBeginDocument{%
+    \renewcommand{\figurename}{Figura}%
+    \renewcommand{\tablename}{Cuadro}%
+    \renewcommand{\abstractname}{Resumen}%
+    \renewcommand{\refname}{Referencias}%
+    \renewcommand{\contentsname}{Contenido}}}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\ifdefined\microtipo\usepackage{microtype}\else\usepackage[expansion=false]{microtype}\fi
+\usepackage{cite}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{figuras/}{../resultados/figuras/}}
+
+% Las secciones se numeran 2.1 ... 2.5 para que coincidan con los apartados del
+% enunciado y el profesor no tenga que ir traduciendo numeros
+\renewcommand{\thesection}{2.\arabic{section}}
+\captionsetup{font=small,labelfont=bf}
+
+\title{\vspace{-1cm}\large\bfseries Tarea 1: Caracterización espectral y prototipado
+de filtros para reducción de ruido\\[4pt]
+\normalsize\mdseries Primer avance del Proyecto Grupal 1}
+
+\author{%
+\normalsize Santiago Brenes Torres \quad\textbullet\quad Kevin Antonio Carranza Blanco\\[2pt]
+\normalsize Luis David Delgado Jiménez \quad\textbullet\quad Gretchell Roxana Ochoa Quintero\\[3pt]
+\small Escuela de Ingeniería en Computadores, Instituto Tecnológico de Costa Rica\\[-1pt]
+\small CE\,1110 --- Análisis de Señales Mixtas}
+
+\date{\small 14 de octubre de 2026}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\begin{abstract}
+\noindent\small
+Este informe documenta el primer avance técnico de un sistema distribuido de
+reducción adaptativa de ruido. Se construyó un banco reproducible de tres casos de
+prueba a 16\,kHz, con una señal útil común de tres tonos y tres clases de
+contaminación: una interferencia tonal separada de la banda útil, ruido blanco, y
+ruido de banda que se solapa parcialmente con la señal. Sobre ese banco se
+implementaron y compararon dos estrategias de reducción: un filtro IIR elíptico de
+rechazo de banda aplicado mediante su ecuación de diferencias, y un método
+espectral por bloques de 1024 muestras con ventana Hann, clasificación automática
+del ruido y reconstrucción por solapamiento. Ambos se midieron con la misma
+herramienta a partir de sus archivos de salida. El filtro temporal alcanza
+$+27{,}5$\,dB de mejora cuando la interferencia queda fuera de su banda de paso,
+pero solo $+0{,}2$ y $+0{,}0$\,dB en los otros dos casos; el método espectral
+rinde $+22{,}2$, $+5{,}5$ y $+0{,}5$\,dB respectivamente, a costa de un 13\,\% de
+la energía útil en el caso de ruido blanco. Los resultados delimitan
+experimentalmente el punto en que señal y ruido comparten frecuencia y ningún
+filtro lineal puede separarlos, y fundamentan la propuesta de arquitectura para la
+etapa embebida.
+\end{abstract}
+
+\vspace{0.3cm}
+
+\input{secciones/2_1_fundamentos}
+\input{secciones/2_2_senales}
+\input{secciones/2_3_filtro_temporal}
+\input{secciones/2_4_filtrado_espectral}
+\input{secciones/2_5_comparacion}
+\input{secciones/declaracion_ia}
+
+\bibliographystyle{ieeetr}
+\bibliography{referencias}
+
+\end{document}

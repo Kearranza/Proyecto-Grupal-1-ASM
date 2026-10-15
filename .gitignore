@@ -1,16 +1,41 @@
+# Python
 __pycache__/
-*.pyc
-.ipynb_checkpoints/
+*.py[cod]
+*.egg-info/
 .venv/
 venv/
+env/
 
-# LaTeX
-informe/*.aux
-informe/*.log
-informe/*.out
-informe/*.toc
-informe/*.fls
-informe/*.fdb_latexmk
-informe/*.synctex.gz
-informe/*.bbl
-informe/*.blg
+# Jupyter
+.ipynb_checkpoints/
+*-checkpoint.ipynb
+
+# Editores
+.vscode/
+.idea/
+*.swp
+*~
+
+# Sistema operativo
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Auxiliares de LaTeX
+*.aux
+*.bbl
+*.blg
+*.fdb_latexmk
+*.fls
+*.lof
+*.lot
+*.log
+*.out
+*.synctex.gz
+*.toc
+
+# Audio y figuras de trabajo que no son entregable.
+# Lo que SI se versiona: pruebas/caso_*/ , resultados/figuras/ , resultados/salidas/
+# y resultados/metricas.csv, porque la tarea los pide como entregable.
+*.tmp.wav
+scratch/

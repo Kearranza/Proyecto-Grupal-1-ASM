@@ -1,0 +1,39 @@
+{
+  "id": "caso_3",
+  "nombre": "Ruido de banda que se solapa parcialmente con la banda útil",
+  "semilla": 20261003,
+  "tipo_senal": "multitono",
+  "frecuencias_utiles_hz": [
+    440,
+    880,
+    1320
+  ],
+  "amplitudes_utiles": [
+    1.0,
+    0.55,
+    0.3
+  ],
+  "fases_utiles_grados": [
+    0,
+    35,
+    -50
+  ],
+  "tipo_ruido": "banda",
+  "frecuencia_interferencia_hz": null,
+  "banda_ruido_hz": [
+    800,
+    1500
+  ],
+  "snr_objetivo_db": 3.0,
+  "fs_hz": 16000,
+  "muestras": 32768,
+  "duracion_s": 2.048,
+  "ganancia_comun": 0.23717564503612873,
+  "snr_obtenida_db": 3.0,
+  "snr_tras_cuantizar_db": 2.999821,
+  "archivos": {
+    "limpia": "limpia.wav",
+    "ruido": "ruido.wav",
+    "contaminada": "contaminada.wav"
+  }
+}

@@ -1,0 +1,143 @@
+% Apartado 2.4 - Reduccion espectral mediante FFT e IFFT (20 puntos) - BLOQUE 4
+% Codigo: src/filtrado_espectral.py y src/graficas_filtrado_espectral.py
+% Figuras: fig_24_caso_*.png y fig_24_compromiso.png
+% Salidas: resultados/salidas/caso_N_espectral.wav
+% Desarrollo en docs/2_4_filtrado_espectral.md
+
+\section{Reducción espectral mediante FFT e IFFT}
+\label{sec:espectral}
+
+La reducción espectral opera por bloques: ventana, FFT, estimación y modificación
+del espectro, IFFT y reconstrucción con solapamiento. La transformada es la FFT
+radix-2 propia de \texttt{src/dft\_fft.py}, no una de biblioteca. El esquema general
+—analizar por bloques, modificar la magnitud y resintetizar— es el de la
+sustracción espectral clásica \cite{boll1979}.
+
+\subsection{Bloques de tamaño potencia de dos}
+
+Se usan bloques de 1024 muestras, el mismo valor que fija
+\texttt{configuraciones.json} para todo el proyecto. La longitud total de las
+señales, 32\,768 muestras, es múltiplo exacto de ese bloque, de modo que no hay
+que rellenar el último con ceros.
+
+A 16\,kHz la resolución por bloque es
+\[
+\Delta f = \frac{f_s}{N} = \frac{16\,000}{1024} = 15{,}625\ \text{Hz},
+\]
+suficiente para separar las componentes útiles de 440, 880 y 1320\,Hz entre sí y
+de la interferencia de 3500\,Hz del primer caso. Ser potencia de dos es lo que
+permite usar la FFT radix-2 en lugar de la DFT directa.
+
+\subsection{Preservación de la simetría conjugada}
+
+Las señales son reales, así que su transformada cumple $X[k]=X^{*}[N-k]$. Si la
+modificación espectral se aplicara solo a una mitad del espectro, esa simetría se
+rompería y la IFFT devolvería una señal con parte imaginaria que no corresponde a
+ninguna señal física.
+
+Por eso, después de cada modificación, la relación de conjugación entre las
+frecuencias positivas y negativas se reconstruye explícitamente antes de la
+transformada inversa. Es el mismo argumento del apartado \ref{sec:fundamentos}
+inciso d), aplicado aquí: la simetría no es un detalle de representación sino la
+condición que garantiza que la salida sea real.
+
+\subsection{El parámetro adaptativo}
+
+El método no recibe la frecuencia del ruido como dato. La estima en cada bloque a
+partir de tres medidas del propio espectro: la planitud espectral, la razón entre
+el pico y la mediana, y la distribución general de energía. Son las mismas tres
+características que el apartado \ref{sec:senales} inciso d) había propuesto como
+discriminadores, verificadas ahí sobre los tres casos.
+
+Con esas medidas el algoritmo clasifica el ruido del bloque en una de tres
+familias y elige la estrategia correspondiente:
+
+\begin{center}\small
+\begin{tabular}{lll}
+\toprule
+Clasificación & Qué la delata & Estrategia \\
+\midrule
+Interferencia tonal & planitud baja, un bin domina & rechazo estrecho en el bin detectado \\
+Ruido blanco        & planitud alta               & atenuación distribuida sobre el piso \\
+Ruido de banda      & planitud baja, tramo contiguo & rechazo de banda con el ancho medido \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Esto es lo que distingue el método de anular un bin cuya posición se conozca de
+antemano: el bloque que procesa el caso 1 y el que procesa el caso 3 ejecutan
+ramas distintas sin que nadie se lo indique.
+
+\subsection{Ventana y reconstrucción con solapamiento}
+
+Cada bloque se multiplica por una ventana Hann antes de transformar, lo que
+reduce la fuga espectral a costa de atenuar los extremos del bloque. Para que esa
+atenuación no deje huecos en la señal reconstruida se usa solapamiento del
+50\,\%, es decir un desplazamiento entre bloques de
+\[
+H = \frac{N}{2} = 512\ \text{muestras},
+\]
+y los bloques procesados se suman con solapamiento (\emph{overlap-add}). Con la
+ventana Hann y ese salto, las contribuciones de bloques consecutivos suman una
+constante en la zona de traslape, de modo que no quedan artefactos de borde.
+
+\subsection{Aplicación a los tres casos}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_24_caso_1.png}
+\caption{Caso 1. La interferencia de 3500\,Hz está separada de la banda útil y el
+método la elimina sin tocar los tres tonos.}
+\end{figure}
+
+En el primer caso el algoritmo identifica la componente dominante y la atenúa
+25,3\,dB, con una ganancia de 22,2\,dB de relación señal a ruido y sin perder
+energía útil medible. Es el escenario ideal: señal y ruido ocupan regiones
+distintas del espectro.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_24_caso_2.png}
+\caption{Caso 2. Con ruido blanco no hay una frecuencia que eliminar; la
+reducción se reparte sobre todo el espectro.}
+\end{figure}
+
+En el segundo caso no existe una interferencia localizada, así que la atenuación
+se distribuye sobre un gran número de bines. El resultado es una ganancia de
+5,5\,dB, la mayor de los dos métodos en este caso, pero con un costo medible: se
+pierde el 13,3\,\% de la energía útil, porque parte del ruido que se atenúa cae
+sobre las mismas frecuencias de los tonos.
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_24_caso_3.png}
+\caption{Caso 3. La mayor parte de la modificación cae entre 800 y 1500\,Hz, que
+es justo donde viven dos de los tres tonos útiles.}
+\end{figure}
+
+El tercer caso es el exigente. El ruido ocupa de 800 a 1500\,Hz y ahí dentro
+están los tonos de 880 y 1320\,Hz. La ganancia se queda en 0,5\,dB: el algoritmo
+reconoce la banda, pero atenuarla más significaría llevarse la señal.
+
+\subsection{Cuando quitar más ruido empeora el resultado}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{fig_24_compromiso.png}
+\caption{Caso 3, ampliación de la banda 700--1600\,Hz. En la entrada los tonos de
+880 y 1320\,Hz sobresalen del ruido; en la salida filtrada han quedado al nivel
+del fondo. La atenuación del ruido y la pérdida de señal son la misma operación.}
+\label{fig:compromiso}
+\end{figure}
+
+La figura \ref{fig:compromiso} es la evidencia que pide el inciso f). En la curva
+de entrada los dos tonos útiles se distinguen por encima del ruido de banda; en
+la curva filtrada ya no, porque la atenuación que aplana el ruido aplana también
+los picos que estaban dentro de la banda.
+
+Esto coincide con lo que el apartado \ref{sec:senales} había anticipado midiendo
+la SNR tono por tono: en este caso el tono de 1320\,Hz llega con $-0{,}9$\,dB, es
+decir con menos energía que el ruido que lo acompaña. No es una falla del
+algoritmo. La FFT separa por frecuencia, y cuando señal y ruido ocupan el mismo
+bin no queda ninguna otra variable con la cual distinguirlos. Lo único que el
+método puede elegir es cuánto sacrificar de cada lado.
