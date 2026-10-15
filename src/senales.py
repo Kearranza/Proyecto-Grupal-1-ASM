@@ -152,8 +152,10 @@ def guardar_caso(datos, carpeta=None):
         'muestras': datos['n'],
         'duracion_s': datos['n']/datos['fs'],
         'ganancia_comun': datos['ganancia'],
-        'snr_obtenida_db': snr_db(datos['limpia'], datos['contaminada']),
-        'snr_tras_cuantizar_db': snr_db(*_leer_par(carpeta)),
+        # Redondeadas: el ultimo digito de un double cambia entre plataformas y
+        # eso hacia que el JSON saliera distinto en cada maquina sin cambiar nada
+        'snr_obtenida_db': round(snr_db(datos['limpia'], datos['contaminada']), 6),
+        'snr_tras_cuantizar_db': round(snr_db(*_leer_par(carpeta)), 6),
         'archivos': {'limpia': 'limpia.wav', 'ruido': 'ruido.wav',
                      'contaminada': 'contaminada.wav'},
     })

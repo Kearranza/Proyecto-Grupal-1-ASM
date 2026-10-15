@@ -14,12 +14,12 @@ reducción adaptativa de ruido en tiempo real*.
 
 ## Integrantes
 
-| Integrante | Carné | Bloque |
+| Integrante | Bloque | Apartados |
 |---|---|---|
-| Kevin Carranza Blanco | — | señales (2.2), comparación (2.5), informe |
-| Gretchell Ochoa Quintero | — | fundamentos y FFT (2.1) |
-| *(por completar)* | | filtro temporal (2.3) |
-| *(por completar)* | | filtrado espectral (2.4) |
+| Brenes Torres, Santiago | 3 | filtro temporal FIR/IIR (2.3) |
+| Carranza Blanco, Kevin Antonio | 1 | señales (2.2), comparación (2.5), integración e informe |
+| Delgado Jiménez, Luis David | 4 | reducción espectral FFT/IFFT (2.4) |
+| Ochoa Quintero, Gretchell Roxana | 2 | fundamentos, muestreo y FFT (2.1) |
 
 ## Estructura
 
@@ -70,7 +70,7 @@ necesita generarlos: ya están en el repositorio.
 ## Reproducir
 
 ```bash
-pip install numpy matplotlib
+pip install numpy scipy matplotlib
 jupyter notebook notebook.ipynb
 ```
 
@@ -87,7 +87,8 @@ python src/senales.py          # regenera los nueve WAV y los JSON de cada caso
 python src/graficas.py         # regenera las figuras del punto 2.2
 python pruebas/test_senales.py # 11 pruebas automáticas de la generación
 python pruebas/test_fft.py     # genera las figuras fig_21_* 
-python src/comparacion.py      # tabla del 2.5 con las salidas que ya existan
+python src/comparacion.py      # tabla del 2.5 a partir de resultados/salidas/
+python armar_entrega.py 01     # arma tarea1_grupo01.zip con la estructura del enunciado
 ```
 
 ## Ramas
@@ -111,8 +112,10 @@ puede revisar o descartar como una unidad.
 ## Estado
 
 - [x] 2.1 Fundamentos, muestreo y FFT
-- [x] 2.2 Generación y caracterización de señales — `docs/2_2_senales.md`
-- [ ] 2.3 Filtro temporal FIR o IIR
-- [ ] 2.4 Reducción espectral FFT/IFFT
-- [ ] 2.5 Comparación y propuesta embebida — maquinaria lista, faltan las salidas
-- [ ] Informe PDF — esqueleto en `informe/`, con 2.2 ya escrito
+- [x] 2.2 Generación y caracterización de señales
+- [x] 2.3 Filtro temporal FIR o IIR
+- [x] 2.4 Reducción espectral FFT/IFFT
+- [x] 2.5 Comparación y propuesta embebida
+- [x] Informe en `informe/`, compilable con pdfLaTeX + BibTeX
+- [ ] Declaración de uso de IA — cada integrante escribe la suya
+- [ ] Merge a `main` y etiqueta `tarea1_prototipo`
