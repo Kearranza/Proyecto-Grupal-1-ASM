@@ -1,34 +1,224 @@
 % Apartado 2.3 - Filtro temporal FIR o IIR (20 puntos) - BLOQUE 3
-%
-% Los ocho incisos del enunciado:
-%   a) banda de paso, banda de rechazo, frecuencias de corte, rizado, atenuacion
-%   b) justificacion del tipo y del orden
-%   c) coeficientes de la ecuacion de diferencias
-%   d) funcion de transferencia H(z)
-%   e) polos y ceros, region de convergencia causal, verificacion de estabilidad
-%   f) respuesta en magnitud, fase y retardo de grupo
-%   g) aplicacion a los tres casos, aunque el diseno se optimice para uno
-%   h) cuantizacion de coeficientes, saturacion y memoria en el microcontrolador
-%
-% Se puede usar biblioteca para DISENAR, pero hay que aplicar la ecuacion de
-% diferencias propia y demostrar que da la misma salida que la funcion de
-% biblioteca dentro de una tolerancia declarada.
 % Codigo: src/filtros_temporales.py   Figuras: fig_23_*.png
 % Salidas: resultados/salidas/caso_N_temporal.wav para los tres casos
+% Requiere: graphicx, amsmath
 
 \section{Filtro temporal FIR o IIR}
 \label{sec:temporal}
 
-\textit{(pendiente — bloque 3)}
+Se eligió el \textbf{caso 1} (interferencia sinusoidal de $3500$~Hz separada de las componentes útiles de $440$, $880$ y $1320$~Hz) y se diseñó un \textbf{filtro IIR elíptico de rechazo de banda} de orden 6, implementado como una cascada de tres secciones de segundo orden (biquads) en forma directa II transpuesta.
 
 \subsection{Especificación y elección del filtro}
 
+\paragraph{Especificación.} La Tabla~\ref{tab:espec} resume los parámetros de diseño. Los tonos útiles quedan a más de $2$~kHz del borde de paso más cercano ($3400$~Hz), es decir, en plena banda de paso y lejos de las transiciones.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Parámetro} & \textbf{Valor} \\ \hline
+Frecuencia de muestreo & $16$~kHz \\ \hline
+Interferencia a eliminar & $3500$~Hz \\ \hline
+Banda de rechazo & $3470$--$3530$~Hz ($\pm 30$~Hz) \\ \hline
+Bandas de paso & $0$--$3400$~Hz y $3600$--$8000$~Hz \\ \hline
+Rizado máximo en paso & $1$~dB \\ \hline
+Atenuación mínima en rechazo & $40$~dB \\ \hline
+\end{tabular}
+\caption{Especificación del filtro de rechazo de banda.}
+\label{tab:espec}
+\end{table}
+
+El diseño cumple la especificación: el máximo de $|H|$ en la banda de rechazo es $-40.00$~dB, el mínimo en las bandas de paso es $-1.000$~dB y $|H(3500~\mathrm{Hz})| = -89.4$~dB.
+
+\paragraph{Tipo.} El espectro del caso 1 muestra una única interferencia tonal aislada, por lo que corresponde un filtro de rechazo de banda: elimina solo la región de la interferencia y deja pasar el resto del espectro. Un pasa bajas con corte cercano a $2$~kHz también la eliminaría en este caso, pero descartaría todo el contenido por encima de ese corte y no se generaliza a una interferencia que cambie de posición.
+
+\paragraph{Familia y orden.} La Tabla~\ref{tab:orden} compara el orden necesario para la misma especificación. Se escogió el elíptico por tener el menor orden: tres biquads, es decir, $15$ multiplicaciones-acumulaciones por muestra frente a unas $500$ de un FIR equivalente. A cambio presenta rizado en ambas bandas (aceptado en la especificación) y fase no lineal, discutida en la Sección~\ref{sec:resp}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Filtro} & \textbf{Orden total} \\ \hline
+Butterworth & $10$ \\ \hline
+Chebyshev I & $8$ \\ \hline
+Chebyshev II & $8$ \\ \hline
+\textbf{Elíptico} & $\mathbf{6}$ \\ \hline
+FIR (ventana Kaiser, transición de $70$~Hz, $40$~dB) & $\approx 512$ \\ \hline
+\end{tabular}
+\caption{Orden requerido para la misma especificación.}
+\label{tab:orden}
+\end{table}
+
 \subsection{Función de transferencia, polos y ceros}
 
+\paragraph{Ecuación de diferencias.} Cada sección $k$ cumple
+\begin{equation}
+y[n] = b_0 x[n] + b_1 x[n-1] + b_2 x[n-2] - a_1 y[n-1] - a_2 y[n-2],
+\end{equation}
+y se implementa en forma directa II transpuesta con dos estados $(z_1, z_2)$:
+$y = b_0 x + z_1$, \; $z_1 = b_1 x - a_1 y + z_2$, \; $z_2 = b_2 x - a_2 y$.
+La Tabla~\ref{tab:coef} da los coeficientes (con $a_0 = 1$).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|r|r|r|r|r|}
+\hline
+\textbf{Sección} & $b_0$ & $b_1$ & $b_2$ & $a_1$ & $a_2$ \\ \hline
+0 & $0.91308167$ & $-0.35630097$ & $0.91308167$ & $-0.36307738$ & $0.86089476$ \\ \hline
+1 & $1.00000000$ & $-0.36230176$ & $1.00000000$ & $-0.31232631$ & $0.98234956$ \\ \hline
+2 & $1.00000000$ & $-0.41797720$ & $1.00000000$ & $-0.46016607$ & $0.98261212$ \\ \hline
+\end{tabular}
+\caption{Coeficientes de las tres secciones de segundo orden.}
+\label{tab:coef}
+\end{table}
+
+\paragraph{Función de transferencia.} Se trabaja con la forma factorizada, más robusta numéricamente que un único cociente de grado 6:
+\begin{equation}
+H(z) = \prod_{k=0}^{2} \frac{b_{0,k} + b_{1,k} z^{-1} + b_{2,k} z^{-2}}{1 + a_{1,k} z^{-1} + a_{2,k} z^{-2}},
+\end{equation}
+con los coeficientes de la Tabla~\ref{tab:coef}. Por ejemplo,
+\begin{equation}
+H_0(z) = \frac{0.91308167 - 0.35630097\, z^{-1} + 0.91308167\, z^{-2}}{1 - 0.36307738\, z^{-1} + 0.86089476\, z^{-2}}.
+\end{equation}
+
+\paragraph{Polos, ceros y estabilidad.} La Figura~\ref{fig:polos} muestra el plano $z$. Los numeradores son simétricos ($b_0 = b_2$), por lo que los seis ceros están sobre el círculo unitario; los polos quedan dentro, cerca de los ceros (Tabla~\ref{tab:pz}). Esta disposición anula la banda de rechazo con los ceros y mantiene angosta la muesca con los polos.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Sección} & \textbf{Ceros ($|z|=1$)} & \textbf{Radio de los polos} & \textbf{Frecuencia de los polos} \\ \hline
+0 & $\approx 3500$~Hz & $0.9278$ & $\approx 3499$~Hz \\ \hline
+1 & $\approx 3536$~Hz & $0.9911$ & $\approx 3597$~Hz \\ \hline
+2 & $\approx 3464$~Hz & $0.9913$ & $\approx 3403$~Hz \\ \hline
+\end{tabular}
+\caption{Ubicación de ceros y polos.}
+\label{tab:pz}
+\end{table}
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.6\textwidth]{fig_23_polos_ceros.png}
+\caption{Diagrama de polos y ceros en el plano $z$.}
+\label{fig:polos}
+\end{figure}
+
+Para un sistema causal, la región de convergencia es $|z| > 0.991268$, el radio del polo más externo. Como ese radio es menor que $1$, la ROC contiene la circunferencia unitaria y el filtro es estable (BIBO). El margen es pequeño ($\approx 0.009$), consecuencia de una muesca tan angosta; por eso importa el estudio de cuantización de la Sección~\ref{sec:cuant}.
+
 \subsection{Respuesta en frecuencia y retardo de grupo}
+\label{sec:resp}
+
+La Figura~\ref{fig:resp} muestra magnitud, fase y retardo de grupo. La magnitud es plana dentro del rizado de $1$~dB fuera de la muesca y cae por debajo de $-40$~dB entre $3470$ y $3530$~Hz, con un mínimo de $-89.4$~dB en $3500$~Hz. La fase es no lineal y cambia rápidamente alrededor de la muesca.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{fig_23_respuestas.png}
+\caption{Respuesta en magnitud, fase y retardo de grupo del filtro.}
+\label{fig:resp}
+\end{figure}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Frecuencia} & \textbf{Retardo de grupo} \\ \hline
+$440$~Hz & $0.12$ muestras ($\approx 7~\mu$s) \\ \hline
+$880$~Hz & $0.14$ muestras ($\approx 8~\mu$s) \\ \hline
+$1320$~Hz & $0.17$ muestras ($\approx 11~\mu$s) \\ \hline
+$3000$~Hz & $2.25$ muestras ($0.14$~ms) \\ \hline
+$3400$~Hz & $\approx 123$ muestras ($7.7$~ms) \\ \hline
+$3500$~Hz & $\approx 6.3$ muestras ($0.39$~ms) \\ \hline
+$3600$~Hz & $\approx 122$ muestras ($7.6$~ms) \\ \hline
+\end{tabular}
+\caption{Retardo de grupo en frecuencias representativas.}
+\label{tab:gd}
+\end{table}
+
+En los tonos útiles el retardo es despreciable. Crece mucho en las transiciones y alcanza picos del orden de $10^3$ muestras en un intervalo muy estrecho junto a un cero en $\approx 3464$~Hz, donde la señal ya está atenuada más de $40$~dB. A diferencia de un FIR de fase lineal, este IIR no conserva la forma de onda de contenido cercano a la muesca.
 
 \subsection{Verificación contra la implementación de biblioteca}
 
+La ecuación de diferencias se aplicó con código propio (cascada de biquads en forma directa II transpuesta y, además, la forma directa I con los coeficientes $b$ y $a$) y se comparó con \texttt{scipy.signal.sosfilt} y \texttt{scipy.signal.lfilter}. La tolerancia declarada es de $10^{-9}$ en error absoluto máximo (doble precisión). La Tabla~\ref{tab:equiv} muestra que se cumple en los tres casos.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Caso} & \textbf{Error SOS vs.\ \texttt{sosfilt}} & \textbf{Error $(b,a)$ vs.\ \texttt{lfilter}} & \textbf{Resultado} \\ \hline
+caso 1 & $0$ & $2.81\times 10^{-13}$ & cumple \\ \hline
+caso 2 & $0$ & $1.86\times 10^{-13}$ & cumple \\ \hline
+caso 3 & $0$ & $1.90\times 10^{-13}$ & cumple \\ \hline
+\end{tabular}
+\caption{Error máximo absoluto entre la implementación propia y la biblioteca.}
+\label{tab:equiv}
+\end{table}
+
+El error nulo de la versión SOS es esperable, pues ambas usan la misma forma y el mismo orden de operaciones. El error de $\approx 10^{-13}$ de la forma directa corresponde a redondeo de punto flotante.
+
 \subsection{Aplicación a los tres casos}
 
+El filtro, optimizado para el caso 1, se aplicó a los tres casos (Tabla~\ref{tab:snr}). La SNR se midió respecto a la señal limpia, descartando las primeras $500$ muestras (transitorio) y \emph{sin compensar el retardo del filtro}.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Caso} & \textbf{SNR antes (dB)} & \textbf{SNR después (dB)} & \textbf{Mejora (dB)} \\ \hline
+caso 1 (tonal, $3500$~Hz) & $2.03$ & $30.13$ & $+28.10$ \\ \hline
+caso 2 (ruido blanco) & $0.03$ & $0.22$ & $+0.18$ \\ \hline
+caso 3 (banda $800$--$1500$~Hz) & $3.01$ & $3.02$ & $+0.00$ \\ \hline
+\end{tabular}
+\caption{SNR antes y después del filtro temporal.}
+\label{tab:snr}
+\end{table}
+
+\paragraph{Caso 1.} Es el caso para el que se diseñó el filtro: la interferencia se atenúa más de $40$~dB y los tonos útiles pasan casi intactos. Los $30$~dB finales incluyen el error de fase y de rizado sobre los tonos útiles, porque la salida no se alineó con la referencia; no es solo ruido residual.
+
+\paragraph{Caso 2.} La mejora es marginal: la muesca elimina unos $60$~Hz de un ruido repartido en $8000$~Hz, menos del $1\,\%$ de su potencia.
+
+\paragraph{Caso 3.} No hay mejora: el ruido ocupa $800$--$1500$~Hz, lejos de la muesca, y el filtro no lo toca. Reducirlo exigiría un filtro en esa banda, que degradaría los tonos de $880$ y $1320$~Hz que comparten espectro con el ruido.
+
+Esto confirma que un filtro temporal fijo funciona cuando señal y ruido están separados en frecuencia y que no se generaliza a ruidos de otra naturaleza.
+
 \subsection{Cuantización, saturación y memoria}
+\label{sec:cuant}
+
+\paragraph{Cuantización de coeficientes.} Se redondearon los coeficientes a punto fijo con distintas cantidades de bits fraccionarios y se comparó la respuesta con la ideal (Tabla~\ref{tab:cuant}).
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Bits fraccionarios} & \textbf{Estable} & \textbf{Desv.\ máx.\ en paso (dB)} & \textbf{Máx.\ $|H|$ en rechazo (dB)} \\ \hline
+$8$ & sí & $0.977$ & $-39.57$ \\ \hline
+$12$ & sí & $0.034$ & $-39.96$ \\ \hline
+$14$ & sí & $0.010$ & $-39.99$ \\ \hline
+$16$ & sí & $0.005$ & $-40.00$ \\ \hline
+float32 & sí & $\approx 0$ & $-40.00$ \\ \hline
+\end{tabular}
+\caption{Efecto de la cuantización de coeficientes.}
+\label{tab:cuant}
+\end{table}
+
+Con $8$ bits el rizado de paso casi se duplica y la atenuación queda por debajo de la especificación; con $12$ bits o más la respuesta queda prácticamente intacta. El radio polar máximo permanece en $\approx 0.9913$ y la simetría $b_0 = b_2$ sobrevive al redondeo, así que los ceros siguen sobre el círculo unitario. No se usa la desviación máxima global de $|H|$ como métrica: se concentra en el fondo de la muesca ($|H|\approx -90$~dB), donde un cambio mínimo de coeficientes produce diferencias grandes en dB sin importancia práctica, y su valor cambia con la rejilla de frecuencias empleada. Por eso se reportan la desviación en la banda de paso y el peor caso en la banda de rechazo.
+
+\paragraph{Saturación.} En los tres casos, la salida escalada a Q1.14 ($1.0 \leftrightarrow 16384$) no saturó int16 ($0$ muestras). Los picos fueron $0.490$, $0.805$ y $0.795$, lejos del límite de $\pm 2.0$ que admite ese formato. En el diseño real hay que verificar además los estados internos, que pueden exceder el rango de la salida, y usar acumuladores más anchos que los coeficientes.
+
+\paragraph{Memoria y costo en [microcontrolador].}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|r|}
+\hline
+\textbf{Recurso} & \textbf{Valor} \\ \hline
+Coeficientes ($15 \times 4$~B) & $60$~B \\ \hline
+Estados ($6 \times 4$~B) & $24$~B \\ \hline
+Total & $84$~B \\ \hline
+Costo por muestra & $15$ MAC \\ \hline
+Costo a $16$~kHz & $240\,000$ MAC/s \\ \hline
+\end{tabular}
+\caption{Memoria y costo computacional.}
+\label{tab:mem}
+\end{table}
+
+Con unidad de punto flotante se recomienda \texttt{float32}. Sin ella hay dos opciones: coeficientes de $32$ bits en punto fijo (por ejemplo Q2.30) con acumulador de $64$ bits, o coeficientes de $16$ bits en formato Q2.14, que dan una desviación de solo $0.010$~dB en la banda de paso. El formato Q1.15 no sirve porque $|a_1|$ puede superar $1$.
