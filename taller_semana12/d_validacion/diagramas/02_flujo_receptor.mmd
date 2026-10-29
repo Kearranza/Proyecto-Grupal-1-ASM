@@ -1,5 +1,27 @@
-%% TODO (D): flujo de captura y validación de UN bloque en la Pico W.
-%% Incluir: llenado del búfer, qué pasa si se desborda, quitar DC, ventana,
-%% FFT, envío del resultado y comparación con la referencia.
+%% Bloque D - Captura y validacion de UN bloque en la Pico W.
 flowchart TD
-    I([Inicio de bloque]) --> X["TODO (D)"]
+    I([Arranque]) --> CFG["Configurar ADC0 a 16 kHz<br/>DMA a dos buferes de 1024<br/>(ping-pong)"]
+    CFG --> LLE["DMA llena el bufer activo<br/>1024 muestras = 64 ms"]
+    LLE --> IRQ{"Bufer lleno?"}
+    IRQ -->|no| LLE
+    IRQ -->|si| SW["Cambiar al otro bufer<br/>y procesar el que se lleno"]
+
+    SW --> OVF{"El anterior<br/>seguia en proceso?"}
+    OVF -->|si| DESC["Descartar el mas viejo<br/>contador_sobrecarga++<br/>nunca se bloquea el DMA"]
+    DESC --> LLE
+    OVF -->|no| DC["Quitar la componente de DC<br/>restar la media del bloque"]
+
+    DC --> WIN["Multiplicar por Hann"]
+    WIN --> FFT["FFT de 1024 puntos<br/>radix-2 propia"]
+    FFT --> MAG["Magnitud en dB<br/>513 bins utiles"]
+    MAG --> PIC["Buscar los K picos<br/>mas altos (K ≤ 8)"]
+    PIC --> TRA["Armar la trama<br/>ver diagrama 03"]
+    TRA --> ENV["Enviar por serial"]
+    ENV --> AV["Avanzar 512 muestras<br/>solapamiento del 50 %<br/>31,25 bloques/s"]
+    AV --> LLE
+
+    ENV -.->|"en la computadora"| CMP["comparar_fft.py<br/>contra senal_del_modo()"]
+    CMP -.-> DEC["Decision del bloque<br/>ver diagrama 04"]
+
+    P["Presupuesto: 32 ms por bloque.<br/>Si el proceso tarda mas, se<br/>acumulan sobrecargas y hay que<br/>bajar N o subir el hop"]
+    P -.-> AV

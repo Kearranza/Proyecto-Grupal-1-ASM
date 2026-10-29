@@ -9,10 +9,10 @@ tamaños, umbrales y qué pasa cuando algo falla.
 
 | Archivo | Qué muestra | Estado |
 |---|---|---|
-| `01_cadena_senal.mmd` | Pico (PWM) → RC → ADC de la Pico → nodo 1, con niveles y fs | base hecha, revisar |
-| `02_flujo_receptor.mmd` | Captura de un bloque: ADC → búfer → quitar DC → ventana → FFT → comparar | por hacer |
-| `03_trama.mmd` | Cómo manda el nodo 1 sus resultados: inicio, número de bloque, largo, datos, CRC | por hacer |
-| `04_decision.mmd` | Qué hace el receptor si hay CRC malo, bloque perdido o búfer lleno | por hacer |
+| `01_cadena_senal.mmd` | Pico (PWM) → RC → ADC de la Pico → nodo 1, con niveles y fs | hecho |
+| `02_flujo_receptor.mmd` | Captura de un bloque: ADC → búfer → quitar DC → ventana → FFT → comparar | hecho |
+| `03_trama.mmd` | Cómo manda el nodo 1 sus resultados: inicio, número de bloque, modo, picos, CRC-16 | hecho |
+| `04_decision.mmd` | Qué hace el receptor si hay CRC malo, bloque perdido o búfer lleno | hecho |
 
 ## Lo que cada diagrama debe responder
 
@@ -38,3 +38,16 @@ El proyecto pide fijarlos **antes** de medir (sección 3.5). Proponer y justific
 
 Los cuatro diagramas, la tabla de criterios con su justificación y un párrafo de
 qué se haría si una prueba falla. D además integra el PDF (`informe/taller.tex`).
+
+## Decisiones tomadas
+
+- **Filtro RC:** dos etapas de R = 1,5 kΩ y C = 10 nF, fc = 10,6 kHz. Atenúa la
+  portadora de 488 kHz unos 66 dB y solo 0,9 dB en 3,5 kHz. Es una **propuesta de D**
+  para poder poner números en el diagrama 01; **C la confirma al medir**.
+- **El RC no es filtro antialias.** Su fc queda por encima de Nyquist (8 kHz). Sirve
+  igual porque el emisor no genera nada entre 3,5 kHz y la portadora. Cuando el nodo 1
+  tome una señal de una fuente arbitraria va a necesitar un antialias de verdad antes
+  del ADC.
+- **La trama lleva solo los picos, no los 513 bins.** Validar necesita el bin y el
+  nivel de cada componente. Son 8 + 4K bytes (24 B con K = 4, o 750 B/s) contra
+  1026 B por bloque (32 kB/s) si se mandara el espectro completo.
