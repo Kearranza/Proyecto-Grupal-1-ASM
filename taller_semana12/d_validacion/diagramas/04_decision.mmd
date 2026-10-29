@@ -1,0 +1,7 @@
+%% TODO (D): qué hace el receptor ante cada falla.
+%% Casos mínimos: CRC incorrecto, salto en el número de bloque, búfer lleno,
+%% pico fuera del margen de frecuencia o de amplitud.
+flowchart TD
+    T([Trama recibida]) --> C{"¿CRC correcto?"}
+    C -->|no| E["TODO (D)"]
+    C -->|sí| X["TODO (D)"]

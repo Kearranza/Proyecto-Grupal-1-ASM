@@ -1,0 +1,5 @@
+%% TODO (D): formato de la trama que manda el nodo 1.
+%% Ejemplo de campos: inicio (0xAA 0x55) | n.º de bloque | largo | datos | CRC-16.
+%% Justificar cada campo: delimitación, pérdida de bloques, detección de errores.
+flowchart LR
+    S["inicio"] --> Q["n.º bloque"] --> L["largo"] --> P["datos"] --> C["CRC"]
