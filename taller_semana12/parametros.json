@@ -1,0 +1,56 @@
+{
+  "_nota": "Parametros del taller semana 12. fs, N, ventana y senales de la Tarea 1 NO se repiten aqui: se leen de metadatos/configuraciones.json. Este archivo solo agrega lo nuevo del taller (emisor, receptor y validacion). Nadie escribe numeros a mano en el codigo: todo sale de estos dos JSON.",
+
+  "emisor": {
+    "placa": "Raspberry Pi Pico (RP2040), la de Santiago",
+    "salida": "PWM en GPIO15 + filtro RC",
+    "bits_salida": 8,
+    "_nota_pwm": "portadora con tope 255 = clk_sys/256 (unos 488 kHz a 125 MHz). El reloj de muestreo sale de otra rebanada PWM con divisor 2.5",
+    "fs_hz": null,
+    "_nota_fs": "null = usa el mismo fs_hz de configuraciones.json (16 kHz)",
+    "nivel_pico": 0.8,
+    "_nota_nivel": "fraccion del rango del PWM que usa la senal. Deja margen para no saturar y centra la senal en 1.65 V",
+    "baudios": 115200,
+    "_nota_baudios": "en la Pico el serial es USB CDC y los baudios no afectan la velocidad, pero pyserial pide un valor",
+    "filtro_reconstruccion": {
+      "tipo": "RC pasabajos de 2 etapas",
+      "fc_hz": null,
+      "_nota": "C lo define y lo justifica en el PDF (requisito 5.6 del proyecto)"
+    },
+    "modos": [
+      {
+        "id": 1,
+        "nombre": "Tono (prueba P1)",
+        "frecuencias_hz": [440],
+        "amplitudes": [1.0]
+      },
+      {
+        "id": 2,
+        "nombre": "Multitono (prueba P2)",
+        "frecuencias_hz": [440, 880, 1320],
+        "amplitudes": [1.0, 0.55, 0.3]
+      },
+      {
+        "id": 3,
+        "nombre": "Multitono + interferencia de 3500 Hz (caso_1 de la Tarea 1)",
+        "frecuencias_hz": [440, 880, 1320, 3500],
+        "amplitudes": [1.0, 0.55, 0.3, 0.9373],
+        "_nota": "0.9373 da SNR = 2 dB respecto a los tres tonos, igual que caso_1. A lo verifica en prototipo_frecuencias.py"
+      }
+    ]
+  },
+
+  "receptor": {
+    "placa": "Raspberry Pi Pico W (la de Luis)",
+    "entrada": "ADC0 en GPIO26",
+    "bits_adc": 12,
+    "vref_v": 3.3
+  },
+
+  "validacion": {
+    "margen_frecuencia_bins": null,
+    "margen_amplitud_db": null,
+    "snr_minima_captura_db": null,
+    "_nota": "D propone y justifica estos margenes. Deben quedar fijos ANTES de medir (seccion 3.5 del proyecto)"
+  }
+}

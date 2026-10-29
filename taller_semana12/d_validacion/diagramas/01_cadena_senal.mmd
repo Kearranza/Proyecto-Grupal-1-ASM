@@ -1,0 +1,14 @@
+%% Base de ejemplo. D la revisa y completa con los valores finales.
+flowchart LR
+    A["Pico (emisor)<br/>DDS a 16 kHz<br/>PWM 8 bits, GPIO15<br/>0 a 3,3 V, centro 1,65 V"]
+    B["Filtro RC<br/>2 etapas<br/>quita la portadora<br/>fc = ? Hz"]
+    C["Pico W<br/>ADC0, GPIO26<br/>12 bits, 16 kHz"]
+    D["Nodo 1<br/>bloques de N = 1024<br/>quitar DC, Hann, FFT"]
+    R["Referencia Python<br/>senal_del_modo()"]
+    V{"Comparar<br/>picos y niveles<br/>dentro del margen"}
+
+    A -->|"señal analógica"| B
+    B -->|"tierra común"| C
+    C --> D
+    D -->|"espectro por serial"| V
+    R --> V
