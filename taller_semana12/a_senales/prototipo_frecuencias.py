@@ -28,6 +28,7 @@ from comun import parametros as P  # noqa: E402
 from comun.pasos import ejecutar  # noqa: E402
 
 P.usar_src()
+import senales  # noqa: E402
 
 
 def resumen_muestreo(p):
@@ -54,8 +55,24 @@ def senal_del_modo(p, identificador, n_muestras=None, cuantizar_salida=True):
       - si cuantizar_salida, redondeada a p['emisor']['bits_salida'] bits.
     Devuelve (t, x).
     """
-    # TODO (A): implementar. Pueden reutilizar senales.multitono() de la Tarea 1.
-    raise NotImplementedError('TODO (A): generar la senal de cada modo')
+    m = P.modo(p, identificador)
+    emisor = p['emisor']
+    n = p['n_bloque'] if n_muestras is None else n_muestras
+    t = np.arange(n) / emisor['fs_hz']
+    # Fase 0 en todas las componentes: el acumulador de fase del DDS arranca en 0
+    x = senales.multitono(t, m['frecuencias_hz'], m['amplitudes'], [0] * len(m['amplitudes']))
+    # Misma escala que el emisor: si todos los senos coinciden en su pico, la suma vale nivel_pico
+    x = x * emisor['nivel_pico'] / sum(m['amplitudes'])
+    if cuantizar_salida:
+        x = cuantizar(x, emisor['bits_salida'])
+    return t, x
+
+
+def cuantizar(x, bits):
+    """Lo que hace el PWM: nivel entero de 0 a 2^bits - 1, con el cero en la mitad."""
+    mitad = 2 ** (bits - 1)
+    nivel = np.clip(np.round(x * mitad) + mitad, 0, 2 ** bits - 1)
+    return (nivel - mitad) / mitad
 
 
 def verificar_snr_modo_3(p):
