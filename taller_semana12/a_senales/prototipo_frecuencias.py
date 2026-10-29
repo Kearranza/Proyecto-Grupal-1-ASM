@@ -19,6 +19,7 @@ Entrega de A en el PDF (informe/secciones/1_senales.tex):
      (Tarea 1). Aqui solo falta la tabla de tiempos con N del taller.
 """
 import sys
+import time
 from pathlib import Path
 
 import numpy as np
@@ -29,12 +30,16 @@ from comun import parametros as P  # noqa: E402
 from comun.pasos import ejecutar  # noqa: E402
 
 P.usar_src()
+import dft_fft  # noqa: E402
 import graficas as G  # noqa: E402
 import metricas  # noqa: E402
 import senales  # noqa: E402
 
 # La amplitud del JSON tiene 4 decimales; ese redondeo mueve la SNR menos de 0.001 dB
 TOLERANCIA_SNR_DB = 0.01
+# La DFT por definicion tarda segundos con N = 1024; la FFT, milisegundos
+REPETICIONES_DFT = 3
+REPETICIONES_FFT = 50
 
 
 def resumen_muestreo(p):
@@ -147,7 +152,27 @@ def tabla_dft_vs_fft(p):
 
     Reportar tiempo promedio de varias corridas y el error maximo entre ambas.
     """
-    raise NotImplementedError('TODO (A): tabla de tiempos DFT vs FFT')
+    n = p['n_bloque']
+    x = senal_del_modo(p, 3)[1]
+    t_dft, X_dft = tiempo_promedio(dft_fft.dft, x, REPETICIONES_DFT)
+    t_fft, X_fft = tiempo_promedio(dft_fft.fft, x, REPETICIONES_FFT)
+    error = np.max(np.abs(X_dft - X_fft))
+    # Multiplicaciones complejas: N^2 en la DFT, (N/2)*log2(N) en la FFT radix-2
+    razon_teorica = n ** 2 / (n / 2 * np.log2(n))
+    print(f'    N = {n}: DFT {1000 * t_dft:.1f} ms, FFT {1000 * t_fft:.2f} ms, '
+          f'medida {t_dft / t_fft:.0f}x, teorica {razon_teorica:.0f}x, error max {error:.2e}')
+    ruta = P.CARPETA_RESULTADOS / 'a_dft_vs_fft.csv'
+    ruta.write_text('n,t_dft_ms,t_fft_ms,razon_medida,razon_teorica,error_max\n'
+                    f'{n},{1000 * t_dft:.3f},{1000 * t_fft:.4f},{t_dft / t_fft:.1f},'
+                    f'{razon_teorica:.1f},{error:.3e}\n', encoding='utf-8')
+    return t_dft, t_fft, error
+
+
+def tiempo_promedio(funcion, x, repeticiones):
+    inicio = time.perf_counter()
+    for _ in range(repeticiones):
+        resultado = funcion(x)
+    return (time.perf_counter() - inicio) / repeticiones, resultado
 
 
 def main():
