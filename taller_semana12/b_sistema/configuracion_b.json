@@ -1,0 +1,14 @@
+{
+  "proteccion_bins": 5,
+  "umbral_interferencia_db": -25.0,
+  "rechazo_semi_ancho_bins": 2,
+  "ganancia_espectral": 0.02,
+  "q_notch": 20.0,
+  "recorte_evaluacion_bloques": 2,
+  "bytes_real_micro": 4,
+  "vista_temporal_ms": 20.0,
+  "tolerancia_reconstruccion": 1e-10,
+  "snr_mejora_minima_prueba_db": 6.0,
+  "energia_util_minima_prueba": 0.95,
+  "energia_util_maxima_prueba": 1.05
+}
