@@ -39,3 +39,5 @@ desktop.ini
 # y resultados/metricas.csv, porque la tarea los pide como entregable.
 *.tmp.wav
 scratch/
+CONTEXTO_TALLER.md
+taller_semana12.zip
