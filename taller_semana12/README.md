@@ -8,7 +8,7 @@ El taller pide tres cosas, que se vuelven cuatro bloques independientes:
 | Bloque | Responsable | Rama | Carpeta | Qué hace | Necesita placa |
 |---|---|---|---|---|---|
 | **A**: señales y frecuencias | Luis | `taller-senales` | `a_senales/` | Justifica fs y N, define la señal exacta de cada modo del emisor (la referencia de todos) y hace DFT vs FFT | No |
-| **B**: sistema completo | por definir | `taller-sistema` | `b_sistema/` | Une emisor → PWM/ADC → nodo 1 → filtros → métricas en Python, reutilizando `src/` de la Tarea 1 | No |
+| **B**: sistema completo | Gretchell | `taller-sistema` | `b_sistema/` | Une emisor → PWM/ADC → nodo 1 → filtros → métricas en Python, reutilizando `src/` de la Tarea 1 | No |
 | **C**: emisor en el micro | Santiago (propuesta) | `taller-emisor` | `c_emisor/` | La Pico genera los modos por PWM + RC (DDS), se cambian por serial y se verifica con FFT | **Sí** (Pico) |
 | **D**: validación + PDF | por definir | `taller-validacion` | `d_validacion/` | Diagramas de cómo la Pico W valida lo que recibe, criterios de aceptación e integración del PDF | No |
 
