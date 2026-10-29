@@ -22,12 +22,15 @@ import sys
 from pathlib import Path
 
 import numpy as np
+from matplotlib.figure import Figure
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from comun import parametros as P  # noqa: E402
 from comun.pasos import ejecutar  # noqa: E402
 
 P.usar_src()
+import graficas as G  # noqa: E402
+import metricas  # noqa: E402
 import senales  # noqa: E402
 
 # La amplitud del JSON tiene 4 decimales; ese redondeo mueve la SNR menos de 0.001 dB
@@ -102,7 +105,41 @@ def figura_espectros(p):
     Guardar en P.CARPETA_FIGURAS / 'a_espectros_modos.png'.
     Marcar las frecuencias esperadas y el piso de cuantizacion (~6.02*bits + 1.76 dB).
     """
-    raise NotImplementedError('TODO (A): figura de espectros de los modos')
+    fs, bits = p['emisor']['fs_hz'], p['emisor']['bits_salida']
+    piso = piso_cuantizacion_db(bits, p['n_bloque'])
+    modos = p['emisor']['modos']
+    fig = Figure(figsize=(11.5, 2.8 * len(modos)), facecolor=G.SUPERFICIE)
+    for i, m in enumerate(modos):
+        ax = fig.add_subplot(len(modos), 1, i + 1)
+        for cuantizada, color, nombre in ((False, G.LIMPIA, 'Ideal'),
+                                          (True, G.CONTAMINADA, f'Cuantizada a {bits} bits')):
+            f, mag = espectro_dbfs(senal_del_modo(p, m['id'], cuantizar_salida=cuantizada)[1], fs)
+            ax.plot(f, mag, color=color, linewidth=1.0, label=nombre)
+        for frecuencia in m['frecuencias_hz']:
+            ax.axvline(frecuencia, color=G.APAGADO, linewidth=0.8, linestyle=':')
+        ax.axhline(piso, color=G.TINTA_SUAVE, linewidth=0.8, linestyle='--',
+                   label=f'Piso de cuantización por bin ({piso:.1f} dB)')
+        ax.set(xlabel='Frecuencia (Hz)', ylabel='Magnitud (dB)', xlim=(0, fs / 2),
+               ylim=(piso - 40, 5), title=f'Modo {m["id"]}: {m["nombre"]}')
+        ax.legend(frameon=False, fontsize=8, labelcolor=G.TINTA_SUAVE, loc='upper right')
+        G._estilo(ax)
+    fig.tight_layout()
+    ruta = P.CARPETA_FIGURAS / 'a_espectros_modos.png'
+    fig.savefig(ruta, dpi=160, facecolor=G.SUPERFICIE)
+    print(f'    piso de cuantizacion = {piso:.1f} dB por bin, figura en {ruta.name}')
+
+
+def espectro_dbfs(x, fs):
+    # Se le resta la ganancia de la ventana para que un seno de amplitud A salga en 20*log10(A)
+    f, magnitud_db, _ = metricas.espectro(x, fs)
+    return f, magnitud_db - 20 * np.log10(np.sum(np.hanning(x.size)) / 2)
+
+
+def piso_cuantizacion_db(bits, n):
+    # Ruido de cuantizacion: varianza delta^2/12 repartida en los N bins y vista por la ventana Hann
+    delta = 1 / 2 ** (bits - 1)
+    w = np.hanning(n)
+    return 10 * np.log10(4 * delta ** 2 / 12 * np.sum(w ** 2) / np.sum(w) ** 2)
 
 
 def tabla_dft_vs_fft(p):
