@@ -30,6 +30,9 @@ from comun.pasos import ejecutar  # noqa: E402
 P.usar_src()
 import senales  # noqa: E402
 
+# La amplitud del JSON tiene 4 decimales; ese redondeo mueve la SNR menos de 0.001 dB
+TOLERANCIA_SNR_DB = 0.01
+
 
 def resumen_muestreo(p):
     # Hecho como ejemplo del estilo: todo sale de p, nada escrito a mano
@@ -77,9 +80,20 @@ def cuantizar(x, bits):
 
 def verificar_snr_modo_3(p):
     """Confirmar que la amplitud de 3500 Hz del modo 3 da la misma SNR que caso_1."""
-    # TODO (A): potencia de los tres tonos / potencia de la interferencia, en dB,
-    # y compararla con p['casos']['caso_1']['snr_objetivo_db'].
-    raise NotImplementedError('TODO (A): verificar la SNR del modo 3')
+    caso = p['casos']['caso_1']
+    m = P.modo(p, 3)
+    # Senos de frecuencias distintas son ortogonales: la potencia total es la suma de A^2/2
+    potencias = {f: a ** 2 / 2 for f, a in zip(m['frecuencias_hz'], m['amplitudes'])}
+    p_ruido = potencias.pop(caso['frecuencia_interferencia_hz'])
+    p_util = sum(potencias.values())
+    snr = 10 * np.log10(p_util / p_ruido)
+    a_exacta = np.sqrt(2 * p_util / 10 ** (caso['snr_objetivo_db'] / 10))
+    print(f'    potencia util = {p_util:.5f}, interferencia = {p_ruido:.5f}')
+    print(f'    SNR = {snr:.4f} dB (objetivo {caso["snr_objetivo_db"]} dB), '
+          f'amplitud exacta = {a_exacta:.6f}')
+    if abs(snr - caso['snr_objetivo_db']) > TOLERANCIA_SNR_DB:
+        raise ValueError(f'La amplitud del modo 3 da {snr:.4f} dB, no {caso["snr_objetivo_db"]} dB')
+    return snr
 
 
 def figura_espectros(p):
