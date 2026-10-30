@@ -1,4 +1,4 @@
-% Bloque B: resultados locales; las conexiones externas siguen documentadas.
+% Bloque B conectado con A y D; queda pendiente el montaje de C.
 \section{Sistema completo en alto nivel}
 \label{sec:sistema}
 
@@ -14,10 +14,11 @@ proceden de los JSON compartidos; las decisiones locales estan en
 ademas del diagnostico del nodo 1.}
 \end{figure}
 
-% TODO (A): conectar la referencia definitiva sin cuantizacion y acordar fases y escala.
-La entrada es provisional: suma senos con fases cero y aplica una escala comun
-a la mezcla y a su componente util. No se afirma equivalencia muestra a muestra
-con el emisor fisico. Los modos 1 y 2 contienen solo senal util; el modo 3 agrega
+La entrada usa directamente \texttt{senal\_del\_modo} del bloque A sin
+cuantizacion. La componente limpia conserva la escala de la mezcla: nivel pico
+dividido por la suma de amplitudes del modo. El PWM reutiliza el cuantizador de
+A una sola vez, con centro digital 128 y rango de cuentas de 0 a 255.
+Los modos 1 y 2 contienen solo senal util; el modo 3 agrega
 la interferencia configurada. El PWM se aproxima por cuantizacion de 8 bits,
 offset de media escala y conversion a voltios; el ADC usa 12 bits y 3.3 V.
 Se registran los recortes de rango.
@@ -47,7 +48,7 @@ para evaluar ambos metodos sobre el mismo intervalo. No se corrigen fase ni
 ganancia de las salidas. La referencia limpia precede la cadena fisica; por ello
 el error incluye cuantizacion y distorsion de los filtros. $E_u$ representa la
 fraccion de energia espectral conservada en las bandas utiles, no joules.
-La SNR de entrada es aproximadamente 47.82, 45.53 y 2.00 dB para los modos 1, 2 y 3.
+La SNR de entrada es aproximadamente 48.11, 43.98 y 2.00 dB para los modos 1, 2 y 3.
 
 \begin{table}[H]
 \centering
@@ -73,8 +74,8 @@ normalizada al cuadrado. La atenuacion no aplica sin interferencia detectada.}
 \caption{Modo 3: reduccion de la interferencia tonal por ambos metodos.}
 \end{figure}
 
-Los modos 1 y 2 conservan aproximadamente el 99.9\,\% de la energia util. En el
-modo 3 la mejora de SNR es 34.98 dB para el IIR y 32.94 dB para el espectral.
+Los modos 1 y 2 conservan aproximadamente el 100\,\% de la energia util. En el
+modo 3 la mejora de SNR es 34.51 dB para el IIR y 32.64 dB para el espectral.
 No hubo recortes de rango. El resultado favorece al notch para este tono aislado;
 no establece superioridad general ante otras clases de ruido. Los datos NPZ,
 CSV y JSON permiten reproducir las figuras y revisar las cifras completas.
@@ -100,7 +101,14 @@ de frecuencia. Se registra el tiempo Python de cada captura como referencia del
 entorno de ejecucion. La latencia total del prototipo incluye el diagnostico de
 la captura completa y no demuestra operacion en tiempo real sobre un micro.
 
-% TODO (D): integrar esta seccion, acordar margenes y empaquetar src y metadatos.
+% La entrega conjunta debe incluir src y metadatos para resolver las importaciones.
 Las pruebas locales verifican diagnostico, mejora de SNR, conservacion de energia,
 reconstruccion de extremos, equivalencia SOS con SciPy, cuantizacion y RC opcional.
-Los margenes locales no sustituyen los criterios finales de validacion de D.
+La captura ADC se conecta ademas con el comparador de D antes de los filtros.
+Se extraen hasta ocho maximos locales por bloque y se exportan en el formato
+CSV de D. Los 63 bloques de cada modo cumplen los margenes de un bin y 3 dB;
+el modo 1 cumple ademas el minimo de SNR de 30 dB. El umbral de SNR no se aplica
+al modo 3 por su interferencia intencional. Los resultados completos quedan en
+\texttt{b\_resultados.json}; son pruebas simuladas, no mediciones de placa.
+La propuesta RC de D sigue pendiente de confirmacion por C y no se activa
+implicitamente en estos resultados.

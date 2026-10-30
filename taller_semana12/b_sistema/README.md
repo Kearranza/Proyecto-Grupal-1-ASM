@@ -10,15 +10,22 @@ python3 -m unittest discover -s taller_semana12/b_sistema -p 'test_*.py' -v
 La ejecucion falla con codigo distinto de cero si una etapa falla. Los resultados
 se guardan exclusivamente en `taller_semana12/resultados/` con prefijo `b_`.
 
-## Interfaces pendientes
+## Conexion A-B-D
 
-- TODO (A): conectar `entrada` con `senal_del_modo` sin cuantizacion, acordando
-  fases, escala y numero de muestras. El sustituto local usa fases cero y escala
-  comun para la referencia y mezcla. No afirma equivalencia muestra a muestra
-  con la Tarea 1 ni con el futuro emisor.
+```bash
+python3 taller_semana12/d_validacion/comparar_fft.py taller_semana12/resultados/b_picos_modo_2.csv --modo 2
+```
+
+Ese comando valida picos; un CSV de picos no contiene las muestras necesarias
+para calcular SNR. La comprobacion de SNR se hace en B con la captura temporal.
+Los resultados son simulados: no validan CRC, transporte, DMA ni tiempos reales.
+Los umbrales de deteccion de interferencia de B son distintos de los margenes de
+aceptacion de D: uno selecciona filtros, el otro valida la captura del emisor.
+
+## Conexion pendiente con C
+
 - TODO (C): confirmar frecuencia de corte, ganancia y topologia del RC. `fc_hz=null`
-  omite el RC. Si se proporciona fc, se modelan dos polos aislados con respuesta
-  exponencial, no la carga mutua de una red pasiva ni el rizado de la portadora.
-- TODO (D): acordar formato del diagnostico y margenes externos. Los umbrales de
-  `configuracion_b.json` son decisiones y pruebas locales de B. D debe integrar
-  `2_sistema.tex` y empaquetar tambien `src/` y `metadatos/configuraciones.json`.
+  omite el RC. La propuesta de 10.6 kHz en D no se activa automaticamente: excede
+  Nyquist del modelo discreto actual y requiere revisar el modelo analogico o
+  usar sobremuestreo. Tampoco se modela la carga mutua de etapas pasivas.
+- La entrega conjunta debe incluir `src/` y `metadatos/configuraciones.json`.

@@ -1,3 +1,4 @@
+import copy
 import csv
 import json
 import sys
@@ -10,6 +11,8 @@ from scipy import signal
 TALLER = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(TALLER))
 from comun import parametros as P
+from a_senales.prototipo_frecuencias import senal_del_modo, cuantizar
+from d_validacion import comparar_fft as D
 
 P.usar_src()
 import filtros_temporales as temporal
@@ -37,21 +40,22 @@ def frecuencias_utiles(p):
 
 
 def entrada(p, identificador):
-    """Genera una referencia provisional sin cuantizacion y con escala comun."""
-    # TODO (A): sustituir este generador por senal_del_modo(...,
-    # cuantizar_salida=False), acordando fases, longitud y escala de la referencia.
+    """Usa A para la mezcla y para su componente util con la misma escala."""
     modo = P.modo(p, identificador)
-    t = np.arange(p['n_muestras']) / p['fs_hz']
-    limpia, mezcla = np.zeros_like(t), np.zeros_like(t)
-    for f, a in zip(modo['frecuencias_hz'], modo['amplitudes'], strict=True):
-        if not 0 < f < p['fs_hz'] / 2:
-            raise ValueError('Frecuencia fuera de la banda de Nyquist')
-        componente = a * np.sin(2 * np.pi * f * t)
-        mezcla += componente
-        if f in frecuencias_utiles(p):
-            limpia += componente
-    escala = p['emisor']['nivel_pico'] / np.max(np.abs(mezcla))
-    return limpia * escala, mezcla * escala
+    if any(not 0 < f < p['fs_hz']/2 for f in modo['frecuencias_hz']):
+        raise ValueError('Frecuencia fuera de la banda de Nyquist')
+    _, mezcla = senal_del_modo(p, identificador, p['n_muestras'], False)
+    utiles = [(f, a) for f, a in zip(modo['frecuencias_hz'], modo['amplitudes'], strict=True)
+              if f in frecuencias_utiles(p)]
+    if not utiles:
+        raise ValueError('El modo no tiene componentes utiles')
+    referencia = copy.deepcopy(p)
+    modo_util = P.modo(referencia, identificador)
+    modo_util['frecuencias_hz'], modo_util['amplitudes'] = map(list, zip(*utiles))
+    # A divide por la suma de amplitudes; se conserva el denominador de la mezcla.
+    referencia['emisor']['nivel_pico'] *= sum(modo_util['amplitudes']) / sum(modo['amplitudes'])
+    _, limpia = senal_del_modo(referencia, identificador, p['n_muestras'], False)
+    return limpia, mezcla
 
 
 def cadena_fisica(x, p):
@@ -61,7 +65,8 @@ def cadena_fisica(x, p):
     niveles_pwm = 2 ** p['emisor']['bits_salida'] - 1
     niveles_adc = 2 ** p['receptor']['bits_adc'] - 1
     duty = (x + 1) / 2
-    pwm = np.rint(np.clip(duty, 0, 1) * niveles_pwm)
+    mitad_pwm = 2 ** (p['emisor']['bits_salida'] - 1)
+    pwm = np.rint(cuantizar(x, p['emisor']['bits_salida']) * mitad_pwm + mitad_pwm)
     voltios = pwm / niveles_pwm * vref
     fc = p['emisor']['filtro_reconstruccion']['fc_hz']
     # TODO (C): confirmar fc y topologia reales; sin fc se omite el RC.
@@ -74,7 +79,8 @@ def cadena_fisica(x, p):
             voltios = signal.lfilter([1 - polo], [1, -polo], voltios,
                                      zi=[polo * vref / 2])[0]
     adc = np.rint(np.clip(voltios / vref, 0, 1) * niveles_adc)
-    adquirida = 2 * adc / niveles_adc - 1
+    # Convierte el voltaje adquirido a la escala digital de A (centro en 128).
+    adquirida = (adc / niveles_adc * niveles_pwm - mitad_pwm) / mitad_pwm
     return {
         'senal': adquirida, 'pwm': pwm, 'adc': adc, 'voltios': voltios,
         'recortes_pwm': int(np.count_nonzero((duty < 0) | (duty > 1))),
@@ -103,7 +109,7 @@ def nodo_1_adquisicion(x, p):
     razon = float(20 * np.log10(max(candidata[k], 1e-20) /
                                max(np.max(magnitud), 1e-20)))
     detectada = bool(razon > p['b']['umbral_interferencia_db'])
-    # TODO (D): acordar el formato de diagnostico y los margenes de aceptacion.
+    # El diagnostico para filtros es independiente de la validacion de captura de D.
     return {'tipo': 'tonal' if detectada else 'sin_interferencia',
             'frecuencia_hz': float(f[k]) if detectada else None,
             'nivel_relativo_db': razon, 'dc': float(np.mean(x))}
@@ -207,6 +213,35 @@ def estimar_costo(p, diagnostico):
     }
 
 
+def validar_captura(x, limpia, p, identificador):
+    """Entrega a D picos reales de cada bloque ADC antes de filtrar."""
+    v = D.margenes(p)
+    referencia = D.espectro_referencia(p, identificador)
+    n = p['n_bloque']
+    salto = int(n * (1-p['solapamiento']))
+    filas, decisiones = [], []
+    for numero, inicio in enumerate(range(0, len(x)-n+1, salto), start=1):
+        bloque = x[inicio:inicio+n]
+        magnitud = np.abs(fft((bloque-bloque.mean()) * np.hanning(n)))[:n//2+1]
+        # Maximos locales de todo el espectro, sin buscar solo los tonos esperados.
+        indices, _ = signal.find_peaks(magnitud)
+        indices = sorted(indices, key=lambda k: magnitud[k], reverse=True)[:8]
+        picos = [{'bloque': numero, 'modo': identificador, 'bin': int(k),
+                  'nivel_db': float(20*np.log10(max(magnitud[k], 1e-20)))} for k in indices]
+        decision = D.decidir(referencia, picos, v, p, identificador, verbose=False)
+        snr = metricas.snr_db(limpia[inicio:inicio+n], bloque)
+        # El umbral de captura limpia solo corresponde al modo 1, no al ruido intencional.
+        snr_pasa = bool(snr >= v['snr_minima_captura_db']) if identificador == 1 else None
+        decisiones.append({'bloque': numero, **decision, 'snr_db': snr,
+                           'snr_pasa': snr_pasa,
+                           'pasa': bool(decision['pasa'] and snr_pasa is not False)})
+        filas.extend(picos)
+    return {'origen': 'ADC simulado, no captura de placa', 'picos_csv': filas,
+            'bloques': decisiones, 'pasa': bool(decisiones) and all(d['pasa'] for d in decisiones),
+            'total_bloques': len(decisiones),
+            'bloques_aprobados': sum(d['pasa'] for d in decisiones)}
+
+
 def correr_modo(p, identificador):
     """Ejecuta ambos metodos sobre la misma captura y conserva las evidencias."""
     limpia, contaminada = entrada(p, identificador)
@@ -222,6 +257,7 @@ def correr_modo(p, identificador):
     for fila in filas:
         fila['modo'] = identificador
     return {'modo': identificador, 'diagnostico': diagnostico, 'metricas': filas,
+            'validacion_d': validar_captura(medida, limpia, p, identificador),
             'costo': estimar_costo(p, diagnostico), 'tiempo_python_captura_ms': tiempos,
             'cadena': {k: fisica[k] for k in ('recortes_pwm', 'recortes_adc', 'rc_activo')},
             'senales': {'limpia': limpia, 'contaminada': contaminada,
@@ -240,12 +276,16 @@ def guardar_resultados(resultados, p):
         escritor = csv.DictWriter(archivo, fieldnames=list(filas[0]))
         escritor.writeheader()
         escritor.writerows(filas)
-    resumen = {'parametros': p, 'entrada': 'sustituto local de A, fases cero',
+    resumen = {'parametros': p, 'entrada': 'senal_del_modo de A, sin cuantizar; PWM cuantizado una vez',
                'resultados': [{k: v for k, v in r.items() if k != 'senales'}
                               for r in resultados]}
     (carpeta / 'b_resultados.json').write_text(
         json.dumps(resumen, indent=2, allow_nan=False) + '\n')
     for r in resultados:
+        with (carpeta / f'b_picos_modo_{r["modo"]}.csv').open('w', newline='') as archivo:
+            escritor = csv.DictWriter(archivo, fieldnames=['bloque', 'modo', 'bin', 'nivel_db'])
+            escritor.writeheader()
+            escritor.writerows(r['validacion_d']['picos_csv'])
         np.savez_compressed(carpeta / f'b_modo_{r["modo"]}.npz', **r['senales'])
         fig, ejes = plt.subplots(2, 1, figsize=(10, 7), constrained_layout=True)
         inicio = p['b']['recorte_evaluacion_bloques'] * p['n_bloque']
@@ -259,7 +299,7 @@ def guardar_resultados(resultados, p):
             ejes[1].plot(np.fft.rfftfreq(len(bloque), 1/p['fs_hz']),
                          20*np.log10(np.maximum(amplitud, 1e-12)), label=nombre)
         ejes[0].set(xlabel='Tiempo (ms)', ylabel='Amplitud normalizada',
-                    title=f'Modo {r["modo"]}: simulacion provisional del Bloque B')
+                    title=f'Modo {r["modo"]}: simulacion A-B-D (RC pendiente)')
         ejes[1].set(xlabel='Frecuencia (Hz)', ylabel='Amplitud (dB ref. 1)', ylim=(-110, 5))
         for eje in ejes:
             eje.grid(alpha=0.25)
@@ -268,7 +308,7 @@ def guardar_resultados(resultados, p):
         plt.close(fig)
     fig, eje = plt.subplots(figsize=(11, 2.8), constrained_layout=True)
     eje.axis('off')
-    cajas = [(0.07, 0.5, 'Emisor\nsustituto A'), (0.27, 0.5, 'PWM / RC / ADC\nmodelo promedio'),
+    cajas = [(0.07, 0.5, 'Emisor\nreferencia A'), (0.27, 0.5, 'PWM / RC / ADC\nmodelo promedio'),
              (0.49, 0.5, 'Nodo 1\nDC + FFT + diagnostico'),
              (0.71, 0.8, 'Nodo 2\nIIR notch'), (0.71, 0.2, 'Nodo 3\nFFT / IFFT'),
              (0.94, 0.5, 'Metricas')]
@@ -297,10 +337,12 @@ def guardar_resultados(resultados, p):
 def main():
     p = cargar()
     resultados = []
-    print('[TODO A/C/D] Entrada local, RC opcional y margenes locales; ver comentarios')
+    print('[ok] Referencia A y validacion D conectadas; [TODO C] RC real pendiente')
     for modo in p['emisor']['modos']:
         resultado = correr_modo(p, modo['id'])
         resultados.append(resultado)
+        v = resultado['validacion_d']
+        print(f"[D] modo {modo['id']}: {v['bloques_aprobados']}/{v['total_bloques']} bloques aprobados")
         print(f"[ok] modo {modo['id']}: {resultado['diagnostico']['tipo']}")
     guardar_resultados(resultados, p)
     print('[ok] Figuras, capturas, metricas y costos en taller_semana12/resultados')
