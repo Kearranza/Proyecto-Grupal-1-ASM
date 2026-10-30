@@ -1,6 +1,9 @@
 % Bloque A - Senales y frecuencias - rama taller-senales
 % Figuras: a_*.png que genera a_senales/prototipo_frecuencias.py
-% Cifras: salida de ese script y resultados/a_dft_vs_fft.csv
+% Cifras: salida de ese script. Las de DFT vs FFT se cargan de
+% resultados/a_dft_vs_fft.tex, que el script regenera en cada corrida.
+
+\input{../resultados/a_dft_vs_fft}
 
 \section{Frecuencias de trabajo}
 \label{sec:senales}
@@ -10,7 +13,7 @@
 Se conservan los parámetros de la Tarea~1: $f_s = 16$\,kHz y bloques de
 $N = 1024$ muestras con ventana Hann y 50\,\% de solapamiento. La componente
 más alta que genera el emisor es la interferencia de 3500\,Hz, menos de la
-mitad de la frecuencia de Nyquist ($f_s/2 = 8$\,kHz), así que ninguna se pliega
+mitad de la frecuencia de Nyquist ($f_s/2 = 8$\,kHz), así que ninguna se pliega~\cite{oppenheim2010}
 y queda margen para que el filtro de reconstrucción del emisor y el
 antialiasing del receptor tengan una banda de transición amplia. El script
 verifica esta condición con cada frecuencia del archivo de parámetros y se
@@ -20,14 +23,15 @@ Con $N = 1024$ la resolución es $\Delta f = f_s/N = 15{,}625$\,Hz y cada bloque
 dura $N/f_s = 64$\,ms. Los tonos útiles están separados 440\,Hz, unos
 28~bins, de modo que se distinguen con holgura aun con el lóbulo principal de
 la ventana Hann, que ocupa 4~bins. Que $N$ sea potencia de dos permite usar la
-FFT radix-2 de la Tarea~1 sin rellenar con ceros.
+FFT radix-2 de la Tarea~1~\cite{cooley1965} sin rellenar con ceros.
 
 Los dos microcontroladores admiten esta $f_s$. El ADC de la Pico~W (RP2040,
-12~bits) muestrea hasta 500\,kS/s, así que 16\,kS/s usa una fracción pequeña de
+12~bits) muestrea hasta 500\,kS/s~\cite{rp2040}, así que 16\,kS/s usa una fracción pequeña de
 su capacidad. En el emisor, la portadora PWM de 8~bits (tope 255) oscila a
 $125\,\text{MHz}/256 \approx 488$\,kHz, unas 30 veces la frecuencia de muestreo
 y unas 140 veces la componente más alta, lo que facilita separarla con un
-filtro RC. El reloj de muestreo sale de otra rebanada PWM con divisor 2,5:
+filtro RC. El reloj de muestreo sale de otra rebanada PWM con divisor 2,5, que el divisor
+fraccionario de 8~bits enteros y 4~fraccionarios representa sin error~\cite{rp2040}:
 $125\,\text{MHz}/(2{,}5 \cdot 16\,\text{kHz}) = 3125$ y
 $133\,\text{MHz}/(2{,}5 \cdot 16\,\text{kHz}) = 3325$ son enteros, así que el
 tope $3125-1$ (o $3325-1$) da 16\,kHz exactos con cualquiera de los dos relojes.
@@ -67,13 +71,13 @@ Modo & Uso & $f$ (Hz) & Amp.\ relativa & Amp.\ de salida & $k$ & ¿Bin exacto? \
 
 Ningún tono útil cae en un bin exacto. Un bloque de 1024 muestras no contiene un
 número entero de periodos de estas componentes, y al repetirlo la FFT ve un
-salto en los bordes que reparte la energía en muchos bins (fuga espectral). Con
+salto en los bordes que reparte la energía en muchos bins (fuga espectral)~\cite{harris1978}. Con
 ventana rectangular los lóbulos laterales empiezan en $-13$\,dB y caen
 despacio, así que la fuga de 440\,Hz taparía los tonos más débiles. La ventana
 Hann lleva la señal a cero en los bordes: su primer lóbulo lateral está en
 $-31$\,dB y los siguientes caen 18\,dB por octava. A cambio, el lóbulo principal
 se ensancha a 4~bins y el pico puede perder hasta 1,4\,dB cuando el tono cae
-entre dos bins. Con la separación de 28~bins entre tonos, ese costo no afecta.
+entre dos bins~\cite{harris1978}. Con la separación de 28~bins entre tonos, ese costo no afecta.
 La interferencia de 3500\,Hz cae exactamente en el bin 224.
 
 \paragraph{SNR del modo 3.} Las componentes tienen frecuencias distintas y son
@@ -97,10 +101,10 @@ bins salen un poco más bajos por la pérdida de la Hann: 440\,Hz (bin 28,16)
 pierde 0,14\,dB y 1320\,Hz (bin 84,48, casi a medio bin) pierde 1,3\,dB.
 
 Con un paso $\Delta = 2/2^8$ y error uniforme, la potencia del ruido de
-cuantización es $\Delta^2/12$. Frente a un seno de amplitud completa eso da una
+cuantización es $\Delta^2/12$~\cite{oppenheim2010}. Frente a un seno de amplitud completa eso da una
 SNR de $6{,}02\cdot 8 + 1{,}76 = 49{,}9$\,dB. En el espectro ese ruido se
 reparte entre los bins: con $N = 1024$ y el ancho de banda equivalente de la
-ventana Hann (1,5~bins), cada bin recibe $10\log_{10}(N/(2\cdot 1{,}5)) =
+ventana Hann (1,5~bins~\cite{harris1978}), cada bin recibe $10\log_{10}(N/(2\cdot 1{,}5)) =
 25{,}3$\,dB menos, y el piso por bin queda en $-75{,}3$\,dB. Las curvas ideal y
 cuantizada coinciden en los picos; lo que cambia es el fondo lejos de los tonos,
 que sube de menos de $-100$\,dB a cerca del piso teórico.
@@ -137,9 +141,11 @@ frecuencias esperadas y la horizontal, el piso teórico de cuantización por bin
 El cuadro~\ref{tab:dft_fft} compara la DFT por definición (\texttt{dft()},
 dos lazos explícitos) y la FFT radix-2 iterativa (\texttt{fft()}) de
 \texttt{src/dft\_fft.py}, con un bloque del modo~3 de $N = 1024$ muestras. El
-tiempo es el promedio de 3 corridas de la DFT y de 50 de la FFT, en Python y en
-la computadora de desarrollo. Los valores absolutos dependen de la máquina; la
-razón entre ellos depende mucho menos.
+tiempo es el promedio de \aRepDft{} corridas de la DFT y de \aRepFft{} de la FFT, en
+Python y en la computadora de desarrollo. Los valores absolutos dependen de la
+máquina; la razón entre ellos depende mucho menos. Las cifras del cuadro las
+escribe el mismo script en \texttt{resultados/a\_dft\_vs\_fft.tex}, así que
+corresponden siempre a la última corrida.
 
 \begin{table}[H]
 \centering\small
@@ -149,20 +155,20 @@ razón entre ellos depende mucho menos.
 \toprule
  & DFT & FFT \\
 \midrule
-Multiplicaciones complejas & $N^2 = 1\,048\,576$ & $\tfrac{N}{2}\log_2 N = 5120$ \\
-Tiempo promedio            & 858\,ms             & 4,06\,ms \\
+Multiplicaciones complejas & $N^2 = 1\,048\,576$ & $\tfrac{N}{2}\log_2 N = 5120$~\cite{cooley1965} \\
+Tiempo promedio            & \aDftMs\,ms         & \aFftMs\,ms \\
 \midrule
-Razón medida / teórica     & \multicolumn{2}{c}{212 / 205} \\
-Error máximo $|X_\text{DFT} - X_\text{FFT}|$ & \multicolumn{2}{c}{$4{,}0\times10^{-11}$} \\
+Razón medida / teórica     & \multicolumn{2}{c}{\aRazonMedida{} / \aRazonTeorica} \\
+Error máximo $|X_\text{DFT} - X_\text{FFT}|$ & \multicolumn{2}{c}{$\aErrorMax$} \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-La aceleración medida (212 veces) coincide con la teórica
-($2N/\log_2 N = 205$). No es idéntica porque el tiempo no es solo de
+La aceleración medida (\aRazonMedida{} veces) es cercana a la teórica
+($2N/\log_2 N = \aRazonTeorica$). No es idéntica porque el tiempo no es solo de
 multiplicaciones: la DFT también evalúa una exponencial compleja por término, y
-la FFT resuelve cada etapa con operaciones vectoriales de NumPy. El error máximo es $4\times 10^{-11}$ cuando el bin más
-grande vale 141, un error relativo cercano a $3\times10^{-13}$, que es
+la FFT resuelve cada etapa con operaciones vectoriales de NumPy. El error máximo es $\aErrorMax$ cuando el bin más
+grande vale \aBinMaximo, un error relativo cercano a $\aErrorRelativo$, que es
 redondeo de punto flotante. Las dos dan el mismo resultado. En el
 microcontrolador la diferencia decide si el sistema es viable: cada bloque de
 64\,ms exige 5120 multiplicaciones complejas con la FFT frente a más de un
