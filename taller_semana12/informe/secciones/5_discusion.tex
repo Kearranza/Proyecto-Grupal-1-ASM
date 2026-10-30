@@ -2,5 +2,26 @@
 
 \section{Discusión}
 
-\pendiente{Todos: un párrafo por bloque con lo que funcionó, las limitaciones y
-qué cambia para el proyecto final.}
+\paragraph{Frecuencias de trabajo.} Las frecuencias quedaron fijadas en un solo
+archivo de parámetros y el código las verifica: todas las componentes están por
+debajo de Nyquist, la amplitud de 3500\,Hz del modo~3 reproduce la SNR de 2\,dB
+del \texttt{caso\_1}, y \texttt{senal\_del\_modo()} aplica la misma escala y la
+misma cuantización de 8~bits que el emisor. Con $f_s = 16$\,kHz y $N = 1024$
+cada bloque resuelve 15,6\,Hz, de sobra para tonos separados 28~bins, y con
+50\,\% de solapamiento entra un bloque nuevo cada 32\,ms, que es el tiempo que
+tiene cada nodo para procesarlo. Los 8~bits del emisor también alcanzan: el piso
+de cuantización queda en $-75$\,dB por bin y aun el tono más débil (1320\,Hz en
+el modo~3, a $-23$\,dB) queda unos 40\,dB por encima del espurio más alto. La
+limitación principal es que esa
+referencia es ideal en dos puntos: no incluye los espurios del truncamiento de
+fase del DDS ni los bits efectivos reales del ADC del RP2040, que son menos de
+12. Por eso los márgenes de validación no deberían salir solo de la simulación.
+Conviene capturar primero el modo~1, donde todo lo que no sea 440\,Hz es error
+de la cadena emisor--receptor, y fijar los márgenes con esa medición antes de
+las pruebas finales. Para el proyecto, los modos~1 y~2 sirven tal cual como
+señales de las pruebas P1 y P2, y el modo~3 es el punto de partida de P5 si la
+interferencia se acerca a la banda útil.
+
+% TODO (B, C, D): un párrafo cada uno con el mismo formato.
+\pendiente{B, C y D: un párrafo por bloque con lo que funcionó, las
+limitaciones y qué cambia para el proyecto final.}
