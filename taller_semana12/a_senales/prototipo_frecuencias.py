@@ -156,16 +156,44 @@ def tabla_dft_vs_fft(p):
     x = senal_del_modo(p, 3)[1]
     t_dft, X_dft = tiempo_promedio(dft_fft.dft, x, REPETICIONES_DFT)
     t_fft, X_fft = tiempo_promedio(dft_fft.fft, x, REPETICIONES_FFT)
-    error = np.max(np.abs(X_dft - X_fft))
     # Multiplicaciones complejas: N^2 en la DFT, (N/2)*log2(N) en la FFT radix-2
-    razon_teorica = n ** 2 / (n / 2 * np.log2(n))
-    print(f'    N = {n}: DFT {1000 * t_dft:.1f} ms, FFT {1000 * t_fft:.2f} ms, '
-          f'medida {t_dft / t_fft:.0f}x, teorica {razon_teorica:.0f}x, error max {error:.2e}')
+    fila = {'n': n, 't_dft_ms': 1000 * t_dft, 't_fft_ms': 1000 * t_fft,
+            'razon_medida': t_dft / t_fft, 'razon_teorica': n ** 2 / (n / 2 * np.log2(n)),
+            'error_max': np.max(np.abs(X_dft - X_fft)), 'bin_maximo': np.max(np.abs(X_fft))}
+    print(f'    N = {n}: DFT {fila["t_dft_ms"]:.1f} ms, FFT {fila["t_fft_ms"]:.2f} ms, '
+          f'medida {fila["razon_medida"]:.0f}x, teorica {fila["razon_teorica"]:.0f}x, '
+          f'error max {fila["error_max"]:.2e}')
     ruta = P.CARPETA_RESULTADOS / 'a_dft_vs_fft.csv'
-    ruta.write_text('n,t_dft_ms,t_fft_ms,razon_medida,razon_teorica,error_max\n'
-                    f'{n},{1000 * t_dft:.3f},{1000 * t_fft:.4f},{t_dft / t_fft:.1f},'
-                    f'{razon_teorica:.1f},{error:.3e}\n', encoding='utf-8')
-    return t_dft, t_fft, error
+    ruta.write_text(','.join(fila) + '\n' + ','.join(f'{v:.6g}' for v in fila.values()) + '\n',
+                    encoding='utf-8')
+    escribir_cifras_tex(fila)
+    return fila
+
+
+def escribir_cifras_tex(fila):
+    # El informe toma las cifras de aqui, asi el PDF siempre coincide con la ultima corrida
+    def coma(valor, decimales):
+        return f'{valor:.{decimales}f}'.replace('.', '{,}')
+
+    def cientifico(valor):
+        mantisa, exponente = f'{valor:.1e}'.split('e')
+        return f'{mantisa.replace(".", "{,}")}\\times10^{{{int(exponente)}}}'
+
+    macros = {
+        'aRepDft': str(REPETICIONES_DFT),
+        'aRepFft': str(REPETICIONES_FFT),
+        'aDftMs': coma(fila['t_dft_ms'], 0),
+        'aFftMs': coma(fila['t_fft_ms'], 2),
+        'aRazonMedida': coma(fila['razon_medida'], 0),
+        'aRazonTeorica': coma(fila['razon_teorica'], 0),
+        'aErrorMax': cientifico(fila['error_max']),
+        'aBinMaximo': coma(fila['bin_maximo'], 0),
+        'aErrorRelativo': cientifico(fila['error_max'] / fila['bin_maximo']),
+    }
+    lineas = [f'\\def\\{nombre}{{{valor}}}' for nombre, valor in macros.items()]
+    ruta = P.CARPETA_RESULTADOS / 'a_dft_vs_fft.tex'
+    ruta.write_text('% Generado por a_senales/prototipo_frecuencias.py. No editar a mano.\n'
+                    + '\n'.join(lineas) + '\n', encoding='utf-8')
 
 
 def tiempo_promedio(funcion, x, repeticiones):
