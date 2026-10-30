@@ -1,0 +1,361 @@
+{
+  "parametros": {
+    "fs_hz": 16000,
+    "n_bloque": 1024,
+    "solapamiento": 0.5,
+    "ventana": "hann",
+    "casos": {
+      "caso_1": {
+        "id": "caso_1",
+        "nombre": "Interferencia tonal separada de la banda \u00fatil",
+        "semilla": 20261001,
+        "tipo_senal": "multitono",
+        "frecuencias_utiles_hz": [
+          440,
+          880,
+          1320
+        ],
+        "amplitudes_utiles": [
+          1.0,
+          0.55,
+          0.3
+        ],
+        "fases_utiles_grados": [
+          0,
+          35,
+          -50
+        ],
+        "tipo_ruido": "tonal",
+        "frecuencia_interferencia_hz": 3500,
+        "banda_ruido_hz": null,
+        "snr_objetivo_db": 2.0
+      },
+      "caso_2": {
+        "id": "caso_2",
+        "nombre": "Ruido blanco sobre todo el espectro",
+        "semilla": 20261002,
+        "tipo_senal": "multitono",
+        "frecuencias_utiles_hz": [
+          440,
+          880,
+          1320
+        ],
+        "amplitudes_utiles": [
+          1.0,
+          0.55,
+          0.3
+        ],
+        "fases_utiles_grados": [
+          0,
+          35,
+          -50
+        ],
+        "tipo_ruido": "blanco",
+        "frecuencia_interferencia_hz": null,
+        "banda_ruido_hz": null,
+        "snr_objetivo_db": 0.0
+      },
+      "caso_3": {
+        "id": "caso_3",
+        "nombre": "Ruido de banda que se solapa parcialmente con la banda \u00fatil",
+        "semilla": 20261003,
+        "tipo_senal": "multitono",
+        "frecuencias_utiles_hz": [
+          440,
+          880,
+          1320
+        ],
+        "amplitudes_utiles": [
+          1.0,
+          0.55,
+          0.3
+        ],
+        "fases_utiles_grados": [
+          0,
+          35,
+          -50
+        ],
+        "tipo_ruido": "banda",
+        "frecuencia_interferencia_hz": null,
+        "banda_ruido_hz": [
+          800,
+          1500
+        ],
+        "snr_objetivo_db": 3.0
+      }
+    },
+    "emisor": {
+      "placa": "Raspberry Pi Pico (RP2040), la de Santiago",
+      "salida": "PWM en GPIO15 + filtro RC",
+      "bits_salida": 8,
+      "_nota_pwm": "portadora con tope 255 = clk_sys/256 (unos 488 kHz a 125 MHz). El reloj de muestreo sale de otra rebanada PWM con divisor 2.5",
+      "fs_hz": 16000,
+      "_nota_fs": "null = usa el mismo fs_hz de configuraciones.json (16 kHz)",
+      "nivel_pico": 0.8,
+      "_nota_nivel": "fraccion del rango del PWM que usa la senal. Deja margen para no saturar y centra la senal en 1.65 V",
+      "baudios": 115200,
+      "_nota_baudios": "en la Pico el serial es USB CDC y los baudios no afectan la velocidad, pero pyserial pide un valor",
+      "filtro_reconstruccion": {
+        "tipo": "RC pasabajos de 2 etapas",
+        "fc_hz": null,
+        "_nota": "C lo define y lo justifica en el PDF (requisito 5.6 del proyecto)"
+      },
+      "modos": [
+        {
+          "id": 1,
+          "nombre": "Tono (prueba P1)",
+          "frecuencias_hz": [
+            440
+          ],
+          "amplitudes": [
+            1.0
+          ]
+        },
+        {
+          "id": 2,
+          "nombre": "Multitono (prueba P2)",
+          "frecuencias_hz": [
+            440,
+            880,
+            1320
+          ],
+          "amplitudes": [
+            1.0,
+            0.55,
+            0.3
+          ]
+        },
+        {
+          "id": 3,
+          "nombre": "Multitono + interferencia de 3500 Hz (caso_1 de la Tarea 1)",
+          "frecuencias_hz": [
+            440,
+            880,
+            1320,
+            3500
+          ],
+          "amplitudes": [
+            1.0,
+            0.55,
+            0.3,
+            0.9373
+          ],
+          "_nota": "0.9373 da SNR = 2 dB respecto a los tres tonos, igual que caso_1. A lo verifica en prototipo_frecuencias.py"
+        }
+      ]
+    },
+    "receptor": {
+      "placa": "Raspberry Pi Pico W (la de Luis)",
+      "entrada": "ADC0 en GPIO26",
+      "bits_adc": 12,
+      "vref_v": 3.3
+    },
+    "validacion": {
+      "margen_frecuencia_bins": null,
+      "margen_amplitud_db": null,
+      "snr_minima_captura_db": null,
+      "_nota": "D propone y justifica estos margenes. Deben quedar fijos ANTES de medir (seccion 3.5 del proyecto)"
+    },
+    "b": {
+      "proteccion_bins": 5,
+      "umbral_interferencia_db": -25.0,
+      "rechazo_semi_ancho_bins": 2,
+      "ganancia_espectral": 0.02,
+      "q_notch": 20.0,
+      "recorte_evaluacion_bloques": 2,
+      "bytes_real_micro": 4,
+      "vista_temporal_ms": 20.0,
+      "tolerancia_reconstruccion": 1e-10,
+      "snr_mejora_minima_prueba_db": 6.0,
+      "energia_util_minima_prueba": 0.95,
+      "energia_util_maxima_prueba": 1.05
+    },
+    "n_muestras": 32768
+  },
+  "entrada": "sustituto local de A, fases cero",
+  "resultados": [
+    {
+      "modo": 1,
+      "diagnostico": {
+        "tipo": "sin_interferencia",
+        "frecuencia_hz": null,
+        "nivel_relativo_db": -58.776152873596004,
+        "dc": 2.969036172161178e-05
+      },
+      "metricas": [
+        {
+          "metodo": "temporal",
+          "mse": 5.2904893288837195e-06,
+          "snr_entrada_db": 47.81718567602908,
+          "snr_salida_db": 47.81644906598257,
+          "delta_snr_db": -0.0007366100465091563,
+          "energia_util": 0.998754081360647,
+          "atenuacion_db": null,
+          "modo": 1
+        },
+        {
+          "metodo": "espectral",
+          "mse": 5.290489328883691e-06,
+          "snr_entrada_db": 47.81718567602908,
+          "snr_salida_db": 47.81644906598259,
+          "delta_snr_db": -0.00073661004648784,
+          "energia_util": 0.9987540813606473,
+          "atenuacion_db": null,
+          "modo": 1
+        }
+      ],
+      "costo": {
+        "temporal": {
+          "multiplicaciones_bloque": 0,
+          "sumas_bloque": 0,
+          "memoria_bytes_estimada": 8192,
+          "espera_adquisicion_ms": 64.0
+        },
+        "espectral": {
+          "multiplicaciones_bloque": 45056,
+          "sumas_bloque": 63488,
+          "divisiones_bloque": 1024,
+          "memoria_bytes_estimada": 49152,
+          "espera_adquisicion_ms": 64.0,
+          "avance_ms": 32.0
+        },
+        "nodo_1": {
+          "multiplicaciones_bloque": 21504,
+          "sumas_fft_bloque": 30720,
+          "nota": "No incluye magnitudes, busqueda ni promedio de captura"
+        }
+      },
+      "tiempo_python_captura_ms": {
+        "temporal": 0.07362499991359073,
+        "espectral": 584.0493209998385
+      },
+      "cadena": {
+        "recortes_pwm": 0,
+        "recortes_adc": 0,
+        "rc_activo": false
+      }
+    },
+    {
+      "modo": 2,
+      "diagnostico": {
+        "tipo": "sin_interferencia",
+        "frecuencia_hz": null,
+        "nivel_relativo_db": -58.19897268054646,
+        "dc": 6.06774410485329e-05
+      },
+      "metricas": [
+        {
+          "metodo": "temporal",
+          "mse": 5.77148200324582e-06,
+          "snr_entrada_db": 45.53175018254631,
+          "snr_salida_db": 45.52965148989877,
+          "delta_snr_db": -0.0020986926475430323,
+          "energia_util": 0.9986377550088035,
+          "atenuacion_db": null,
+          "modo": 2
+        },
+        {
+          "metodo": "espectral",
+          "mse": 5.77148200324581e-06,
+          "snr_entrada_db": 45.53175018254631,
+          "snr_salida_db": 45.52965148989877,
+          "delta_snr_db": -0.0020986926475430323,
+          "energia_util": 0.9986377550088035,
+          "atenuacion_db": null,
+          "modo": 2
+        }
+      ],
+      "costo": {
+        "temporal": {
+          "multiplicaciones_bloque": 0,
+          "sumas_bloque": 0,
+          "memoria_bytes_estimada": 8192,
+          "espera_adquisicion_ms": 64.0
+        },
+        "espectral": {
+          "multiplicaciones_bloque": 45056,
+          "sumas_bloque": 63488,
+          "divisiones_bloque": 1024,
+          "memoria_bytes_estimada": 49152,
+          "espera_adquisicion_ms": 64.0,
+          "avance_ms": 32.0
+        },
+        "nodo_1": {
+          "multiplicaciones_bloque": 21504,
+          "sumas_fft_bloque": 30720,
+          "nota": "No incluye magnitudes, busqueda ni promedio de captura"
+        }
+      },
+      "tiempo_python_captura_ms": {
+        "temporal": 0.11259300026722485,
+        "espectral": 573.2910629999424
+      },
+      "cadena": {
+        "recortes_pwm": 0,
+        "recortes_adc": 0,
+        "rc_activo": false
+      }
+    },
+    {
+      "modo": 3,
+      "diagnostico": {
+        "tipo": "tonal",
+        "frecuencia_hz": 3500.0,
+        "nivel_relativo_db": -0.42125361393617117,
+        "dc": 3.356560973748718e-05
+      },
+      "metricas": [
+        {
+          "metodo": "temporal",
+          "mse": 1.557287034467655e-05,
+          "snr_entrada_db": 2.003444337680256,
+          "snr_salida_db": 36.98636653982986,
+          "delta_snr_db": 34.9829222021496,
+          "energia_util": 0.999378829606424,
+          "atenuacion_db": 56.096562482632976,
+          "modo": 3
+        },
+        {
+          "metodo": "espectral",
+          "mse": 2.4911324943540058e-05,
+          "snr_entrada_db": 2.003444337680256,
+          "snr_salida_db": 34.94608495075102,
+          "delta_snr_db": 32.942640613070765,
+          "energia_util": 0.999514526760868,
+          "atenuacion_db": 33.91032560647338,
+          "modo": 3
+        }
+      ],
+      "costo": {
+        "temporal": {
+          "multiplicaciones_bloque": 5120,
+          "sumas_bloque": 4096,
+          "memoria_bytes_estimada": 8220,
+          "espera_adquisicion_ms": 64.0
+        },
+        "espectral": {
+          "multiplicaciones_bloque": 45056,
+          "sumas_bloque": 63488,
+          "divisiones_bloque": 1024,
+          "memoria_bytes_estimada": 49152,
+          "espera_adquisicion_ms": 64.0,
+          "avance_ms": 32.0
+        },
+        "nodo_1": {
+          "multiplicaciones_bloque": 21504,
+          "sumas_fft_bloque": 30720,
+          "nota": "No incluye magnitudes, busqueda ni promedio de captura"
+        }
+      },
+      "tiempo_python_captura_ms": {
+        "temporal": 48.218939999969734,
+        "espectral": 570.9768449996773
+      },
+      "cadena": {
+        "recortes_pwm": 0,
+        "recortes_adc": 0,
+        "rc_activo": false
+      }
+    }
+  ]
+}
