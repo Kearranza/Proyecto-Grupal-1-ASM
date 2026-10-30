@@ -1,0 +1,2 @@
+n,t_dft_ms,t_fft_ms,razon_medida,razon_teorica,error_max
+1024,858.154,4.0560,211.6,204.8,3.974e-11

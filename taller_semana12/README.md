@@ -100,7 +100,7 @@ quien toca **solo su carpeta y su .tex**. Si hace falta cambiar `parametros.json
 
 ## Checklist de la entrega
 
-- [ ] A (Luis): `senal_del_modo()` lista y `1_senales.tex` escrito
+- [x] A (Luis): `senal_del_modo()` lista y `1_senales.tex` escrito
 - [ ] B: los tres modos corren de punta a punta y `2_sistema.tex` escrito
 - [ ] C: la Pico saca los tres modos, hay captura que lo verifica y `3_emisor.tex` escrito
 - [ ] D: cuatro diagramas, márgenes en `parametros.json` y `4_validacion.tex` escrito
