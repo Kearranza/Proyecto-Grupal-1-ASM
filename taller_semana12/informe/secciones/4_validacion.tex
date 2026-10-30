@@ -1,17 +1,181 @@
 % Bloque D - Estrategia de validacion en el receptor - rama taller-validacion
 % Figuras: d_*.png que genera d_validacion/renderizar.sh
+% Codigo: d_validacion/comparar_fft.py   Margenes: parametros.json -> validacion
 
 \section{Estrategia de validación en el receptor}
 \label{sec:validacion}
 
+El taller pide la estrategia, no que ya funcione. Pero para que sirva de algo
+tiene que ser concreta: con pines, niveles, tamaños, umbrales y qué pasa cuando
+algo falla. Esta sección define cómo la Pico W comprueba que lo que recibe es lo
+que la Pico emisora mandó, y fija los criterios de aceptación \emph{antes} de
+medir, como pide la sección 3.5 del enunciado del proyecto.
+
 \subsection{Cadena de señal}
-\pendiente{D: diagrama \texttt{d\_01\_cadena\_senal.png} y niveles de voltaje.}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{d_01_cadena_senal.png}
+\caption{Del DDS del emisor a la decisión, con los niveles de cada etapa.}
+\label{fig:cadena}
+\end{figure}
+
+El emisor usa el 80\,\% del rango del PWM (\texttt{nivel\_pico} = 0,8) centrado en
+1,65\,V, así que la señal analógica va de 0,33 a 2,97\,V. En el ADC de 12 bits de
+la Pico W, con referencia de 3,3\,V, eso corresponde a las cuentas 410 a 3686 de
+4095. Quedan 0,33\,V de margen en cada extremo: no hay riesgo de pasarse de
+3,3\,V ni de recortar la señal, y a la vez se usa el 80\,\% del rango del
+conversor, que es donde su no linealidad es menor.
+
+El filtro de reconstrucción propuesto son dos etapas RC de
+$R = 1{,}5\,\mathrm{k}\Omega$ y $C = 10$\,nF, es decir
+\[
+f_c=\frac{1}{2\pi RC}=10{,}6\ \text{kHz}.
+\]
+Con eso la portadora del PWM, que está en unos 488\,kHz, queda atenuada cerca de
+66\,dB, mientras que la componente útil más alta del banco, la interferencia de
+3500\,Hz del modo 3, pierde solo 0,9\,dB. La diferencia de atenuación entre el
+tono de 440\,Hz y el de 3500\,Hz es de 0,89\,dB, que es lo que después se tiene
+en cuenta al fijar el margen de amplitud. Los valores son una propuesta de este
+bloque para poder poner números en el diagrama; el bloque del emisor los
+confirma al medir.
+
+Conviene dejar dicho algo que el diagrama marca con una nota: \textbf{ese RC es un
+filtro de reconstrucción, no un antialias}. Su frecuencia de corte está por
+encima de Nyquist, que a 16\,kHz de muestreo son 8\,kHz. Funciona en este montaje
+porque el emisor es sintético y no genera nada entre 3,5\,kHz y la portadora, de
+modo que no hay energía que se pliegue. En el proyecto, cuando el nodo 1 tome la
+señal de una fuente arbitraria, va a hacer falta un antialias de verdad antes del
+ADC.
 
 \subsection{Captura y comparación de un bloque}
-\pendiente{D: diagrama \texttt{d\_02\_flujo\_receptor.png}.}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{d_02_flujo_receptor.png}
+\caption{Ciclo de un bloque en la Pico W, desde el DMA hasta la trama.}
+\label{fig:flujo}
+\end{figure}
+
+La captura va por DMA a dos búferes de 1024 muestras en \emph{ping-pong}: mientras
+uno se llena, el otro se procesa. A 16\,kHz un búfer tarda 64\,ms en llenarse, y
+con el solapamiento del 50\,\% que usa el resto del proyecto el salto es de 512
+muestras, o sea 31,25 bloques por segundo y un presupuesto de \textbf{32\,ms por
+bloque} para quitar la continua, ventanear, transformar y armar la trama.
+
+Si un bloque no alcanza a procesarse antes de que el siguiente esté listo, se
+descarta el más viejo y se incrementa un contador de sobrecarga. La regla es que
+\textbf{el DMA nunca se bloquea}: el ADC corre en tiempo real y detenerlo para
+atender un error solo convierte un problema de procesamiento en pérdida de datos.
+
+La comparación tiene un detalle que no es obvio. Entre lo que sale del DDS y lo
+que entra a la FFT hay una ganancia desconocida: el nivel del PWM, la caída del
+RC y la escala del ADC. Por eso \textbf{los niveles no se comparan en absoluto
+sino en relativo}: los dos espectros se normalizan a su pico más alto y lo que se
+contrasta es la diferencia entre componentes. Eso vuelve la prueba inmune a la
+ganancia de la cadena y sensible a lo que sí interesa, que es si la forma del
+espectro se conservó.
 
 \subsection{Trama y detección de errores}
-\pendiente{D: diagramas \texttt{d\_03\_trama.png} y \texttt{d\_04\_decision.png}.}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{d_03_trama.png}
+\caption{Trama que el nodo 1 manda por cada bloque procesado.}
+\label{fig:trama}
+\end{figure}
+
+La trama resuelve los tres problemas que pide el proyecto en sus requisitos 5.2 y
+5.3. La \textbf{delimitación} la da el preámbulo \texttt{0xAA 0x55}, que alterna
+bits y es poco probable dentro de los datos; si el CRC falla, el receptor vuelve a
+buscar ese patrón en lugar de perder la sincronía. Los \textbf{bloques perdidos}
+se detectan con el número de bloque, que crece de uno en uno: un salto de $n$ dice
+exactamente cuántos se perdieron, y el contador de 16 bits da la vuelta cada
+35 minutos a 31,25 bloques por segundo. Los \textbf{errores de transmisión} los
+detecta un CRC-16 CCITT con polinomio \texttt{0x1021} sobre todo lo que va entre
+el preámbulo y el propio CRC, que atrapa todas las ráfagas de hasta 16 bits.
+
+La decisión de diseño que vale la pena justificar es qué viaja como datos. El
+nodo 1 manda \textbf{solo los picos}, no los 513 bins del espectro. Validar
+necesita el bin y el nivel de cada componente, y nada más. Con cuatro picos la
+trama mide $8 + 4K = 24$ bytes, es decir unos 750\,B/s; mandar el espectro
+completo serían 1026 bytes por bloque, 32\,kB/s, cuarenta veces más tráfico para
+información que la comparación no usa.
+
+\clearpage
+\begin{figure}[H]
+\centering
+\includegraphics[height=0.88\textheight]{d_04_decision.png}
+\caption{Qué hace el receptor ante cada clase de falla.}
+\label{fig:decision}
+\end{figure}
 
 \subsection{Criterios de aceptación}
-\pendiente{D: tabla con los márgenes de \texttt{parametros.json} y su justificación.}
+
+Los tres márgenes están fijados en \texttt{taller\_semana12/parametros.json} y
+cada uno sale de una cuenta, no de una estimación a ojo.
+
+\begin{table}[H]
+\centering\small
+\caption{Criterios de aceptación de un bloque, fijados antes de medir.}
+\begin{tabular}{llp{8.6cm}}
+\toprule
+Criterio & Valor & De dónde sale \\
+\midrule
+\texttt{margen\_frecuencia\_bins} & 1 bin &
+Con $\Delta f = 15{,}625$\,Hz, las frecuencias del emisor no caen justo en un bin:
+440\,Hz es el bin 28,16; 880\,Hz el 56,32; 1320\,Hz el 84,48; y 3500\,Hz el 224,00.
+El redondeo a la rejilla ya corre el pico hasta 0,48 bins. La deriva entre los dos
+cristales del RP2040, de $\pm30$\,ppm cada uno, son 0,013 bins a 3500\,Hz y no
+pesa. Un bin cubre el redondeo más el ruido. \\
+\addlinespace
+\texttt{margen\_amplitud\_db} & 3,0 dB &
+Suma de tres efectos conocidos: la pérdida de festoneado de la ventana Hann, hasta
+1,42\,dB cuando un tono cae entre dos bins; la caída del RC, 0,89\,dB de diferencia
+entre 440 y 3500\,Hz; y la cuantización de 8 bits del emisor, que deja el piso
+50\,dB abajo y no afecta a los picos. Da 2,3\,dB y se redondea a 3,0. \\
+\addlinespace
+\texttt{snr\_minima\_captura\_db} & 30,0 dB &
+El techo de la cadena lo ponen los 8 bits del PWM:
+$6{,}02\cdot 8 + 1{,}76 = 49{,}9$\,dB. El ADC de 12 bits no es el límite. Se
+admiten unos 20\,dB de degradación por el residuo de portadora, el ruido de la
+placa y la no linealidad del conversor. Por debajo de 30\,dB en el modo 1, que es
+un tono limpio, la cadena está metiendo más ruido del previsto. \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+La regla completa está implementada en
+\texttt{d\_validacion/comparar\_fft.py}, que lee los márgenes del JSON y se niega a
+correr si alguno quedó sin definir. El script compara pico por pico y reporta el
+error en bins y en decibelios de cada componente.
+
+\subsection{Qué se hace si una prueba falla}
+
+Lo que el receptor hace con cada falla está en la figura \ref{fig:decision}, pero
+conviene separar el diagnóstico, porque cada síntoma apunta a una etapa distinta
+de la cadena.
+
+Un \textbf{pico corrido en frecuencia} más allá de un bin no se explica por la
+deriva de los cristales, que es dos órdenes de magnitud menor: apunta a que el
+reloj de muestreo del emisor o del receptor no es el que se cree, es decir al
+divisor del PWM o a la configuración del ADC.
+
+Una \textbf{diferencia de nivel} fuera de los 3\,dB, si afecta solo a las
+componentes altas, apunta al RC: una frecuencia de corte más baja de la calculada
+atenúa de más los 1320 y los 3500\,Hz y deja el de 440\,Hz intacto. Si afecta a
+todas por igual, es ganancia de la cadena, y ahí la normalización relativa la
+habría absorbido, así que lo más probable es saturación.
+
+Una \textbf{SNR por debajo de 30\,dB en el modo 1} significa que la cadena mete
+ruido de más. Los sospechosos en orden son el residuo de la portadora que el RC no
+alcanzó a quitar, la falta de tierra común entre las dos placas y el ruido de la
+alimentación por USB.
+
+Un \textbf{CRC que falla seguido} es transmisión, no señal, y se ataca por otro
+lado: velocidad del enlace, largo del cable o falta de tierra común.
+
+En los cuatro casos el receptor registra y sigue. El resultado de una prueba no es
+el de un bloque suelto sino el de una tanda: se corre el modo durante unos
+segundos y se reporta cuántos bloques pasaron, cuántos se perdieron y cuántos
+fallaron por cada motivo.

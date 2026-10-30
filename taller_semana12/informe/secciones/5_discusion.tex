@@ -1,6 +1,41 @@
 % Discusion - cada bloque aporta un parrafo; D lo une
+% D ya puso el suyo. A, B y C agregan el de ellos arriba del de D.
 
 \section{Discusión}
+\label{sec:discusion}
 
-\pendiente{Todos: un párrafo por bloque con lo que funcionó, las limitaciones y
-qué cambia para el proyecto final.}
+\pendiente{A: un párrafo sobre la elección de $f_s$ y $N$, y qué tan bien se
+sostiene la cuantización a 8 bits del emisor.}
+
+\pendiente{B: un párrafo sobre el sistema completo en alto nivel: qué se
+reutilizó de la Tarea 1 y qué hubo que cambiar.}
+
+\pendiente{C: un párrafo sobre el emisor en la Pico: el DDS, el filtro RC medido
+y las diferencias con lo que predecía el prototipo.}
+
+\paragraph{Validación en el receptor.} La estrategia quedó definida con sus cuatro
+diagramas y sus tres criterios de aceptación fijados antes de medir, que es lo que
+pide la sección 3.5 del proyecto. Dos decisiones son las que más peso tienen.
+La primera es comparar los niveles en relativo y no en absoluto: entre el DDS y la
+FFT hay una ganancia desconocida que incluye el nivel del PWM, la caída del RC y
+la escala del ADC, y normalizar cada espectro a su pico más alto vuelve la prueba
+insensible a esa ganancia sin perder sensibilidad a la forma del espectro, que es
+lo que de verdad se quiere validar. La segunda es mandar solo los picos en lugar
+del espectro completo: baja el tráfico de 32\,kB/s a 750\,B/s sin perder nada que
+la comparación use.
+
+La limitación que queda es que todo esto está verificado contra capturas
+simuladas, no contra la placa. La regla de decisión se probó generando
+perturbaciones controladas --- un pico corrido tres bins, un nivel cinco
+decibelios fuera --- y comprobando que el script las marca y dice por qué, pero el
+comportamiento real de la cadena PWM--RC--ADC todavía no se ha medido. Lo primero
+que habrá que revisar cuando haya hardware es si la SNR del modo 1 llega a los
+30\,dB que se fijaron como mínimo, porque ese umbral se calculó a partir del techo
+teórico de los 8 bits del emisor y es el supuesto más frágil de los tres.
+
+Para el proyecto hay una consecuencia concreta: el filtro RC de la salida del
+emisor sirve como reconstrucción pero no como antialias, porque su frecuencia de
+corte está por encima de Nyquist. En este taller no importa, porque el emisor es
+sintético y no genera nada entre la banda útil y la portadora, pero cuando el nodo
+1 tome la señal de una fuente arbitraria va a necesitar un antialias propio antes
+del ADC.
