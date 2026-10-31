@@ -1,8 +1,8 @@
 %% Bloque D - Cadena de senal del emisor al nodo 1, con niveles reales.
-%% fc del RC: propuesta de D (R = 1,5 kohm, C = 10 nF por etapa). C la confirma al medir.
+%% Valores del RC: los que monto y midio el bloque C (R = 470 ohm, C = 10 nF por etapa).
 flowchart LR
     A["<b>Pico (emisor)</b><br/>DDS a 16 kHz<br/>PWM 8 bits, GPIO15<br/>portadora 488 kHz<br/>nivel_pico = 0,8"]
-    B["<b>Filtro RC</b><br/>2 etapas, R = 1,5 kΩ, C = 10 nF<br/>fc = 10,6 kHz<br/>-66 dB en 488 kHz<br/>-0,9 dB en 3,5 kHz"]
+    B["<b>Filtro RC</b> (medido por C)<br/>2 etapas, R = 470 Ω, C = 10 nF<br/>f₀ = 33,9 kHz, corte -3 dB en 12,7 kHz<br/>-46 dB en 488 kHz<br/>-0,31 dB en 3,5 kHz"]
     C["<b>Pico W (receptor)</b><br/>ADC0, GPIO26<br/>12 bits, 0 a 3,3 V<br/>muestreo a 16 kHz"]
     D["<b>Nodo 1</b><br/>bloques de N = 1024<br/>quitar DC, Hann, FFT<br/>31,25 bloques/s"]
     R["<b>Referencia en Python</b><br/>senal_del_modo()<br/>misma N y misma ventana"]
@@ -17,5 +17,5 @@ flowchart LR
 
     N1["Margen de 0,33 V en cada<br/>extremo: no hay riesgo de<br/>pasar de 3,3 V ni de recortar"]
     N1 -.-> C
-    N2["El RC es filtro de reconstruccion,<br/>no antialias: fc esta sobre Nyquist.<br/>Vale porque el emisor no genera<br/>nada entre 3,5 kHz y la portadora"]
+    N2["El RC es filtro de reconstruccion,<br/>no antialias: en Nyquist (8 kHz)<br/>solo atenua 1,4 dB. Vale porque el<br/>emisor no genera nada entre<br/>3,5 kHz y la portadora"]
     N2 -.-> B

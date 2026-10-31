@@ -27,26 +27,33 @@ la Pico W, con referencia de 3,3\,V, eso corresponde a las cuentas 410 a 3686 de
 3,3\,V ni de recortar la señal, y a la vez se usa el 80\,\% del rango del
 conversor, que es donde su no linealidad es menor.
 
-El filtro de reconstrucción propuesto son dos etapas RC de
-$R = 1{,}5\,\mathrm{k}\Omega$ y $C = 10$\,nF, es decir
+El filtro de reconstrucción es el que montó y midió el bloque del emisor
+(sección \ref{sec:emisor}): dos etapas de $R = 470\,\Omega$ y $C = 10$\,nF. Sin
+separador entre etapas la respuesta del conjunto es
 \[
-f_c=\frac{1}{2\pi RC}=10{,}6\ \text{kHz}.
+H(s)=\frac{1}{1+3RCs+(RCs)^2},
+\qquad
+f_0=\frac{1}{2\pi RC}=33{,}9\ \text{kHz},
 \]
-Con eso la portadora del PWM, que está en unos 488\,kHz, queda atenuada cerca de
-66\,dB, mientras que la componente útil más alta del banco, la interferencia de
-3500\,Hz del modo 3, pierde solo 0,9\,dB. La diferencia de atenuación entre el
-tono de 440\,Hz y el de 3500\,Hz es de 0,89\,dB, que es lo que después se tiene
-en cuenta al fijar el margen de amplitud. Los valores son una propuesta de este
-bloque para poder poner números en el diagrama; el bloque del emisor los
-confirma al medir.
+cuyo corte a $-3$\,dB queda en 12,7\,kHz. Con eso la portadora del PWM, que está
+en unos 488\,kHz, se atenúa 46\,dB, mientras que la componente útil más alta del
+banco, la interferencia de 3500\,Hz del modo 3, pierde solo 0,31\,dB. La
+diferencia de atenuación entre el tono de 440\,Hz y el de 3500\,Hz es de
+0,31\,dB, y es lo que después se tiene en cuenta al fijar el margen de amplitud.
 
 Conviene dejar dicho algo que el diagrama marca con una nota: \textbf{ese RC es un
 filtro de reconstrucción, no un antialias}. Su frecuencia de corte está por
-encima de Nyquist, que a 16\,kHz de muestreo son 8\,kHz. Funciona en este montaje
-porque el emisor es sintético y no genera nada entre 3,5\,kHz y la portadora, de
-modo que no hay energía que se pliegue. En el proyecto, cuando el nodo 1 tome la
-señal de una fuente arbitraria, va a hacer falta un antialias de verdad antes del
-ADC.
+encima de Nyquist, que a 16\,kHz de muestreo son 8\,kHz: a esa frecuencia solo
+atenúa 1,4\,dB. Al preparar este diagrama se supuso que
+eso no traía consecuencias, porque el emisor es sintético y no genera nada entre
+3,5\,kHz y la portadora. La medición del bloque del emisor corrigió el supuesto:
+la portadora de 488,28\,kHz, muestreada a 16\,kHz, se pliega a 7,72\,kHz, y su
+rizado de unos 10\,mV aparece como una línea espuria cerca de Nyquist aunque la
+señal analógica sea limpia (sección \ref{sec:emisor}). No estorba a la validación,
+porque 7,72\,kHz está lejos de los cuatro tonos del banco y el criterio de SNR
+mínima lo detectaría si creciera, pero confirma que en el proyecto, cuando el nodo
+1 tome la señal de una fuente arbitraria, va a hacer falta un antialias de verdad
+antes del ADC.
 
 \subsection{Captura y comparación de un bloque}
 
@@ -131,9 +138,9 @@ pesa. Un bin cubre el redondeo más el ruido. \\
 \addlinespace
 \texttt{margen\_amplitud\_db} & 3,0 dB &
 Suma de tres efectos conocidos: la pérdida de festoneado de la ventana Hann, hasta
-1,42\,dB cuando un tono cae entre dos bins; la caída del RC, 0,89\,dB de diferencia
+1,42\,dB cuando un tono cae entre dos bins; la caída del RC, 0,31\,dB de diferencia
 entre 440 y 3500\,Hz; y la cuantización de 8 bits del emisor, que deja el piso
-50\,dB abajo y no afecta a los picos. Da 2,3\,dB y se redondea a 3,0. \\
+50\,dB abajo y no afecta a los picos. Da 1,7\,dB y se deja en 3,0. \\
 \addlinespace
 \texttt{snr\_minima\_captura\_db} & 30,0 dB &
 El techo de la cadena lo ponen los 8 bits del PWM:
@@ -145,10 +152,27 @@ un tono limpio, la cadena está metiendo más ruido del previsto. \\
 \end{tabular}
 \end{table}
 
+El margen de amplitud de este bloque, 3\,dB, es más holgado que el 1,5\,dB que usa
+la verificación del emisor en la sección \ref{sec:emisor}, y la diferencia es
+deliberada. Allá la medición ocurre dentro de una sola Pico, donde el PWM y el ADC
+comparten el mismo reloj y la misma referencia de 3,3\,V, de modo que la
+comparación es ratiométrica y casi todo el error se cancela. Aquí la señal cruza
+de una placa a otra: hay dos cristales, dos referencias de tensión y un cable de
+por medio. Pedirle a esa medición la misma estrechez sería exigir una precisión
+que el montaje no tiene por qué dar.
+
 La regla completa está implementada en
 \texttt{d\_validacion/comparar\_fft.py}, que lee los márgenes del JSON y se niega a
 correr si alguno quedó sin definir. El script compara pico por pico y reporta el
 error en bins y en decibelios de cada componente.
+
+Esa comparación ya se ejecutó de punta a punta contra las señales que produce el
+sistema completo de la sección \ref{sec:sistema}, cuyos picos quedan en
+\texttt{resultados/b\_picos\_modo\_*.csv} con el mismo formato que define la trama.
+Los tres modos pasan en los 63 bloques de cada señal, con un error de cero bins en
+todas las componentes y diferencias de nivel por debajo de 0,01\,dB. Es la cadena
+de validación entera funcionando; lo único que falta sustituir es el origen de los
+datos, que pasará de ser el sistema en alto nivel a ser la Pico W.
 
 \subsection{Qué se hace si una prueba falla}
 
