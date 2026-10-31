@@ -14,8 +14,10 @@
     "_nota_baudios": "en la Pico el serial es USB CDC y los baudios no afectan la velocidad, pero pyserial pide un valor",
     "filtro_reconstruccion": {
       "tipo": "RC pasabajos de 2 etapas",
-      "fc_hz": null,
-      "_nota": "C lo define y lo justifica en el PDF (requisito 5.6 del proyecto)"
+      "fc_hz": 12700,
+      "r_ohm": 470,
+      "c_f": 1e-8,
+      "_nota": "Dos etapas de R = 470 ohm y C = 10 nF, montadas y medidas por C. f0 = 1/(2*pi*R*C) = 33,9 kHz y el corte a -3 dB del conjunto sin buffer queda en 12,7 kHz. Atenua 46 dB la portadora de 488 kHz y solo 0,31 dB los 3500 Hz"
     },
     "modos": [
       {
@@ -51,7 +53,7 @@
     "margen_frecuencia_bins": 1,
     "_nota_frecuencia": "Delta f = 15,625 Hz. Las frecuencias del emisor no caen justo en un bin (440 -> 28,16; 880 -> 56,32; 1320 -> 84,48; 3500 -> 224,00), asi que el redondeo a la rejilla ya corre el pico hasta 0,48 bins. La deriva entre los dos cristales del RP2040 (+-30 ppm cada uno) son 0,013 bins a 3500 Hz y no pesa. Un bin cubre el redondeo mas el ruido",
     "margen_amplitud_db": 3.0,
-    "_nota_amplitud": "Suma de tres efectos conocidos: perdida de festoneado de la ventana Hann, hasta 1,42 dB cuando el tono cae entre dos bins; caida del RC de reconstruccion, 0,89 dB de diferencia entre 440 Hz y 3500 Hz; y la cuantizacion de 8 bits del emisor, que deja el piso 50 dB abajo y no afecta los picos. Da 2,3 dB y se redondea a 3,0",
+    "_nota_amplitud": "Suma de tres efectos conocidos: perdida de festoneado de la ventana Hann, hasta 1,42 dB cuando el tono cae entre dos bins; caida del RC de reconstruccion, 0,31 dB de diferencia entre 440 Hz y 3500 Hz; y la cuantizacion de 8 bits del emisor, que deja el piso 50 dB abajo y no afecta los picos. Da 1,7 dB y se deja en 3,0, que ademas cubre que la medicion cruza dos placas con relojes y referencias distintas, a diferencia de la verificacion del emisor que corre en una sola",
     "snr_minima_captura_db": 30.0,
     "_nota_snr": "Techo teorico de la cadena: los 8 bits del PWM dan 6,02*8 + 1,76 = 49,9 dB, y el ADC de 12 bits no es el limite. Se admiten unos 20 dB de degradacion por el residuo de portadora, el ruido de la placa y la no linealidad del ADC. Por debajo de 30 dB en el modo 1 la cadena esta metiendo mas ruido del previsto",
     "_nota": "Fijados por D antes de medir, como pide la seccion 3.5 del proyecto. Si se cambian, se cambian aqui y se avisa al grupo"

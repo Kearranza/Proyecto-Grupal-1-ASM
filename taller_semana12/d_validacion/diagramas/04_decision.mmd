@@ -1,7 +1,26 @@
-%% TODO (D): qué hace el receptor ante cada falla.
-%% Casos mínimos: CRC incorrecto, salto en el número de bloque, búfer lleno,
-%% pico fuera del margen de frecuencia o de amplitud.
+%% Bloque D - Que hace el receptor ante cada falla.
 flowchart TD
-    T([Trama recibida]) --> C{"¿CRC correcto?"}
-    C -->|no| E["TODO (D)"]
-    C -->|sí| X["TODO (D)"]
+    T([Trama recibida]) --> CRC{"CRC correcto?"}
+    CRC -->|no| E1["Descartar la trama<br/>errores_crc++<br/>volver a buscar el preambulo"]
+    E1 --> FIN
+
+    CRC -->|si| SEC{"N.º de bloque<br/>es el siguiente?"}
+    SEC -->|"salto de n"| E2["perdidos += n<br/>registrar el salto<br/>seguir con este bloque"]
+    SEC -->|si| OK1
+    E2 --> OK1
+
+    OK1["Comparar cada pico con<br/>senal_del_modo() del modo activo"] --> F{"|bin medido - bin esperado|<br/>≤ margen_frecuencia_bins?"}
+    F -->|no| E3["Marcar NO PASA<br/>registrar que pico y<br/>cuantos bins se corrio"]
+    F -->|si| A{"|nivel medido - nivel esperado|<br/>≤ margen_amplitud_db?"}
+    A -->|no| E4["Marcar NO PASA<br/>registrar el pico y<br/>la diferencia en dB"]
+    A -->|si| SNR{"Modo 1 y SNR de la captura<br/>≥ snr_minima_captura_db?"}
+    SNR -->|no| E5["Marcar NO PASA<br/>la cadena PWM-RC-ADC<br/>mete mas ruido del previsto"]
+    SNR -->|si| OKF["Bloque PASA"]
+
+    E3 --> FIN
+    E4 --> FIN
+    E5 --> FIN
+    OKF --> FIN([Registrar y seguir])
+
+    G["<b>Ninguna falla detiene la captura.</b><br/>El ADC corre en tiempo real: si se para<br/>a mostrar un error se pierden bloques.<br/>Todo se cuenta y se reporta al final"]
+    G -.-> FIN
