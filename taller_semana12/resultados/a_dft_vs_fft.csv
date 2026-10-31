@@ -1,0 +1,2 @@
+n,t_dft_ms,t_fft_ms,razon_medida,razon_teorica,error_max,bin_maximo
+1024,361.601,1.54859,233.504,204.8,3.97399e-11,141.427

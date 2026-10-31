@@ -37,6 +37,9 @@ def margenes(p):
                           'snr_minima_captura_db') if v.get(k) is None]
     if faltan:
         raise NotImplementedError(f'TODO (D): definir en parametros.json {faltan}')
+    if any(not np.isfinite(v[k]) or v[k] < 0 for k in
+           ('margen_frecuencia_bins', 'margen_amplitud_db', 'snr_minima_captura_db')):
+        raise ValueError('Los margenes deben ser finitos y no negativos')
     return v
 
 
@@ -58,6 +61,7 @@ def espectro_referencia(p, identificador):
     """|X[k]| en dB de senal_del_modo() con la misma ventana y N que el micro."""
     from a_senales.prototipo_frecuencias import senal_del_modo
     _, x = senal_del_modo(p, identificador)
+    x = x - np.mean(x)
     ventana = np.hanning(x.size)
     magnitud = np.abs(np.fft.rfft(x * ventana))
     return 20*np.log10(magnitud + 1e-20)
@@ -95,38 +99,63 @@ def simular_captura(p, identificador, referencia, corrimiento=0, atenuacion_db=0
             for i, e in enumerate(esperados)]
 
 
-def decidir(referencia, medido, v, p=None, identificador=None):
+def decidir(referencia, medido, v, p=None, identificador=None, verbose=True):
     """Pasa / no pasa por cada pico, con el error en bins y en dB."""
     esperados = picos_esperados(p, identificador, referencia)
+    if not medido:
+        return {'pasa': False, 'picos': [], 'motivo': 'bloque sin picos'}
+    if len({m['bloque'] for m in medido}) != 1 or any(m['modo'] != identificador for m in medido):
+        raise ValueError('La decision requiere un solo bloque del modo solicitado')
+    if any(not np.isfinite(m['nivel_db']) or not 0 <= m['bin'] < len(referencia) for m in medido):
+        raise ValueError('Pico no finito o fuera de la FFT')
+    if len({m['bin'] for m in medido}) != len(medido):
+        raise ValueError('Bins duplicados en un bloque')
     tope = max(m['nivel_db'] for m in medido)
     relativos = [{**m, 'nivel_rel_db': m['nivel_db'] - tope} for m in medido]
 
     filas, pasa_todo = [], True
+    usados = set()
     for e in esperados:
         cerca = [m for m in relativos
-                 if abs(m['bin'] - e['bin']) <= v['margen_frecuencia_bins']]
+                 if m['bin'] not in usados and abs(m['bin'] - e['bin']) <= v['margen_frecuencia_bins']]
         if not cerca:
             filas.append({**e, 'error_bins': None, 'error_db': None,
                           'pasa': False, 'motivo': 'no aparece el pico'})
             pasa_todo = False
             continue
         m = min(cerca, key=lambda c: abs(c['bin'] - e['bin']))
+        usados.add(m['bin'])
         error_bins = m['bin'] - e['bin']
         error_db = m['nivel_rel_db'] - e['nivel_rel_db']
-        ok = abs(error_db) <= v['margen_amplitud_db']
+        ok = bool(abs(error_db) <= v['margen_amplitud_db'])
         filas.append({**e, 'error_bins': error_bins, 'error_db': error_db,
                       'pasa': ok, 'motivo': '' if ok else 'nivel fuera de margen'})
         pasa_todo = pasa_todo and ok
 
-    print(f"\n  {'frecuencia':>12s} {'bin esp.':>9s} {'error (bins)':>13s} "
-          f"{'error (dB)':>11s} {'':>8s}")
-    for f in filas:
-        eb = '--' if f['error_bins'] is None else f"{f['error_bins']:+d}"
-        ed = '--' if f['error_db'] is None else f"{f['error_db']:+.2f}"
-        print(f"  {f['frecuencia_hz']:>9d} Hz {f['bin']:>9d} {eb:>13s} {ed:>11s} "
-              f"  {'PASA' if f['pasa'] else 'NO PASA'}  {f['motivo']}")
-    print(f"\n  Resultado del bloque: {'PASA' if pasa_todo else 'NO PASA'}")
+    if verbose:
+        print(f"\n  {'frecuencia':>12s} {'bin esp.':>9s} {'error (bins)':>13s} "
+              f"{'error (dB)':>11s} {'':>8s}")
+        for f in filas:
+            eb = '--' if f['error_bins'] is None else f"{f['error_bins']:+d}"
+            ed = '--' if f['error_db'] is None else f"{f['error_db']:+.2f}"
+            print(f"  {f['frecuencia_hz']:>9d} Hz {f['bin']:>9d} {eb:>13s} {ed:>11s} "
+                  f"  {'PASA' if f['pasa'] else 'NO PASA'}  {f['motivo']}")
+        print(f"\n  Resultado del bloque: {'PASA' if pasa_todo else 'NO PASA'}")
     return {'pasa': pasa_todo, 'picos': filas}
+
+
+def decidir_captura(referencia, medido, v, p, identificador):
+    """Separa el CSV por bloque para no mezclar picos de capturas diferentes."""
+    grupos = {}
+    for pico in medido:
+        grupos.setdefault(pico['bloque'], []).append(pico)
+    decisiones = []
+    for numero, picos in grupos.items():
+        print(f'Bloque {numero}')
+        decisiones.append({'bloque': numero,
+                           **decidir(referencia, picos, v, p, identificador)})
+    return {'pasa': bool(decisiones) and all(d['pasa'] for d in decisiones),
+            'bloques': decisiones}
 
 
 def main():
@@ -150,8 +179,8 @@ def main():
         ('margenes definidos', lambda: estado.update(v=margenes(p))),
         ('espectro de referencia', lambda: estado.update(ref=espectro_referencia(p, args.modo))),
         ('espectro del micro', lambda: estado.update(med=leer())),
-        ('decision', lambda: decidir(estado['ref'], estado['med'], estado['v'],
-                                     p, args.modo)),
+        ('decision', lambda: decidir_captura(estado['ref'], estado['med'], estado['v'],
+                                             p, args.modo)),
     ], encadenado=True)
 
 

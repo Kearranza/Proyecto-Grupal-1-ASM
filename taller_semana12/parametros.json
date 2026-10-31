@@ -50,13 +50,10 @@
   "validacion": {
     "margen_frecuencia_bins": 1,
     "_nota_frecuencia": "Delta f = 15,625 Hz. Las frecuencias del emisor no caen justo en un bin (440 -> 28,16; 880 -> 56,32; 1320 -> 84,48; 3500 -> 224,00), asi que el redondeo a la rejilla ya corre el pico hasta 0,48 bins. La deriva entre los dos cristales del RP2040 (+-30 ppm cada uno) son 0,013 bins a 3500 Hz y no pesa. Un bin cubre el redondeo mas el ruido",
-
     "margen_amplitud_db": 3.0,
     "_nota_amplitud": "Suma de tres efectos conocidos: perdida de festoneado de la ventana Hann, hasta 1,42 dB cuando el tono cae entre dos bins; caida del RC de reconstruccion, 0,89 dB de diferencia entre 440 Hz y 3500 Hz; y la cuantizacion de 8 bits del emisor, que deja el piso 50 dB abajo y no afecta los picos. Da 2,3 dB y se redondea a 3,0",
-
     "snr_minima_captura_db": 30.0,
     "_nota_snr": "Techo teorico de la cadena: los 8 bits del PWM dan 6,02*8 + 1,76 = 49,9 dB, y el ADC de 12 bits no es el limite. Se admiten unos 20 dB de degradacion por el residuo de portadora, el ruido de la placa y la no linealidad del ADC. Por debajo de 30 dB en el modo 1 la cadena esta metiendo mas ruido del previsto",
-
     "_nota": "Fijados por D antes de medir, como pide la seccion 3.5 del proyecto. Si se cambian, se cambian aqui y se avisa al grupo"
-  }
+}
 }

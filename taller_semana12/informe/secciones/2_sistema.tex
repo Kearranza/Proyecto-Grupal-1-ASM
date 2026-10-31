@@ -1,16 +1,114 @@
-% Bloque B - Sistema completo en alto nivel - rama taller-sistema
-% Figuras: b_*.png que genera b_sistema/sistema_completo.py
-
+% Bloque B conectado con A y D; queda pendiente el montaje de C.
 \section{Sistema completo en alto nivel}
 \label{sec:sistema}
 
 \subsection{Arquitectura simulada}
-\pendiente{B: diagrama de bloques emisor $\rightarrow$ cadena física $\rightarrow$
-nodo 1 $\rightarrow$ nodos 2 y 3 $\rightarrow$ métricas, y qué modela cada función.}
+Se implemento una cadena reproducible en Python con NumPy, SciPy y las rutinas
+FFT, IFFT, filtrado SOS y metricas de la Tarea 1. Las frecuencias y amplitudes
+proceden de los JSON compartidos; las decisiones locales estan en
+\texttt{b\_sistema/configuracion\_b.json}.
+\begin{figure}[H]
+\centering
+\includegraphics[width=\linewidth]{b_arquitectura.png}
+\caption{Cadena del Bloque B. Ambos filtros reciben la misma captura adquirida
+ademas del diagnostico del nodo 1.}
+\end{figure}
+
+La entrada usa directamente \texttt{senal\_del\_modo} del bloque A sin
+cuantizacion. La componente limpia conserva la escala de la mezcla: nivel pico
+dividido por la suma de amplitudes del modo. El PWM reutiliza el cuantizador de
+A una sola vez, con centro digital 128 y rango de cuentas de 0 a 255.
+Los modos 1 y 2 contienen solo senal util; el modo 3 agrega
+la interferencia configurada. El PWM se aproxima por cuantizacion de 8 bits,
+offset de media escala y conversion a voltios; el ADC usa 12 bits y 3.3 V.
+Se registran los recortes de rango.
+
+% TODO (C): confirmar fc, topologia y ganancia del RC con el montaje del emisor.
+La frecuencia de corte del RC aun no esta definida. Los resultados presentes
+omiten ese filtro. El programa admite dos polos aislados cuando se indique una
+frecuencia de corte, pero no reproduce la carga entre etapas pasivas ni la
+conmutacion de la portadora PWM.
+
+El nodo 1 elimina DC y promedia magnitudes FFT con Hann, bloques de 1024 muestras
+y 50\,\% de solapamiento a 16 kHz. Protege cinco bins alrededor de los tonos utiles
+y detecta un tono externo si supera $-25$ dB respecto al maximo espectral.
+Este diagnostico usa toda la captura y es fuera de linea. Su alcance es la
+interferencia tonal separada, no ruido general o superpuesto a los tonos utiles.
+
+El nodo 2 usa un notch IIR con $Q=20$, comprobacion de estabilidad y filtrado
+manual SOS. El nodo 3 aplica ganancia 0.02 en dos bins a cada lado de la
+interferencia, conserva simetria conjugada y reconstruye mediante FFT/IFFT,
+doble Hann y normalizacion por la suma de ventanas al cuadrado. El relleno de
+extremos permite recuperar tambien el ultimo bloque parcial. En ausencia de
+interferencia ambos metodos conservan la senal centrada.
 
 \subsection{Resultados por modo}
-\pendiente{B: señal limpia, contaminada y filtradas (tiempo y espectro), y tabla de
-MSE, SNR, $\Delta$SNR, energía útil y atenuación.}
+Se usan capturas de 32768 muestras y se excluyen dos bloques de cada extremo
+para evaluar ambos metodos sobre el mismo intervalo. No se corrigen fase ni
+ganancia de las salidas. La referencia limpia precede la cadena fisica; por ello
+el error incluye cuantizacion y distorsion de los filtros. $E_u$ representa la
+fraccion de energia espectral conservada en las bandas utiles, no joules.
+La SNR de entrada es aproximadamente 48.11, 43.98 y 2.00 dB para los modos 1, 2 y 3.
+
+\begin{table}[H]
+\centering
+\small
+\input{../resultados/b_tabla_metricas.tex}
+\caption{Metricas locales de B. SNR y atenuacion en dB; MSE en amplitud
+normalizada al cuadrado. La atenuacion no aplica sin interferencia detectada.}
+\end{table}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{b_modo_1.png}
+\caption{Modo 1: tono util y salidas sin rechazo innecesario.}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{b_modo_2.png}
+\caption{Modo 2: preservacion del conjunto de tonos utiles.}
+\end{figure}
+\begin{figure}[H]
+\centering
+\includegraphics[width=0.92\linewidth]{b_modo_3.png}
+\caption{Modo 3: reduccion de la interferencia tonal por ambos metodos.}
+\end{figure}
+
+Los modos 1 y 2 conservan aproximadamente el 100\,\% de la energia util. En el
+modo 3 la mejora de SNR es 34.51 dB para el IIR y 32.64 dB para el espectral.
+No hubo recortes de rango. El resultado favorece al notch para este tono aislado;
+no establece superioridad general ante otras clases de ruido. Los datos NPZ,
+CSV y JSON permiten reproducir las figuras y revisar las cifras completas.
 
 \subsection{Costo computacional anticipado}
-\pendiente{B: operaciones, memoria y latencia por bloque de cada método.}
+Para un bloque de $N$ muestras y $S$ secciones SOS, el IIR requiere $5SN$
+multiplicaciones y $4SN$ sumas. En el modo 3, $S=1$: 5120 multiplicaciones,
+4096 sumas y 8220 bytes estimados con reales de cuatro bytes, incluyendo dos
+bloques de entrada/salida. Sin interferencia se omite el filtro.
+
+Una FFT compleja radix-2 tiene $(N/2)\log_2N$ mariposas. Con cuatro productos y
+seis sumas reales por mariposa, el par FFT/IFFT mas ventanas, mascara y acumulacion
+se estima en 45056 multiplicaciones, 63488 sumas y 1024 divisiones por bloque.
+No se descuentan giros triviales. Se presupuestan $12N$ reales (49152 bytes) para
+ventanas, mascara, espectro, giros, bloques, acumuladores y trabajo. Estas cuentas
+representan una posible implementacion embebida, no la memoria del proceso Python.
+El nodo 1 requiere adicionalmente su FFT, ventana, calculo de magnitudes y
+busqueda de candidatos; el JSON informa por separado su nucleo FFT y ventana.
+
+La adquisicion de un bloque dura 64 ms y el avance espectral es 32 ms. Estos
+valores no son tiempos de computo; el IIR tiene ademas retardo de grupo dependiente
+de frecuencia. Se registra el tiempo Python de cada captura como referencia del
+entorno de ejecucion. La latencia total del prototipo incluye el diagnostico de
+la captura completa y no demuestra operacion en tiempo real sobre un micro.
+
+% La entrega conjunta debe incluir src y metadatos para resolver las importaciones.
+Las pruebas locales verifican diagnostico, mejora de SNR, conservacion de energia,
+reconstruccion de extremos, equivalencia SOS con SciPy, cuantizacion y RC opcional.
+La captura ADC se conecta ademas con el comparador de D antes de los filtros.
+Se extraen hasta ocho maximos locales por bloque y se exportan en el formato
+CSV de D. Los 63 bloques de cada modo cumplen los margenes de un bin y 3 dB;
+el modo 1 cumple ademas el minimo de SNR de 30 dB. El umbral de SNR no se aplica
+al modo 3 por su interferencia intencional. Los resultados completos quedan en
+\texttt{b\_resultados.json}; son pruebas simuladas, no mediciones de placa.
+La propuesta RC de D sigue pendiente de confirmacion por C y no se activa
+implicitamente en estos resultados.

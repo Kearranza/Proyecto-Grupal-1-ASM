@@ -8,7 +8,7 @@ El taller pide tres cosas, que se vuelven cuatro bloques independientes:
 | Bloque | Responsable | Rama | Carpeta | Qué hace | Necesita placa |
 |---|---|---|---|---|---|
 | **A**: señales y frecuencias | Luis | `taller-senales` | `a_senales/` | Justifica fs y N, define la señal exacta de cada modo del emisor (la referencia de todos) y hace DFT vs FFT | No |
-| **B**: sistema completo | por definir | `taller-sistema` | `b_sistema/` | Une emisor → PWM/ADC → nodo 1 → filtros → métricas en Python, reutilizando `src/` de la Tarea 1 | No |
+| **B**: sistema completo | Gretchell | `taller-sistema` | `b_sistema/` | Une emisor → PWM/ADC → nodo 1 → filtros → métricas en Python, reutilizando `src/` de la Tarea 1 | No |
 | **C**: emisor en el micro | Santiago (propuesta) | `taller-emisor` | `c_emisor/` | La Pico genera los modos por PWM + RC (DDS), se cambian por serial y se verifica con FFT | **Sí** (Pico) |
 | **D**: validación + PDF | por definir | `taller-validacion` | `d_validacion/` | Diagramas de cómo la Pico W valida lo que recibe, criterios de aceptación e integración del PDF | No |
 
@@ -69,7 +69,17 @@ python taller_semana12/b_sistema/sistema_completo.py
 python taller_semana12/c_emisor/generar_tabla_seno.py   # escribe tabla_seno.h para el sketch
 python taller_semana12/d_validacion/comparar_fft.py
 bash   taller_semana12/d_validacion/renderizar.sh       # diagramas .mmd → PNG
+
+# Emisor físico: cerrar Arduino IDE y liberar el puerto USB antes de ejecutar
+python3 taller_semana12/c_emisor/verificar_emisor.py --puerto /dev/ttyACM0
+
+# Prueba del emisor por simulación, sin placa
+python3 taller_semana12/c_emisor/verificar_emisor.py --simular
 ```
+
+En Debian, instale las dependencias Python de sistema con
+`sudo apt install python3-pyserial python3-numpy python3-matplotlib`, o utilice un
+entorno virtual si prefiere `pip`.
 
 Cada script imprime sus pasos como `[ok]` o `[PENDIENTE]`. Al inicio todo sale
 pendiente, y así cualquiera ve en qué va cada bloque sin preguntar.
@@ -100,9 +110,9 @@ quien toca **solo su carpeta y su .tex**. Si hace falta cambiar `parametros.json
 
 ## Checklist de la entrega
 
-- [ ] A (Luis): `senal_del_modo()` lista y `1_senales.tex` escrito
+- [x] A (Luis): `senal_del_modo()` lista y `1_senales.tex` escrito
 - [ ] B: los tres modos corren de punta a punta y `2_sistema.tex` escrito
-- [ ] C: la Pico saca los tres modos, hay captura que lo verifica y `3_emisor.tex` escrito
+- [x] C: la Pico saca los tres modos, hay captura que lo verifica y `3_emisor.tex` escrito
 - [ ] D: cuatro diagramas, márgenes en `parametros.json` y `4_validacion.tex` escrito
 - [ ] D: `informe/taller.tex` compila y no queda ningún `[PENDIENTE]` en el PDF
 - [ ] Merge de las cuatro ramas a `dev`
