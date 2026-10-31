@@ -10,22 +10,53 @@ se edita el JSON y se vuelve a correr esto.
 """
 import argparse
 import sys
+import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 from comun import parametros as P  # noqa: E402
 
+MAX_COMPONENTES = 4   # = MAX_COMPONENTES en emisor_pico.ino
+
 
 def ordenes_del_modo(m):
-    """Lista de lineas TONO ... que reproducen el modo m del JSON."""
-    # TODO (C): una linea 'TONO i f amp' por componente, y apagar las que sobren
-    raise NotImplementedError('TODO (C): armar las ordenes del modo')
+    """Lista de lineas TONO ... que reproducen el modo m del JSON.
+
+    Una linea 'TONO i f amp' por componente del modo (i = 0, 1, ...). Las
+    componentes que sobren se apagan con amplitud 0, para que no quede
+    encendida alguna del modo anterior.
+    """
+    frecuencias, amplitudes = m['frecuencias_hz'], m['amplitudes']
+    if len(frecuencias) != len(amplitudes):
+        raise ValueError('frecuencias_hz y amplitudes deben tener el mismo largo')
+    if len(frecuencias) > MAX_COMPONENTES:
+        raise ValueError(f'El emisor admite {MAX_COMPONENTES} componentes y el modo '
+                         f'{m["id"]} tiene {len(frecuencias)}')
+    lineas = [f'TONO {i} {f:g} {a:g}'
+              for i, (f, a) in enumerate(zip(frecuencias, amplitudes))]
+    lineas += [f'TONO {i} 0 0' for i in range(len(frecuencias), MAX_COMPONENTES)]
+    return lineas
 
 
 def enviar(puerto, baudios, lineas):
     """Abrir el puerto, mandar cada linea y mostrar la respuesta (OK / ERR)."""
-    # TODO (C): con serial.Serial(puerto, baudios, timeout=1)
-    raise NotImplementedError('TODO (C): enviar por serial')
+    try:
+        import serial
+    except ImportError:
+        sys.exit('Falta pyserial: pip install pyserial')
+
+    hubo_error = False
+    with serial.Serial(puerto, baudios, timeout=1) as s:
+        time.sleep(0.2)
+        s.reset_input_buffer()                 # descarta el "OK emisor listo..." inicial
+        for linea in lineas:
+            s.write((linea + '\n').encode())
+            respuesta = s.readline().decode(errors='ignore').strip()
+            print(f'> {linea:<24s} < {respuesta or "(sin respuesta)"}')
+            if not respuesta.startswith('OK'):
+                hubo_error = True
+    if hubo_error:
+        sys.exit('La Pico rechazo alguna orden (ver arriba)')
 
 
 def main():
@@ -35,6 +66,8 @@ def main():
     ap.add_argument('--modo', type=int)
     ap.add_argument('--estado', action='store_true')
     args = ap.parse_args()
+    if not args.estado and args.modo is None:
+        ap.error('indica --modo N o --estado')
 
     lineas = ['ESTADO'] if args.estado else ordenes_del_modo(P.modo(p, args.modo))
     enviar(args.puerto, p['emisor']['baudios'], lineas)
