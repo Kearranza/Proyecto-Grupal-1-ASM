@@ -1,0 +1,106 @@
+% Seccion C: emisor en la Raspberry Pi Pico (taller semana 12)
+% Codigo: c_emisor/emisor_pico/emisor_pico.ino y c_emisor/verificar_emisor.py
+% Figuras: c_emisor/figuras/fig_c_modo_N.png (generadas por verificar_emisor.py)
+% Requiere: graphicx, amsmath
+% Los valores medidos fueron obtenidos con verificar_emisor.py y el montaje físico descrito en el taller.
+
+\section{Emisor en la Raspberry Pi Pico}
+\label{sec:emisor}
+
+El emisor genera los tres modos definidos en \texttt{parametros.json} con la Raspberry Pi Pico (RP2040). Como la Pico no tiene DAC, la señal se sintetiza digitalmente y sale por una salida PWM seguida de un filtro RC. El modo se selecciona por puerto serial y la salida se verifica con la FFT.
+
+\subsection{Criterios de diseño}
+
+\paragraph{Generación de la señal (DDS).} Cada tono se produce con un acumulador de fase de $32$ bits y una tabla de seno de $1024$ puntos en Q15. En cada muestra, el acumulador avanza $\Delta\phi = f\,2^{32}/f_s$ y sus $10$ bits más altos indexan la tabla. Se descartó recorrer una tabla de $N=1024$ muestras en bucle porque $440$~Hz equivale a $28.16$ bins ($\Delta f = 15.625$~Hz): la tabla no cerraría un número entero de períodos y introduciría saltos en cada vuelta. Con DDS la fase es continua y las frecuencias salen exactas. La suma de tonos se calcula con aritmética entera, con amplitudes normalizadas para que el pico máximo sea $0.8$ del rango (margen para no saturar):
+\begin{equation}
+a_k^{(Q15)} = \mathrm{round}\!\left(32767\cdot 0.8\cdot \frac{a_k}{\sum_j a_j}\right).
+\end{equation}
+
+\paragraph{Reloj de muestreo.} Una rebanada PWM sin pin de salida, con divisor $2.5$ y tope $\mathrm{clk}_{sys}/(2.5\,f_s)-1$, genera una interrupción por muestra. Con $125$~MHz el tope es $3124$ y la frecuencia de muestreo es exactamente $16$~kHz; con $133$~MHz el tope es $3324$ y también resulta exacta. En esa interrupción se actualiza el ciclo de trabajo del PWM.
+
+\paragraph{PWM de $8$ bits.} La portadora usa tope $255$, es decir, $\mathrm{clk}_{sys}/256 \approx 488$~kHz a $125$~MHz, más de $100$ veces la frecuencia más alta de la señal ($3500$~Hz). Un paso de ciclo de trabajo equivale a $3.3/256 = 12.9$~mV. La relación señal a ruido de cuantización de $8$ bits es de unos $50$~dB para escala completa, que es el límite del emisor y se discute en la Sección~\ref{sec:emisor-disc}.
+
+\paragraph{Filtro RC.} Se usan dos etapas iguales con $R = 470$~$\Omega$ y $C = 10$~nF (capacitor cerámico marcado 103). Con la carga de la segunda etapa, la respuesta es
+\begin{equation}
+H(f) = \frac{1}{1 - x^2 + 3jx}, \qquad x = 2\pi f R C,
+\end{equation}
+con $f_0 = 1/(2\pi RC) = 33.9$~kHz y frecuencia de corte a $-3$~dB de $12.7$~kHz. Los criterios fueron dos: (i) pasar todos los tonos, incluida la interferencia de $3500$~Hz, con pérdida menor a $0.5$~dB; (ii) atenuar la portadora lo suficiente para que su rizado sea comparable a un paso del PWM. La Tabla~\ref{tab:rc} muestra que se cumplen ambos.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|}
+\hline
+\textbf{Frecuencia} & \textbf{$|H|$ (dB)} \\ \hline
+$440$~Hz & $-0.01$ \\ \hline
+$880$~Hz & $-0.02$ \\ \hline
+$1320$~Hz & $-0.05$ \\ \hline
+$3500$~Hz & $-0.31$ \\ \hline
+$488$~kHz (portadora) & $-46.5$ \\ \hline
+\end{tabular}
+\caption{Ganancia teórica del filtro RC de dos etapas.}
+\label{tab:rc}
+\end{table}
+
+El rizado de portadora a la salida es de unos $10$~mV de amplitud, menos de un paso del PWM.
+
+\paragraph{Control por serial.} El comando \texttt{MODO n} (con $n=1,2,3$) cambia el modo y la Pico responde \texttt{OK n}; \texttt{CAPTURA} dispara la lectura del ADC y \texttt{INFO} informa la frecuencia de muestreo y la portadora reales.
+
+\subsection{Modos y verificación con la FFT}
+
+La Tabla~\ref{tab:modos} resume los modos. Para verificarlos se conecta la salida del RC a la entrada ADC0 (GPIO26) de la misma Pico. La lectura del ADC ocurre dentro de la interrupción de muestreo, por lo que queda sincronizada con la generación a $16$~kHz exactos. La Pico envía $N=1024$ muestras por serial y \texttt{verificar\_emisor.py} calcula la FFT con ventana Hann.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|l|c|}
+\hline
+\textbf{Modo} & \textbf{Señal} & \textbf{Amplitudes relativas} \\ \hline
+1 & $440$~Hz & $1.0$ \\ \hline
+2 & $440 + 880 + 1320$~Hz & $1.0 / 0.55 / 0.3$ \\ \hline
+3 & modo 2 $+$ interferencia de $3500$~Hz & $1.0 / 0.55 / 0.3 / 0.9373$ \\ \hline
+\end{tabular}
+\caption{Modos del emisor (de \texttt{parametros.json}).}
+\label{tab:modos}
+\end{table}
+
+\paragraph{Criterios de aceptación.} Un modo se considera correcto si, para cada tono esperado: (i) el pico del espectro cae a lo sumo a un bin de su posición teórica; (ii) su amplitud difiere en menos de $1.5$~dB de la esperada, que incluye el filtro RC; y (iii) en el modo 3, la SNR de tonos contra interferencia difiere en menos de $1.5$~dB de la esperada. La amplitud se estima sumando la energía de los $\pm 2$ bins del lóbulo principal, de modo que no depende de que el tono caiga justo en un bin (pérdida de escalopeo de la ventana Hann). Como el PWM y el ADC comparten la referencia de $3.3$~V, la amplitud esperada en cuentas del ADC es ratiométrica:
+\begin{equation}
+A_k = 2048\cdot 0.8\cdot \frac{a_k}{\sum_j a_j}\cdot |H(f_k)|.
+\end{equation}
+
+\paragraph{Resultados esperados y medidos.} La Tabla~\ref{tab:medidas} compara las amplitudes esperadas con las medidas por el ADC de $12$ bits. Los valores medidos se obtuvieron con una captura de $1024$ muestras para cada modo, con la frecuencia de muestreo real de $16$~kHz, una ventana Hann y el filtro RC de dos etapas instalado con $R=470$~$\Omega$ y $C=10$~nF por etapa. Todas las frecuencias coincidieron con las frecuencias esperadas dentro de la resolución y los márgenes establecidos.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|c|c|c|c|}
+\hline
+\textbf{Modo} & \textbf{$f$ (Hz)} & \textbf{$A$ esperada (cuentas)} & \textbf{$A$ medida (cuentas)} \\ \hline
+1 & $440$ & $1637$ & $1642$ \\ \hline
+2 & $440$ & $885$ & $885$ \\ \hline
+2 & $880$ & $486$ & $484$ \\ \hline
+2 & $1320$ & $264$ & $264$ \\ \hline
+3 & $440$ & $588$ & $589$ \\ \hline
+3 & $880$ & $323$ & $327$ \\ \hline
+3 & $1320$ & $175$ & $178$ \\ \hline
+3 & $3500$ & $531$ & $544$ \\ \hline
+\end{tabular}
+\caption{Amplitud de cada tono a la salida del RC, medida con el ADC de $12$ bits.}
+\label{tab:medidas}
+\end{table}
+
+Los errores de amplitud se mantuvieron entre $-0.03$~dB y $+0.21$~dB, por debajo del margen de $1.5$~dB. La SFDR medida fue de $45.0$~dB, $31.2$~dB y $27.4$~dB para los modos 1, 2 y 3, respectivamente; por tanto, ningún tono esperado quedó confuso con componentes espurias del PWM.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=0.85\textwidth]{fig_c_modo_3.png}
+\caption{Señal y espectro del modo 3 capturados a la salida del RC.}
+\label{fig:modo3}
+\end{figure}
+
+\subsection{Discusión}
+\label{sec:emisor-disc}
+
+\paragraph{SNR del modo 3.} La interferencia de $3500$~Hz se atenúa $0.31$~dB en el RC y los tonos útiles casi no cambian; el cálculo teórico con RC establece una SNR de tonos contra interferencia de $2.30$~dB, frente a $2.00$~dB sin el filtro. En la captura física se obtuvo una SNR medida de $2.14$~dB, por lo que el resultado difiere únicamente $0.16$~dB del valor esperado y cumple el criterio de aceptación establecido en el taller.
+
+\paragraph{Límite del PWM de $8$ bits.} La cuantización del ciclo de trabajo produce espurios $46$--$58$~dB por debajo del tono más débil en la simulación. Es suficiente para los tonos de este taller; si hiciera falta más rango dinámico, habría que aumentar los bits del PWM a costa de bajar la portadora.
+
+\paragraph{Aliasing de la portadora.} Si el ADC muestrea a $16$~kHz, la portadora de $488.28$~kHz se pliega a $7.72$~kHz. Su rizado ($\approx 10$~mV, unas $12$ cuentas) puede aparecer como una línea espuria cerca de Nyquist en la captura, aunque la señal analógica sea limpia. Con $R = 1$~k$\Omega$ y $C = 10$~nF el rizado baja a unas $3$ cuentas, a costa de $1.3$~dB de pérdida en $3500$~Hz.

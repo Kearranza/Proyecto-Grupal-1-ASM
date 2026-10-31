@@ -1,125 +1,193 @@
-// BLOQUE C - Emisor en la Raspberry Pi Pico (rama: taller-emisor)
-//
-// Punto 2 del taller: generar en el micro las frecuencias establecidas en
-// taller_semana12/parametros.json, a fs = 16 kHz, por PWM de 8 bits + filtro RC.
-//
-// Entorno: Arduino IDE con el core "Raspberry Pi Pico/RP2040" de Earle Philhower
-// (trae el SDK de la Pico, por eso se pueden incluir hardware/pwm.h, etc.).
-// MicroPython no alcanza para una interrupcion cada 62,5 us con 4 senos.
-//
-// Dos rebanadas (slices) de PWM:
-//   - SALIDA (GPIO15): portadora de 8 bits, tope 255 -> clk_sys/256 (~488 kHz
-//     a 125 MHz). El ciclo de trabajo es la muestra; el RC deja pasar los
-//     kHz de la senal y quita la portadora.
-//   - RELOJ (rebanada 0, sin pin): solo sirve para generar la interrupcion de
-//     muestreo. Con divisor 2,5 (exacto en el divisor fraccionario 8.4) y
-//     tope = clk/(2,5*fs) - 1 da 16 kHz exactos a 125 o 133 MHz.
-//
-// Metodo: DDS (sintesis digital directa). Cada componente tiene un acumulador de
-// fase de 32 bits; en cada muestra se le suma
-//     incremento = round(f * 2^32 / fs)
-// y los TABLA_BITS bits altos de la fase indexan TABLA_SENO. Cambiar una
-// frecuencia es cambiar un numero, sin recompilar.
-//
-// Protocolo serial (USB, una orden por linea). Lo usa control_emisor.py:
-//   MODO <n>                 carga el modo n (1, 2, 3)
-//   TONO <i> <f_hz> <amp>    fija la componente i (amp en [0, 1])
-//   ESTADO                   imprime fs real y las componentes activas
-// Respuestas: "OK ..." o "ERR ...".
-
+/*
+ * emisor_pico.ino  --  Taller semana 12, bloque C (emisor en la Pico)
+ *
+ * La Pico no tiene DAC. La senal se sintetiza por DDS (acumulador de fase +
+ * tabla de seno) y sale por PWM de 8 bits en GPIO15; un filtro RC de dos
+ * etapas elimina la portadora y deja la senal analogica.
+ *
+ *   Reloj de muestreo : slice PWM 0, divisor 2.5, IRQ de wrap -> fs = 16 kHz exactos
+ *   Portadora PWM     : slice de GPIO15, tope 255 -> clk_sys/256 (488 kHz a 125 MHz)
+ *   Lazo de captura   : GPIO26 (ADC0) lee la salida del RC dentro de la misma IRQ,
+ *                       sincronizada con el reloj de muestreo.
+ *
+ * Comandos por serial (terminan en \n):
+ *   MODO n    n = 1, 2 o 3        -> responde "OK n"
+ *   CAPTURA                       -> envia 1024 lecturas del ADC (CAP_INICIO ... CAP_FIN)
+ *   INFO                          -> modo, fs real y portadora real
+ *
+ * Los numeros de los modos deben coincidir con taller_semana12/parametros.json.
+ * Herramientas > CPU Speed: 125 MHz (con 133 MHz tambien funciona; la fs sigue
+ * siendo exacta, solo cambia la frecuencia de la portadora).
+ */
 #include <Arduino.h>
+#include <math.h>
+#include <string.h>
+#include <stdlib.h>
+#include "pico/stdlib.h"
 #include "hardware/pwm.h"
+#include "hardware/adc.h"
 #include "hardware/clocks.h"
 #include "hardware/irq.h"
-#include "tabla_seno.h"
 
-// ---------------------------------------------------------------- configuracion
-static const uint32_t FS_HZ = 16000;        // = fs_hz de configuraciones.json
-static const uint PIN_SALIDA = 15;          // PWM7 B
-static const uint16_t PWM_TOPE = 255;       // 8 bits = emisor.bits_salida
-static const uint REBANADA_RELOJ = 0;       // no se conecta a ningun pin
-static const float DIVISOR_RELOJ = 2.5f;
-static const float NIVEL_PICO = 0.8f;       // = emisor.nivel_pico
-static const int MAX_COMPONENTES = 4;
+// ------------------------------------------------------------- parametros
+const uint8_t  PIN_PWM    = 15;       // salida PWM (hacia el RC)
+const uint8_t  PIN_ADC    = 26;       // ADC0, lee la salida del RC
+const uint32_t FS_HZ      = 16000;    // = fs de configuraciones.json
+const float    NIVEL_PICO = 0.8f;     // = emisor.nivel_pico de parametros.json
+const uint16_t N_CAPTURA  = 1024;     // = N de configuraciones.json
+const uint8_t  MAX_TONOS  = 4;
 
-struct Componente {
-  uint32_t fase;
-  uint32_t incremento;
-  int16_t amplitud_q15;  // 0 = apagada
+struct Modo {
+  uint8_t nt;
+  float   f[MAX_TONOS];   // Hz
+  float   a[MAX_TONOS];   // amplitud relativa
 };
 
-static volatile Componente componentes[MAX_COMPONENTES];
-static volatile int32_t escala_q15 = 0;     // NIVEL_PICO / suma de amplitudes
-static float fs_real = 0.0f;
+const Modo MODOS[3] = {
+  {1, {440.0f,    0.0f,    0.0f,    0.0f},   {1.0f, 0.0f,  0.0f, 0.0f}},
+  {3, {440.0f,  880.0f, 1320.0f,    0.0f},   {1.0f, 0.55f, 0.3f, 0.0f}},
+  {4, {440.0f,  880.0f, 1320.0f, 3500.0f},   {1.0f, 0.55f, 0.3f, 0.9373f}},
+};
 
-// ---------------------------------------------------------------- utilidades
-static uint32_t incremento_de(float f_hz) {
-  // TODO (C): round(f * 2^32 / fs_real). Calcular en double para no desbordar.
-  return 0;
+// ----------------------------------------------------------------- estado
+static int16_t SENO[1024];                 // seno en Q15, 1024 puntos
+
+volatile uint8_t  nt = 0;
+volatile uint32_t fase[MAX_TONOS];
+volatile uint32_t inc[MAX_TONOS];
+volatile int32_t  amp[MAX_TONOS];          // amplitud en Q15
+volatile uint8_t  modo_actual = 0;
+
+static uint   slice_portadora;
+static uint   slice_reloj = 0;
+static double fs_real  = FS_HZ;
+static double f_portadora = 0;
+
+volatile bool     capturando = false;
+volatile bool     captura_lista = false;
+volatile uint16_t idx_cap = 0;
+static uint16_t   cap[N_CAPTURA];
+
+// ------------------------------------------------------ IRQ: una por muestra
+void __not_in_flash_func(on_muestra)() {
+  pwm_clear_irq(slice_reloj);
+
+  if (capturando) {                        // lectura del ADC sincronizada con fs
+    cap[idx_cap++] = adc_read();
+    if (idx_cap >= N_CAPTURA) { capturando = false; captura_lista = true; }
+  }
+
+  int32_t acc = 0;                         // suma de tonos, Q15
+  for (uint8_t i = 0; i < nt; i++) {
+    fase[i] += inc[i];
+    acc += (amp[i] * (int32_t)SENO[fase[i] >> 22]) >> 15;
+  }
+  int32_t duty = 128 + (acc >> 8);         // centro 1.65 V, escala 8 bits
+  if (duty < 0)   duty = 0;
+  if (duty > 255) duty = 255;
+  pwm_set_chan_level(slice_portadora, PWM_CHAN_B, (uint16_t)duty);
 }
 
-static void fijar_componente(int i, float f_hz, float amplitud) {
-  // TODO (C): validar i y f < FS_HZ/2, guardar incremento y amplitud en Q15,
-  // y recalcular escala_q15 para que la suma nunca pase de NIVEL_PICO.
+// ------------------------------------------------------------ configuracion
+void construir_tabla() {
+  for (int i = 0; i < 1024; i++)
+    SENO[i] = (int16_t)lroundf(32767.0f * sinf(2.0f * (float)M_PI * i / 1024.0f));
 }
 
-static void cargar_modo(int modo) {
-  // TODO (C): mismos valores que parametros.json -> emisor.modos
-  //   1: 440 Hz
-  //   2: 440, 880, 1320 Hz con 1.0, 0.55, 0.3
-  //   3: modo 2 + 3500 Hz con 0.9373
-}
+void configurar_pwm() {
+  const uint32_t clk = clock_get_hz(clk_sys);
 
-// ---------------------------------------------------------------- muestreo
-static void al_muestrear() {
-  pwm_clear_irq(REBANADA_RELOJ);
-  // TODO (C): por cada componente activa
-  //   acumulado += amplitud_q15 * TABLA_SENO[fase >> (32 - TABLA_BITS)]
-  //   fase += incremento
-  // aplicar escala_q15, pasar de [-1, 1) a 0..PWM_TOPE centrado en la mitad y
-  //   pwm_set_gpio_level(PIN_SALIDA, nivel);
-}
+  // Portadora: GPIO15 es canal B de su slice; tope 255 -> 8 bits
+  gpio_set_function(PIN_PWM, GPIO_FUNC_PWM);
+  slice_portadora = pwm_gpio_to_slice_num(PIN_PWM);
+  pwm_config c = pwm_get_default_config();
+  pwm_config_set_clkdiv(&c, 1.0f);
+  pwm_config_set_wrap(&c, 255);
+  pwm_init(slice_portadora, &c, true);
+  pwm_set_chan_level(slice_portadora, PWM_CHAN_B, 128);
+  f_portadora = (double)clk / 256.0;
 
-static void configurar_pwm() {
-  // Portadora en el pin de salida, arranca en 50 % (0 V de senal tras el RC)
-  gpio_set_function(PIN_SALIDA, GPIO_FUNC_PWM);
-  uint rebanada_salida = pwm_gpio_to_slice_num(PIN_SALIDA);
-  pwm_config salida = pwm_get_default_config();
-  pwm_config_set_wrap(&salida, PWM_TOPE);
-  pwm_config_set_clkdiv(&salida, 1.0f);
-  pwm_init(rebanada_salida, &salida, true);
-  pwm_set_gpio_level(PIN_SALIDA, (PWM_TOPE + 1) / 2);
-
-  // Reloj de muestreo: la interrupcion de fin de ciclo de esta rebanada es fs
-  uint32_t clk = clock_get_hz(clk_sys);
-  uint32_t tope = (uint32_t)lroundf(clk / (DIVISOR_RELOJ * FS_HZ)) - 1;
-  fs_real = clk / (DIVISOR_RELOJ * (tope + 1));
-  pwm_config reloj = pwm_get_default_config();
-  pwm_config_set_clkdiv(&reloj, DIVISOR_RELOJ);
-  pwm_config_set_wrap(&reloj, tope);
-  pwm_init(REBANADA_RELOJ, &reloj, false);
-
-  pwm_clear_irq(REBANADA_RELOJ);
-  pwm_set_irq_enabled(REBANADA_RELOJ, true);
-  irq_set_exclusive_handler(PWM_IRQ_WRAP, al_muestrear);
+  // Reloj de muestreo: divisor 2.5 y tope = clk / (2.5 * fs)
+  if (slice_reloj == slice_portadora) slice_reloj = 1;
+  const uint32_t cuentas = (uint32_t)(((uint64_t)clk * 2) / (5ULL * FS_HZ));
+  fs_real = (double)clk / (2.5 * (double)cuentas);
+  pwm_config r = pwm_get_default_config();
+  pwm_config_set_clkdiv(&r, 2.5f);
+  pwm_config_set_wrap(&r, cuentas - 1);
+  pwm_init(slice_reloj, &r, false);
+  pwm_clear_irq(slice_reloj);
+  pwm_set_irq_enabled(slice_reloj, true);
+  irq_set_exclusive_handler(PWM_IRQ_WRAP, on_muestra);
   irq_set_enabled(PWM_IRQ_WRAP, true);
-  pwm_set_enabled(REBANADA_RELOJ, true);
 }
 
-// ---------------------------------------------------------------- serial
-static void atender_serial() {
-  // TODO (C): leer una linea, separar la orden y sus argumentos, llamar a
-  // cargar_modo() o fijar_componente() y responder OK / ERR.
+void cargar_modo(uint8_t n) {
+  const Modo &m = MODOS[n - 1];
+  float suma = 0.0f;
+  for (uint8_t i = 0; i < m.nt; i++) suma += m.a[i];
+
+  uint32_t nuevo_inc[MAX_TONOS] = {0};
+  int32_t  nueva_amp[MAX_TONOS] = {0};
+  for (uint8_t i = 0; i < m.nt; i++) {
+    nuevo_inc[i] = (uint32_t)((double)m.f[i] * 4294967296.0 / fs_real + 0.5);
+    nueva_amp[i] = (int32_t)lroundf(32767.0f * NIVEL_PICO * m.a[i] / suma);
+  }
+
+  noInterrupts();                          // cambio atomico respecto a la IRQ
+  nt = m.nt;
+  for (uint8_t i = 0; i < MAX_TONOS; i++) { inc[i] = nuevo_inc[i]; amp[i] = nueva_amp[i]; }
+  interrupts();
+  modo_actual = n;
+}
+
+// ------------------------------------------------------------------- serial
+void procesar(const char *s) {
+  if (strncmp(s, "MODO ", 5) == 0) {
+    int n = atoi(s + 5);
+    if (n >= 1 && n <= 3) { cargar_modo((uint8_t)n); Serial.print("OK "); Serial.println(n); }
+    else Serial.println("ERR modo");
+  } else if (strcmp(s, "CAPTURA") == 0) {
+    idx_cap = 0; captura_lista = false; capturando = true;
+  } else if (strcmp(s, "INFO") == 0) {
+    Serial.print("INFO modo=");      Serial.print(modo_actual);
+    Serial.print(" fs_hz=");         Serial.print(fs_real, 3);
+    Serial.print(" portadora_hz=");  Serial.print(f_portadora, 1);
+    Serial.print(" nivel_pico=");    Serial.println(NIVEL_PICO, 2);
+  } else {
+    Serial.println("ERR comando");
+  }
 }
 
 void setup() {
   Serial.begin(115200);
+  const uint32_t t0 = millis();
+  while (!Serial && millis() - t0 < 2000) { delay(10); }
+
+  construir_tabla();
+  adc_init();
+  adc_gpio_init(PIN_ADC);
+  adc_select_input(0);
+
   configurar_pwm();
-  cargar_modo(1);
-  Serial.print("OK emisor listo, fs real = ");
-  Serial.println(fs_real, 3);
+  cargar_modo(1);                          // modo por defecto
+  pwm_set_enabled(slice_reloj, true);      // arranca el reloj de muestreo
 }
 
 void loop() {
-  atender_serial();
+  static char    linea[32];
+  static uint8_t nlin = 0;
+
+  while (Serial.available()) {
+    char c = (char)Serial.read();
+    if (c == '\r') continue;
+    if (c == '\n') { linea[nlin] = 0; if (nlin) procesar(linea); nlin = 0; }
+    else if (nlin < sizeof(linea) - 1) linea[nlin++] = c;
+  }
+
+  if (captura_lista) {
+    captura_lista = false;
+    Serial.println("CAP_INICIO");
+    for (uint16_t i = 0; i < N_CAPTURA; i++) Serial.println(cap[i]);
+    Serial.println("CAP_FIN");
+  }
 }
