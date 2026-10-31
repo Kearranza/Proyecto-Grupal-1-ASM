@@ -69,7 +69,17 @@ python taller_semana12/b_sistema/sistema_completo.py
 python taller_semana12/c_emisor/generar_tabla_seno.py   # escribe tabla_seno.h para el sketch
 python taller_semana12/d_validacion/comparar_fft.py
 bash   taller_semana12/d_validacion/renderizar.sh       # diagramas .mmd → PNG
+
+# Emisor físico: cerrar Arduino IDE y liberar el puerto USB antes de ejecutar
+python3 taller_semana12/c_emisor/verificar_emisor.py --puerto /dev/ttyACM0
+
+# Prueba del emisor por simulación, sin placa
+python3 taller_semana12/c_emisor/verificar_emisor.py --simular
 ```
+
+En Debian, instale las dependencias Python de sistema con
+`sudo apt install python3-pyserial python3-numpy python3-matplotlib`, o utilice un
+entorno virtual si prefiere `pip`.
 
 Cada script imprime sus pasos como `[ok]` o `[PENDIENTE]`. Al inicio todo sale
 pendiente, y así cualquiera ve en qué va cada bloque sin preguntar.
@@ -102,7 +112,7 @@ quien toca **solo su carpeta y su .tex**. Si hace falta cambiar `parametros.json
 
 - [x] A (Luis): `senal_del_modo()` lista y `1_senales.tex` escrito
 - [ ] B: los tres modos corren de punta a punta y `2_sistema.tex` escrito
-- [ ] C: la Pico saca los tres modos, hay captura que lo verifica y `3_emisor.tex` escrito
+- [x] C: la Pico saca los tres modos, hay captura que lo verifica y `3_emisor.tex` escrito
 - [ ] D: cuatro diagramas, márgenes en `parametros.json` y `4_validacion.tex` escrito
 - [ ] D: `informe/taller.tex` compila y no queda ningún `[PENDIENTE]` en el PDF
 - [ ] Merge de las cuatro ramas a `dev`
