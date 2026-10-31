@@ -1,0 +1,58 @@
+% Taller semana 12 - FFT y sistemas de modulacion - CE 1110
+%
+% Compilar con pdfLaTeX. Las figuras se buscan en ../resultados/figuras/
+% (las que generan los scripts de cada bloque) y en ../../resultados/figuras/
+% (las de la Tarea 1, por si se reutiliza alguna).
+%
+% Cada bloque escribe SOLO su archivo de secciones/. D integra y uniforma.
+
+\documentclass[11pt,letterpaper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\IfFileExists{lmodern.sty}{\usepackage{lmodern}}{}
+\IfFileExists{spanish.ldf}{\usepackage[spanish,es-nodecimaldot]{babel}}{%
+  \AtBeginDocument{%
+    \renewcommand{\figurename}{Figura}%
+    \renewcommand{\tablename}{Cuadro}%
+    \renewcommand{\refname}{Referencias}}}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{float}
+\usepackage{caption}
+\usepackage{cite}
+\usepackage[hidelinks]{hyperref}
+
+\graphicspath{{../resultados/figuras/}{../c_emisor/figuras/}{../../resultados/figuras/}}
+\captionsetup{font=small,labelfont=bf}
+
+% Marca visible de lo que falta, para que nadie entregue un TODO sin darse cuenta
+\newcommand{\pendiente}[1]{\textbf{[PENDIENTE: #1]}}
+
+\title{\vspace{-1cm}\large\bfseries Taller semana 12: FFT y sistemas de modulación\\[4pt]
+\normalsize\mdseries Avance del Proyecto Grupal 1}
+
+\author{%
+\normalsize Santiago Brenes Torres \quad\textbullet\quad Kevin Antonio Carranza Blanco\\[2pt]
+\normalsize Luis David Delgado Jiménez \quad\textbullet\quad Gretchell Roxana Ochoa Quintero\\[3pt]
+\small Escuela de Ingeniería en Computadores, Instituto Tecnológico de Costa Rica\\[-1pt]
+\small CE\,1110 --- Análisis de Señales Mixtas}
+
+\date{\small 30 de octubre de 2026}
+
+\begin{document}
+\maketitle
+
+\input{secciones/0_introduccion}
+\input{secciones/1_senales}
+\input{secciones/2_sistema}
+\input{secciones/3_emisor}
+\input{secciones/4_validacion}
+\input{secciones/5_discusion}
+
+\bibliographystyle{ieeetr}
+\bibliography{../../informe/referencias,referencias_taller}
+
+\end{document}

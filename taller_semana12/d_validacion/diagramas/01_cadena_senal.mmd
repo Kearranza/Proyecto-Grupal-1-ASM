@@ -1,0 +1,21 @@
+%% Bloque D - Cadena de senal del emisor al nodo 1, con niveles reales.
+%% Valores del RC: los que monto y midio el bloque C (R = 470 ohm, C = 10 nF por etapa).
+flowchart LR
+    A["<b>Pico (emisor)</b><br/>DDS a 16 kHz<br/>PWM 8 bits, GPIO15<br/>portadora 488 kHz<br/>nivel_pico = 0,8"]
+    B["<b>Filtro RC</b> (medido por C)<br/>2 etapas, R = 470 Ω, C = 10 nF<br/>f₀ = 33,9 kHz, corte -3 dB en 12,7 kHz<br/>-46 dB en 488 kHz<br/>-0,31 dB en 3,5 kHz"]
+    C["<b>Pico W (receptor)</b><br/>ADC0, GPIO26<br/>12 bits, 0 a 3,3 V<br/>muestreo a 16 kHz"]
+    D["<b>Nodo 1</b><br/>bloques de N = 1024<br/>quitar DC, Hann, FFT<br/>31,25 bloques/s"]
+    R["<b>Referencia en Python</b><br/>senal_del_modo()<br/>misma N y misma ventana"]
+    V{"<b>Comparar</b><br/>bin del pico y nivel<br/>contra los margenes"}
+
+    A -->|"0,33 a 2,97 V<br/>centro 1,65 V"| B
+    B -->|"misma banda util<br/>sin portadora"| C
+    C -->|"cuentas 410 a 3686<br/>de 4095"| D
+    D -->|"trama por serial<br/>ver diagrama 03"| V
+    R --> V
+    V -->|"pasa / no pasa"| S(["Registro del bloque"])
+
+    N1["Margen de 0,33 V en cada<br/>extremo: no hay riesgo de<br/>pasar de 3,3 V ni de recortar"]
+    N1 -.-> C
+    N2["El RC es filtro de reconstruccion,<br/>no antialias: en Nyquist (8 kHz)<br/>solo atenua 1,4 dB. Vale porque el<br/>emisor no genera nada entre<br/>3,5 kHz y la portadora"]
+    N2 -.-> B

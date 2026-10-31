@@ -1,0 +1,40 @@
+%% Bloque D - Captura y validacion de UN bloque en la Pico W.
+%% En tres columnas para que la figura quepa legible en una pagina vertical.
+flowchart LR
+    subgraph ADQ["Adquisicion — corre en tiempo real, nunca se detiene"]
+        direction TB
+        CFG["Configurar ADC0 a 16 kHz<br/>DMA a dos buferes de 1024<br/>en ping-pong"]
+        LLE["El DMA llena el bufer activo<br/>1024 muestras = 64 ms"]
+        IRQ{"Bufer lleno?"}
+        SW["Cambiar de bufer y mandar<br/>a procesar el que se lleno"]
+        OVF{"El bloque anterior<br/>seguia en proceso?"}
+        DESC["Descartar el mas viejo<br/>contador_sobrecarga++<br/>el DMA no se bloquea"]
+        CFG --> LLE --> IRQ
+        IRQ -->|no| LLE
+        IRQ -->|si| SW --> OVF
+        OVF -->|si| DESC --> LLE
+    end
+
+    subgraph PRO["Procesamiento — presupuesto de 32 ms por bloque"]
+        direction TB
+        DC["Quitar la continua<br/>restar la media del bloque"]
+        WIN["Multiplicar por Hann"]
+        FFT["FFT de 1024 puntos<br/>radix-2 propia"]
+        MAG["Magnitud en dB<br/>513 bins utiles"]
+        PIC["Buscar los K picos mas altos<br/>K ≤ 8"]
+        DC --> WIN --> FFT --> MAG --> PIC
+    end
+
+    subgraph SAL["Salida y validacion"]
+        direction TB
+        TRA["Armar la trama<br/>ver diagrama 03"]
+        ENV["Enviar por serial"]
+        AV["Avanzar 512 muestras y volver<br/>a esperar bufer<br/>solapamiento del 50 %, 31,25 bloques/s"]
+        CMP["En la computadora:<br/>comparar_fft.py contra<br/>senal_del_modo()"]
+        DEC["Decision del bloque<br/>ver diagrama 04"]
+        TRA --> ENV --> AV
+        ENV -.-> CMP -.-> DEC
+    end
+
+    OVF -->|no| DC
+    PIC --> TRA

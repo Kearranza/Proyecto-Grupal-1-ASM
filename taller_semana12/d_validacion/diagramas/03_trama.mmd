@@ -1,0 +1,19 @@
+%% Bloque D - Formato de la trama que manda el nodo 1 por cada bloque.
+flowchart LR
+    S["<b>INICIO</b><br/>0xAA 0x55<br/>2 B"]
+    Q["<b>N.º DE BLOQUE</b><br/>uint16<br/>2 B"]
+    M["<b>MODO</b><br/>uint8<br/>1 B"]
+    K["<b>K PICOS</b><br/>uint8<br/>1 B"]
+    P["<b>DATOS</b><br/>K veces:<br/>bin uint16 + nivel int16<br/>4 B por pico"]
+    C["<b>CRC-16</b><br/>CCITT, poly 0x1021<br/>2 B"]
+
+    S --> Q --> M --> K --> P --> C
+
+    J1["<b>Delimitacion.</b> El preambulo 0xAA 0x55<br/>alterna bits y es raro en los datos.<br/>Si el CRC falla se vuelve a buscar<br/>el preambulo, sin perder la sincronia"]
+    J1 -.-> S
+    J2["<b>Bloques perdidos.</b> El numero crece de<br/>uno en uno; un salto dice cuantos se<br/>perdieron. Da la vuelta a los 65536,<br/>o sea cada 35 minutos a 31,25 bloques/s"]
+    J2 -.-> Q
+    J3["<b>Errores.</b> CRC-16 sobre todo lo que va<br/>entre el preambulo y el CRC.<br/>Detecta todas las rafagas de hasta 16 bits"]
+    J3 -.-> C
+    J4["<b>Por que solo los picos y no los 513 bins.</b><br/>Validar necesita el bin y el nivel de cada<br/>componente, no el espectro completo.<br/>Trama de 8 + 4K bytes: 24 B con K = 4,<br/>o 750 B/s. El espectro entero serian<br/>1026 B por bloque, 32 kB/s"]
+    J4 -.-> P

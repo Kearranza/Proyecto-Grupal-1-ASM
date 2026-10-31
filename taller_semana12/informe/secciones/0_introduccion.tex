@@ -1,0 +1,37 @@
+% Introduccion - la escribe D al integrar (media pagina como maximo)
+
+\section{Introducción}
+
+El taller pide tres cosas sobre el mismo sistema del Proyecto 1: prototipar en
+alto nivel las frecuencias con las que se va a trabajar, generar en el
+microcontrolador el emisor de esas señales, y definir con diagramas cómo se va a
+validar lo que el receptor recibe. No es un ejercicio aparte: lo que aquí se
+decide es el banco de pruebas con el que después se va a medir el sistema
+distribuido de reducción de ruido.
+
+El montaje tiene dos placas. Una Raspberry Pi Pico hace de emisor y sintetiza por
+PWM, con un filtro RC a la salida, tres modos de señal; una Pico W hace de nodo 1
+y las captura por su ADC, las transforma por bloques y reporta lo que midió. Los
+tres modos no se eligieron al azar: el modo 1 es un tono de 440\,Hz, el modo 2 el
+multitono de 440, 880 y 1320\,Hz, y el modo 3 ese multitono más una interferencia
+de 3500\,Hz con la misma relación señal a ruido del \texttt{caso\_1} de la Tarea 1.
+Así cada modo corresponde a una prueba que el proyecto ya tenía definida, y los
+resultados del taller se pueden comparar directamente con los que se midieron en
+simulación.
+
+Ningún número de este documento está escrito a mano en el código. Los parámetros
+que vienen de la Tarea 1 --- frecuencia de muestreo de 16\,kHz, bloques de 1024
+muestras, ventana Hann y 50\,\% de solapamiento --- se leen de
+\texttt{metadatos/configu\-raciones.json}, y los que agrega el taller --- los modos
+del emisor, los datos del receptor y los márgenes de validación --- de
+\texttt{taller\_semana12/parametros.json}. Si en la defensa se cambia un
+parámetro, se cambia en el JSON y todo lo demás lo sigue.
+
+El documento está organizado por bloques, en el orden en que se recorre la señal.
+La sección \ref{sec:senales} justifica la frecuencia de muestreo y el tamaño de
+bloque y define la señal exacta de cada modo, que es la referencia que usan todos
+los demás. La sección \ref{sec:sistema} arma el sistema completo en alto nivel. La
+sección \ref{sec:emisor} lo baja al microcontrolador. La sección
+\ref{sec:validacion} define la estrategia de validación en el receptor con sus
+cuatro diagramas y los criterios de aceptación. La sección \ref{sec:discusion}
+cierra con lo que funcionó, las limitaciones y lo que cambia para el proyecto.

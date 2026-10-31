@@ -1,0 +1,71 @@
+% Discusion del taller.
+% A escribio su propio parrafo. Los de B y C los redacto D al integrar, a partir
+% de los resultados de sus propias secciones; conviene que cada uno lo revise.
+
+\section{Discusión}
+\label{sec:discusion}
+
+\paragraph{Frecuencias de trabajo.} Las frecuencias quedaron fijadas en un solo
+archivo de parámetros y el código las verifica: todas las componentes están por
+debajo de Nyquist, la amplitud de 3500\,Hz del modo~3 reproduce la SNR de 2\,dB
+del \texttt{caso\_1}, y \texttt{senal\_del\_modo()} aplica la misma escala y la
+misma cuantización de 8~bits que el emisor. Con $f_s = 16$\,kHz y $N = 1024$
+cada bloque resuelve 15,6\,Hz, de sobra para tonos separados 28~bins, y con
+50\,\% de solapamiento entra un bloque nuevo cada 32\,ms, que es el tiempo que
+tiene cada nodo para procesarlo. Los 8~bits del emisor también alcanzan: el piso
+de cuantización queda en $-75$\,dB por bin y aun el tono más débil (1320\,Hz en
+el modo~3, a $-23$\,dB) queda unos 40\,dB por encima del espurio más alto. La
+limitación principal es que esa
+referencia es ideal en dos puntos: no incluye los espurios del truncamiento de
+fase del DDS ni los bits efectivos reales del ADC del RP2040, que son menos de
+12. Por eso los márgenes de validación no deberían salir solo de la simulación.
+Conviene capturar primero el modo~1, donde todo lo que no sea 440\,Hz es error
+de la cadena emisor--receptor, y fijar los márgenes con esa medición antes de
+las pruebas finales. Para el proyecto, los modos~1 y~2 sirven tal cual como
+señales de las pruebas P1 y P2, y el modo~3 es el punto de partida de P5 si la
+interferencia se acerca a la banda útil.
+
+\paragraph{Sistema completo en alto nivel.} El sistema corre los tres modos de
+punta a punta reutilizando el código de la Tarea 1, y las métricas quedan en
+\texttt{resultados/b\_metricas.csv}. En los modos 1 y 2 no hay nada que quitar y
+ambos métodos devuelven la señal intacta, con la energía útil conservada entre
+0,9986 y 1,0000; el caso interesante es el modo 3, donde el filtro temporal gana
+34,5\,dB de relación señal a ruido y el espectral 32,6\,dB, con una atenuación de
+la interferencia de 56,4 y 33,9\,dB respectivamente. El presupuesto de memoria del
+nodo que más carga lleva es de $12N$ reales, unos 48\,kB, y el tiempo disponible
+por bloque son los 32\,ms del avance espectral. La limitación es clara y está
+dicha en la sección: son pruebas simuladas, no mediciones de placa, y el filtro RC
+no interviene porque el sistema trabaja con la señal ideal.
+
+\paragraph{Emisor en la Pico.} El DDS con tabla de seno en Q15 y salida PWM de
+8\,bits reproduce los tres modos, y el filtro RC de dos etapas de
+$470\,\Omega$ y 10\,nF se comportó como predecía el cálculo: los errores de
+amplitud medidos quedaron entre $-0{,}03$ y $+0{,}21$\,dB, muy por debajo del
+margen de 1,5\,dB, y la SNR del modo 3 salió en 2,14\,dB contra los 2,30\,dB
+esperados con el filtro puesto. Las dos limitaciones son del método, no del
+montaje. La primera son los 8\,bits del PWM, que dejan los espurios de
+cuantización entre 46 y 58\,dB por debajo del tono más débil: alcanza para este
+banco, y subir ese margen obligaría a bajar la portadora. La segunda es que esa
+portadora, a 488,28\,kHz, se pliega a 7,72\,kHz al muestrear a 16\,kHz y deja una
+línea espuria cerca de Nyquist, que es el motivo por el que el nodo necesitará un
+antialias propio en el proyecto.
+
+\paragraph{Validación en el receptor.} La estrategia quedó definida con sus cuatro
+diagramas y sus tres criterios de aceptación fijados antes de medir, que es lo que
+pide la sección 3.5 del proyecto. Dos decisiones son las que más peso tienen. La
+primera es comparar los niveles en relativo y no en absoluto: entre el DDS y la
+FFT hay una ganancia desconocida que incluye el nivel del PWM, la caída del RC y
+la escala del ADC, y normalizar cada espectro a su pico más alto vuelve la prueba
+insensible a esa ganancia sin perder sensibilidad a la forma del espectro, que es
+lo que de verdad se quiere validar. La segunda es mandar solo los picos en lugar
+del espectro completo: baja el tráfico de 32\,kB/s a 750\,B/s sin perder nada que
+la comparación use.
+
+La regla ya se ejecutó contra las señales del sistema en alto nivel, y los tres
+modos pasan en los 63 bloques de cada uno con error de cero bins y menos de
+0,01\,dB. Lo que todavía no se ha probado es el eslabón que falta: la captura real
+de la Pico W. Lo primero que habrá que revisar cuando esté el montaje completo es
+si la SNR del modo 1 llega a los 30\,dB que se fijaron como mínimo, porque ese
+umbral se calculó a partir del techo teórico de los 8\,bits del emisor y es el más
+frágil de los tres supuestos. La medición del emisor deja una señal alentadora:
+su SFDR en el modo 1 fue de 45\,dB, con margen de sobra sobre ese piso.
