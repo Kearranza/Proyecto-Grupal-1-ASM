@@ -3,7 +3,8 @@
 #   make test_fft      solo una
 # Antes: python proyecto/pc/generar_config_h.py  y  python proyecto/pc/referencias_c.py
 SRC_DIR := ../firmware/libraries/asm_comun/src
-CFLAGS  := -std=c11 -O2 -Wall -Wextra -I$(SRC_DIR) -D_DEFAULT_SOURCE
+# M_PI no es de C11: _DEFAULT_SOURCE lo trae con glibc y _USE_MATH_DEFINES con MinGW
+CFLAGS  := -std=c11 -O2 -Wall -Wextra -I$(SRC_DIR) -D_DEFAULT_SOURCE -D_USE_MATH_DEFINES
 LDLIBS  := -lm
 FUENTES := $(wildcard $(SRC_DIR)/*.c)
 PRUEBAS := test_fft test_trama test_iir test_espectral test_metricas test_diagnostico
