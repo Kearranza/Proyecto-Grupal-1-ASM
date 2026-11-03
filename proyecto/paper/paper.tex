@@ -1,0 +1,47 @@
+% Paper del Proyecto 1 - CE 1110 Analisis de Senales Mixtas
+% Formato IEEE Transactions, maximo 4 paginas INCLUYENDO referencias.
+% Compilar con pdfLaTeX + BibTeX (Overleaf trae IEEEtran). Si la clase no esta
+% instalada, compila como article a dos columnas solo para poder revisar.
+% Cada quien escribe SOLO su archivo de secciones/; Kevin integra.
+
+\IfFileExists{IEEEtran.cls}{\documentclass[journal]{IEEEtran}}{%
+  \documentclass[10pt,twocolumn]{article}\usepackage[margin=1.9cm]{geometry}}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\IfFileExists{spanish.ldf}{\usepackage[spanish,es-nodecimaldot]{babel}}{}
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{cite}
+\usepackage[hidelinks]{hyperref}
+\graphicspath{{../resultados/figuras/}{../../resultados/figuras/}}
+
+\makeatletter
+\@ifundefined{IEEEkeywords}{\newenvironment{IEEEkeywords}{\par\noindent\textbf{Palabras clave---}}{\par}}{}
+\makeatother
+% Marca visible de lo que falta
+\newcommand{\pendiente}[1]{\textbf{[PENDIENTE: #1]}}
+
+\title{Sistema distribuido de reducción adaptativa de ruido en tiempo real}
+\author{Santiago Brenes Torres, Kevin Antonio Carranza Blanco, Luis David Delgado Jiménez
+y Gretchell Roxana Ochoa Quintero%
+\thanks{Escuela de Ingeniería en Computadores, Instituto Tecnológico de Costa Rica.
+CE\,1110 Análisis de Señales Mixtas.}}
+
+\begin{document}
+\maketitle
+
+\input{secciones/0_abstract}
+\input{secciones/1_introduccion}
+\input{secciones/2_teoria}
+\input{secciones/3_arquitectura}
+\input{secciones/4_temporal}
+\input{secciones/5_espectral}
+\input{secciones/6_resultados}
+\input{secciones/7_conclusiones}
+
+\IfFileExists{IEEEtran.bst}{\bibliographystyle{IEEEtran}}{\bibliographystyle{ieeetr}}
+\bibliography{../../informe/referencias,referencias_proyecto}
+
+\end{document}
