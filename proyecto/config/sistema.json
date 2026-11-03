@@ -35,5 +35,15 @@
   "adc": {"bits": 12, "vref_v": 3.3},
   "dac": {"bits": 8},
 
-  "ajustables_en_ejecucion": ["n_bloque", "umbral_espectral", "metodo_temporal", "ancho_rechazo_hz"]
+  "diagnostico": {
+    "frecuencias_utiles_hz": [440, 880, 1320],
+    "margen_bins": 2,
+    "umbral_ninguno_db": -30,
+    "planitud_blanco": 0.5,
+    "concentracion_tonal": 0.8,
+    "caida_banda_db": 20,
+    "_nota": "Nodo 1. Todo se mide fuera de las bandas utiles (cada tono util +-margen_bins, el lobulo principal de la Hann). Ruido/senal por debajo de umbral_ninguno_db: ninguno (30 dB, el criterio de SNR del taller). Planitud: 0.85 con ruido blanco (Rayleigh), cerca de 0 con ruido angosto. concentracion_tonal: fraccion de la potencia de ruido en el lobulo del pico (1.0 en caso_1, 0.39 en caso_3). caida_banda_db: bins que cuentan como parte de la banda"
+  },
+
+  "ajustables_en_ejecucion": ["n_bloque", "umbral_espectral", "metodo_temporal", "ancho_rechazo_hz", "frecuencias_utiles_hz"]
 }

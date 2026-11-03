@@ -20,7 +20,7 @@ def cargar():
 
 def main():
     c = cargar()
-    b, e, p = c['bloque'], c['enlace'], c['pines']
+    b, e, p, d = c['bloque'], c['enlace'], c['pines'], c['diagnostico']
     for n in b['n_permitidos']:
         if n & (n - 1) or n > b['n_max']:
             raise ValueError(f'{n} no es potencia de dos o pasa de n_max')
@@ -46,6 +46,13 @@ def main():
         'ESP_PIN_DAC_ESPECTRAL': p['esp32']['dac_espectral'],
         'ADC_BITS': c['adc']['bits'],
         'DAC_BITS': c['dac']['bits'],
+        'DIAG_FRECUENCIAS_UTILES_HZ': '{' + ', '.join(str(f) for f in d['frecuencias_utiles_hz']) + '}',
+        'DIAG_N_UTILES': len(d['frecuencias_utiles_hz']),
+        'DIAG_MARGEN_BINS': d['margen_bins'],
+        'DIAG_UMBRAL_NINGUNO_DB': d['umbral_ninguno_db'],
+        'DIAG_PLANITUD_BLANCO': d['planitud_blanco'],
+        'DIAG_CONCENTRACION_TONAL': d['concentracion_tonal'],
+        'DIAG_CAIDA_BANDA_DB': d['caida_banda_db'],
     }
     lineas = ['// Generado por pc/generar_config_h.py desde config/sistema.json. No editar a mano.',
               '#pragma once', '']
