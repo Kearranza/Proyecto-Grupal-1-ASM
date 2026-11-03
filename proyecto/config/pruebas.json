@@ -1,0 +1,19 @@
+{
+  "_nota": "Pruebas obligatorias (Tabla 1 del enunciado). Kevin coordina la campana; los criterios de aceptacion se fijan ANTES de medir (seccion 3.5) y no se cambian despues.",
+  "repeticiones": 3,
+  "pruebas": [
+    {"id": "P1", "senal": "tono 440 Hz (emisor Pico, modo 1)", "condicion": "interferencia sinusoidal separada", "evidencia": "espectros y atenuacion", "wav": null},
+    {"id": "P2", "senal": "tres tonos 440/880/1320 Hz (emisor Pico, modo 2)", "condicion": "ruido de alta frecuencia", "evidencia": "reconstruccion y delta SNR", "wav": null},
+    {"id": "P3", "senal": "audio o senal arbitraria", "condicion": "ruido de banda ancha", "evidencia": "MSE, energia y prueba auditiva", "wav": "senales/p3.wav"},
+    {"id": "P4", "senal": "senal transitoria", "condicion": "ruido impulsivo", "evidencia": "respuesta temporal y latencia", "wav": "senales/p4.wav"},
+    {"id": "P5", "senal": "seleccionada", "condicion": "superposicion parcial senal-ruido", "evidencia": "analisis de compromiso", "wav": "senales/p5.wav"},
+    {"id": "P6", "senal": "desconocida", "condicion": "definida por el profesor en la defensa", "evidencia": "adaptacion y justificacion", "wav": null}
+  ],
+  "criterios_aceptacion": {
+    "delta_snr_min_db": null,
+    "energia_util_min_pct": null,
+    "atenuacion_interferencia_min_db": null,
+    "latencia_max_ms": null,
+    "_nota": "Kevin propone, el grupo aprueba el martes. Justificar cada uno (dependen del grado de superposicion, por eso pueden ser distintos por prueba)"
+  }
+}
