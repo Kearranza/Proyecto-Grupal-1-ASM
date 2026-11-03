@@ -28,6 +28,11 @@ typedef struct __attribute__((packed)) {
 // magnitud: |X[k]| de k = 0 .. n/2 de un bloque con ventana Hann
 int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *salida);
 
+// Tonos de la senal util, que el diagnostico excluye. Arranca con los de
+// config/sistema.json; el nodo 1 los cambia por comando si cambia la senal util.
+#define DIAG_UTILES_MAX 8
+int diagnostico_fijar_utiles(const float *frecuencias_hz, int cantidad);
+
 #ifdef __cplusplus
 }
 #endif
