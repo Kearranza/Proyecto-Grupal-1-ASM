@@ -7,7 +7,7 @@ SRC_DIR := ../firmware/libraries/asm_comun/src
 CFLAGS  := -std=c11 -O2 -Wall -Wextra -I$(SRC_DIR) -D_DEFAULT_SOURCE -D_USE_MATH_DEFINES
 LDLIBS  := -lm
 FUENTES := $(wildcard $(SRC_DIR)/*.c)
-PRUEBAS := test_fft test_trama test_iir test_espectral test_metricas test_diagnostico test_nodo3
+PRUEBAS := test_fft test_trama test_iir test_espectral test_metricas test_diagnostico test_nodo3 test_regresion_nodo3
 
 all: $(addprefix bin/,$(PRUEBAS))
 
