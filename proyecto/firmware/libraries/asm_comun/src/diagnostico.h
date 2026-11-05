@@ -25,13 +25,19 @@ typedef struct __attribute__((packed)) {
     float nivel_db;         // nivel estimado del ruido respecto a la senal
 } diagnostico_t;
 
-// magnitud: |X[k]| de k = 0 .. n/2 de un bloque con ventana Hann
+// magnitud: |X[k]| de k = 0 .. n/2 de un bloque con ventana Hann.
+// Clasifica con el espectro: NINGUNO, TONAL, BLANCO o BANDA.
 int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *salida);
 
-// Tonos de la senal util, que el diagnostico excluye. Arranca con los de
-// config/sistema.json; el nodo 1 los cambia por comando si cambia la senal util.
-#define DIAG_UTILES_MAX 8
-int diagnostico_fijar_utiles(const float *frecuencias_hz, int cantidad);
+// Igual, y ademas mira el bloque en el tiempo (x, sin DC) para detectar ruido
+// impulsivo, que en el espectro se ve plano como el blanco. Es la que usa el nodo 1.
+int diagnostico_estimar_bloque(const float *x, const float *magnitud, int n, float fs,
+                               diagnostico_t *salida);
+
+// Bandas de la senal util que se excluyen al buscar el ruido (+-ancho_hz alrededor
+// de cada centro). Por defecto las de config/sistema.json. cantidad puede ser 0.
+#define DIAG_MAX_UTILES 8
+int diagnostico_configurar_utiles(const float *centros_hz, int cantidad, float ancho_hz);
 
 #ifdef __cplusplus
 }
