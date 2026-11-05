@@ -1,7 +1,41 @@
-% Gretchell. Maximo 1 pagina (seccion 3.1 del enunciado). La teoria va SOLO aqui:
-% las demas secciones la citan, no la repiten. Toda afirmacion con su cita.
+% Gretchell. Fundamentos comunes; los detalles de implementacion van en 5_espectral.
 \section{Revisión teórica}
 \label{sec:teoria}
-\pendiente{Gretchell: convolución y multiplicación en frecuencia; respuesta en
-frecuencia compleja; FIR/IIR, transformada Z, polos, ceros y estabilidad; fuga
-espectral, ventanas y resolución de la FFT; MSE, SNR y energía.}
+En un sistema lineal e invariante en el tiempo, la convolución
+$y[n]=(h*x)[n]$ equivale a multiplicar las transformadas:
+$Y(e^{j\omega})=H(e^{j\omega})X(e^{j\omega})$.
+La respuesta compleja $H=|H|e^{j\phi}$ determina tanto la ganancia como
+el desfase de cada componente; conservar amplitudes no implica conservar
+la forma temporal si la fase introduce distorsión~\cite{smith_filtros}.
+
+Un filtro FIR tiene respuesta impulsional finita; un IIR puede mantener una
+respuesta indefinida mediante realimentación. Para una ecuación de diferencias,
+$H(z)=\sum_k b_kz^{-k}/(1+\sum_{k\geq1}a_kz^{-k})$.
+Los ceros anulan la transferencia y los polos condicionan su resonancia y
+estabilidad. Para un sistema racional causal, la región de convergencia está
+fuera del polo de mayor módulo; la estabilidad BIBO exige que incluya el círculo
+unitario, equivalentes a polos estrictamente interiores en una realización
+mínima~\cite{smith_filtros}.
+
+La DFT analiza un registro finito como periódico. La discontinuidad en sus
+extremos produce fuga espectral; una ventana reduce lóbulos laterales a costa
+de ensanchar el principal. La separación entre bins es $f_s/N$, pero la
+capacidad de separar tonos también depende de la ventana. La FFT calcula la
+misma DFT con menor costo. Para señales reales,
+$X[N-k]=X[k]^*$; respetar esta simetría al modificar el espectro permite una
+reconstrucción real. En procesamiento por bloques, la suma de ventanas
+trasladadas debe satisfacer la condición de solapamiento-suma apropiada para
+reconstruir sin modular la amplitud~\cite{smith_espectral}.
+
+Según las métricas requeridas por el proyecto~\cite{enunciado_proyecto}, con
+referencia limpia $s[n]$ y salida alineada $y[n]$, se utilizan
+\begin{equation}
+ E_s=\sum_n s^2[n],\quad E_e=\sum_n(s[n]-y[n])^2,
+ \quad \mathrm{MSE}=E_e/L.
+\end{equation}
+La relación señal a ruido es $10\log_{10}(E_s/E_e)$ y su mejora es la
+SNR de salida menos la de entrada. Estas medidas incluyen tanto ruido residual
+como distorsión respecto a la referencia. La energía conservada por bandas se
+estima comparando salida y referencia en las bandas útiles; el ruido residual
+superpuesto puede sobreestimarla. Por ello, una atenuación alta de la
+interferencia debe interpretarse junto con MSE, SNR y preservación de la señal.
