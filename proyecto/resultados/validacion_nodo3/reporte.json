@@ -1,0 +1,237 @@
+{
+  "fecha_utc": "2026-11-04T23:40:00.737360+00:00",
+  "plataforma": "Linux-7.0.0-42-generic-x86_64-with-glibc2.43",
+  "correcto": true,
+  "ASAN_OPTIONS": "detect_leaks=0",
+  "ejecuciones": [
+    {
+      "nombre": "suite",
+      "comando": [
+        "make",
+        "test"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "compilador",
+      "comando": [
+        "cc",
+        "--version"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_fft_compilacion",
+      "comando": [
+        "cc",
+        "-std=c11",
+        "-O1",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D_DEFAULT_SOURCE",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-fno-omit-frame-pointer",
+        "-I/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/test_fft.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/diagnostico.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/espectral.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/fft.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/iir.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/metricas.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/nodo3.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/trama.c",
+        "-lm",
+        "-o",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_fft"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_fft_sanitizadores",
+      "comando": [
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_fft"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_espectral_compilacion",
+      "comando": [
+        "cc",
+        "-std=c11",
+        "-O1",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D_DEFAULT_SOURCE",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-fno-omit-frame-pointer",
+        "-I/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/test_espectral.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/diagnostico.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/espectral.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/fft.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/iir.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/metricas.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/nodo3.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/trama.c",
+        "-lm",
+        "-o",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_espectral"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_espectral_sanitizadores",
+      "comando": [
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_espectral"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_metricas_compilacion",
+      "comando": [
+        "cc",
+        "-std=c11",
+        "-O1",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D_DEFAULT_SOURCE",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-fno-omit-frame-pointer",
+        "-I/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/test_metricas.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/diagnostico.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/espectral.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/fft.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/iir.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/metricas.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/nodo3.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/trama.c",
+        "-lm",
+        "-o",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_metricas"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_metricas_sanitizadores",
+      "comando": [
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_metricas"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_nodo3_compilacion",
+      "comando": [
+        "cc",
+        "-std=c11",
+        "-O1",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D_DEFAULT_SOURCE",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-fno-omit-frame-pointer",
+        "-I/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/test_nodo3.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/diagnostico.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/espectral.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/fft.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/iir.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/metricas.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/nodo3.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/trama.c",
+        "-lm",
+        "-o",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_nodo3"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_nodo3_sanitizadores",
+      "comando": [
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_nodo3"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_regresion_nodo3_compilacion",
+      "comando": [
+        "cc",
+        "-std=c11",
+        "-O1",
+        "-g",
+        "-Wall",
+        "-Wextra",
+        "-Werror",
+        "-D_DEFAULT_SOURCE",
+        "-fsanitize=address,undefined",
+        "-fno-sanitize-recover=all",
+        "-fno-omit-frame-pointer",
+        "-I/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/test_regresion_nodo3.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/diagnostico.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/espectral.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/fft.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/iir.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/metricas.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/nodo3.c",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/firmware/libraries/asm_comun/src/trama.c",
+        "-lm",
+        "-o",
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_regresion_nodo3"
+      ],
+      "retorno": 0
+    },
+    {
+      "nombre": "test_regresion_nodo3_sanitizadores",
+      "comando": [
+        "/home/gree/Documents/Mixtas/Proy2/Proyecto-Grupal-1-ASM/proyecto/pruebas_c/bin/sanitizadores/test_regresion_nodo3"
+      ],
+      "retorno": 0
+    }
+  ],
+  "sha256": {
+    "firmware/libraries/asm_comun/src/asm_comun.h": "aa625defe16b76fd26c8f1cc1d0eb760f10c19f69a8529060f7657aee82a7a53",
+    "firmware/libraries/asm_comun/src/config.h": "9c9cb039c9b6dd4ef7d26973d10923c20e67fd072a88fd1c0895353e61f261e0",
+    "firmware/libraries/asm_comun/src/config_generado.h": "84b280d31cc268cd1ae98c8e6a0cf9bb9f9dfdc8196ebda27d2cabb70cdc7ba3",
+    "firmware/libraries/asm_comun/src/diagnostico.c": "c4e21613bb7470a6ca47966070f7dce7e051bf4bdefe8e28c2e3e0b09f95dbd3",
+    "firmware/libraries/asm_comun/src/diagnostico.h": "aee75c6698352a2989f4505d0bdd75f6b2fa0744f50975d3c9e283376df19c1f",
+    "firmware/libraries/asm_comun/src/espectral.c": "d24d9984b03b61ee31174b73690eeabd8e2a106675cc346d76e718f4249d7cef",
+    "firmware/libraries/asm_comun/src/espectral.h": "cf167adaac115a6153e7b08ece0c158a1e8682927017d6caab7742b81bb0daa7",
+    "firmware/libraries/asm_comun/src/fft.c": "f5639989ab7bc17c3ba98b70d5ee8bf3a25d8d0c02cde013b2befb9e0a07b270",
+    "firmware/libraries/asm_comun/src/fft.h": "777a822f210c8a5d9aa293cb1c12d5038b9146c6f1bf556b08fc9f0322bbc759",
+    "firmware/libraries/asm_comun/src/iir.c": "cf3fd8ab88b597b88aa2c27d7603c03af1a9131a1607d6c6072ba2fa85665f1d",
+    "firmware/libraries/asm_comun/src/iir.h": "d75031b016a193ebd7d9c6fca2bc771024bd6b391fbfc9f34f21db7ee9e3fdbf",
+    "firmware/libraries/asm_comun/src/metricas.c": "8ed97cbe2a9f2df8c6429047823a828ed2130aafb93362b40ba17d594d8234a0",
+    "firmware/libraries/asm_comun/src/metricas.h": "75ab95f12ae4ee43e7005ebcd1c9f63476cf44e9798f944be97984a50d1f8454",
+    "firmware/libraries/asm_comun/src/nodo3.c": "6cd76b910a5ccb4b5e43850f5ce89d3dcbb3f3ae42d6d08b326770ebecbbf752",
+    "firmware/libraries/asm_comun/src/nodo3.h": "2df708d1be63dfe831bb2e8c13d9a46f7a05d008278e980219cc81f6407b4e46",
+    "firmware/libraries/asm_comun/src/trama.c": "4dda761ca13dde2442e7359483fcd1e514504a03c90d4437f5038c9ea59b6304",
+    "firmware/libraries/asm_comun/src/trama.h": "07833d65394a50a73807026c60865941ada335d39ae2ca6cd31c47473a41ea46",
+    "firmware/nodos23_esp32/nodos23_esp32.ino": "b98b81f110304bd8a75fa2ad237f886a7bd76975d8247b9d445ba8e97cc8ae88",
+    "pruebas_c/Makefile": "c05b43b935bac67ab476c332601599bfc764c3dabf4a7c7192baa2e965497f5a",
+    "pruebas_c/soporte_arduino/Arduino.h": "1bb452c3828f3e0c2437990a574ee0043419ddce95662650c3722bec05512625",
+    "pruebas_c/test_diagnostico.c": "871d163e1be3a036997a67662208dcd7affb6c1acc961035045f90862a2e6cd4",
+    "pruebas_c/test_espectral.c": "5c4dff21997ca5770699bc94a75dba7f863371a6b3ce843e3faf228f9fb40c4e",
+    "pruebas_c/test_fft.c": "b64566b03f5486e6a60a43dfea6b94ce7c8aab9278e987f39185c9174a7c25cd",
+    "pruebas_c/test_iir.c": "daea8cd80d303a48893d6989497eb6c07724dfafdf962dc82c64c56fdb15707d",
+    "pruebas_c/test_interfaz.cpp": "0946b71c866feafca2c1db91be4f9b790018cf0c0d74a51364355aa99b9e6559",
+    "pruebas_c/test_metricas.c": "ce99ffa84e607a85cb5eeba0f376982bef5e72a0f2ad1ee74b5a637c321c496e",
+    "pruebas_c/test_nodo3.c": "7662afb15d7d325cee9857b44b1e7905dc087aa2b1ecdd1dc1da68193a0ab88f",
+    "pruebas_c/test_regresion_nodo3.c": "e540aa68c7fdffc04164b333b6a4d6c9a5eed77a52b57f4ebb7eff59b3a8d218",
+    "pruebas_c/test_trama.c": "a51b9939b26bd29a4049b6382841696f608dc8836b657b605bb9362c172f314c",
+    "pruebas_c/validar_nodo3.py": "4cb26727d593276792b6acff3a6135b9e3859c5c1c123b0f58c1bebd2c3005a2"
+  },
+  "alcance": "PC. no valida hardware."
+}
