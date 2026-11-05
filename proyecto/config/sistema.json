@@ -32,18 +32,21 @@
     "_nota": "Pico W GP8 (TX de UART1) -> ESP32 GPIO16 (RX de UART2), con tierra comun. GP9 <- GPIO17 queda para comandos de vuelta si hacen falta"
   },
 
+  "diagnostico": {
+    "utiles_hz": [440, 880, 1320],
+    "ancho_util_hz": 60,
+    "_nota": "Bandas de la senal util que el nodo 1 excluye al buscar el ruido (+-ancho alrededor de cada frecuencia). Sin esto el tono de 440 Hz parece la interferencia, que es el error del clasificador de la Tarea 1. Se cambian en vivo con el comando UTIL del nodo 1"
+  },
+
+  "fuente_sim": {
+    "frecuencias_hz": [440, 880, 1320, 3500],
+    "amplitudes": [1.0, 0.55, 0.3, 0.9373],
+    "nivel_pico": 0.8,
+    "_nota": "Modo 3 del emisor del taller (caso_1). El nodo 1 lo genera con el comando FUENTE SIM para probar el enlace y el diagnostico sin senal analogica. Frecuencias enteras: la fase se repite cada fs muestras"
+  },
+
   "adc": {"bits": 12, "vref_v": 3.3},
   "dac": {"bits": 8},
 
-  "diagnostico": {
-    "frecuencias_utiles_hz": [440, 880, 1320],
-    "margen_bins": 2,
-    "umbral_ninguno_db": -30,
-    "planitud_blanco": 0.5,
-    "concentracion_tonal": 0.8,
-    "caida_banda_db": 20,
-    "_nota": "Nodo 1. Todo se mide fuera de las bandas utiles (cada tono util +-margen_bins, el lobulo principal de la Hann). Ruido/senal por debajo de umbral_ninguno_db: ninguno (30 dB, el criterio de SNR del taller). Planitud: 0.85 con ruido blanco (Rayleigh), cerca de 0 con ruido angosto. concentracion_tonal: fraccion de la potencia de ruido en el lobulo del pico (1.0 en caso_1, 0.39 en caso_3). caida_banda_db: bins que cuentan como parte de la banda"
-  },
-
-  "ajustables_en_ejecucion": ["n_bloque", "umbral_espectral", "metodo_temporal", "ancho_rechazo_hz", "frecuencias_utiles_hz"]
+  "ajustables_en_ejecucion": ["n_bloque", "umbral_espectral", "metodo_temporal", "ancho_rechazo_hz"]
 }
