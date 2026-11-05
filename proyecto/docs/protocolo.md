@@ -41,8 +41,35 @@ Si algo cambia aquí, cambia en los tres lugares en el mismo commit.
 `diagnostico_t`: `uint8 tipo, uint8 reservado, uint16 n_bloque, float frecuencia_hz,
 float ancho_hz, float nivel_db`. En Python: `struct.Struct('<BBHfff')`.
 
-## Pendiente de decidir (Kevin)
+## Decidido
 
-- ¿Cada cuánto se manda ESTADO?
-- Qué hace el ESP32 si cambia N a mitad de un bloque (sugerencia: reiniciar el
-  procesamiento al recibir el primer salto con el nuevo largo).
+**Cada cuánto se manda ESTADO.** Como máximo una vez por segundo, y solo si algún
+contador cambió desde el último envío. Son 12 bytes de carga más 9 de trama: unos
+21 B/s contra los 32 kB/s del flujo de muestras, o sea 0,07 %. Mandarlo por bloque
+(31,25 veces por segundo) no aportaría nada, porque los contadores casi nunca
+cambian, y mandarlo solo al final dejaría sin evidencia una prueba que se corte.
+
+**Qué pasa si N cambia a mitad de un bloque.** El receptor deduce N del campo
+`largo` de la trama MUESTRAS: con 50 % de solapamiento, `largo = N` bytes
+(N/2 muestras de 2 bytes). Cuando llega un `largo` distinto al que venía usando:
+
+1. descarta lo que tenga acumulado del bloque en curso;
+2. vuelve a inicializar los módulos con el nuevo N (búferes de solapamiento,
+   ventana y tablas de la FFT);
+3. marca el primer bloque completo del nuevo N como *de arranque*.
+
+Ese primer bloque sale atenuado en sus bordes, porque el solapamiento todavía no
+tiene historia con la que sumar, así que **no se usa para medir**. El nodo 1 avisa
+del cambio mandando un ESTADO justo después, para que quede registrado en qué
+número de bloque ocurrió.
+
+## Herramientas
+
+- `pc/trama.py` implementa lo mismo en Python y trae su autoprueba
+  (`python proyecto/pc/trama.py`). Uno de sus pasos compila
+  `pruebas_c/volcar_trama.c` y compara byte a byte la trama que arma C con la que
+  arma Python: si alguien cambia una de las dos implementaciones y no la otra, esa
+  prueba falla.
+- `pruebas_c/test_trama.c` cubre el contrato en C: vector del CRC, formato,
+  rechazo de carga grande, ida y vuelta, resincronización, detección de un bit
+  cambiado y conteo de bloques perdidos.
