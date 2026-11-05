@@ -4,7 +4,9 @@
 #include "config.h"
 #include "iir.h"
 
-
+#define ATEN_DISENO_DB   25.0
+#define ANCHO_MIN_HZ      2.0     // no estrechar mas: la estimacion nunca es tan precisa
+#define ANCHO_MAX_REL     0.5     // el ancho de un notch tonal no pasa de 0,5 f0 (en 60 Hz no se come el DC)
 #define F_RED_MAX_HZ    100.0f    // por debajo, se asume red electrica: se anulan armonicos
 #define ARMONICOS_MAX     5
 #define FRAC_NYQUIST      0.45    // no se disenan notches por encima de 0,45 fs
@@ -66,13 +68,45 @@ int iir_disenar(iir_t *f, const diagnostico_t *d, float fs) {
 }
 
 
+
 int iir_cargar_sos(iir_t *f, const float *sos, int n_etapas) {
     // sos en el formato de scipy: por etapa [b0 b1 b2 a0 a1 a2], con a0 = 1
-    (void)f; (void)sos; (void)n_etapas;
-    return ASM_PENDIENTE;  // TODO (Santiago)
+    if (!f || !sos || n_etapas < 1 || n_etapas > IIR_MAX_ETAPAS) return ASM_ERROR;
+
+    iir_t nuevo;
+    memset(&nuevo, 0, sizeof nuevo);
+    for (int i = 0; i < n_etapas; i++) {
+        const float *s = sos + 6 * i;
+        if (s[3] == 0.0f) return ASM_ERROR;
+        const float inv = 1.0f / s[3];
+        biquad_t *e = &nuevo.etapas[i];
+        e->b0 = s[0] * inv;
+        e->b1 = s[1] * inv;
+        e->b2 = s[2] * inv;
+        e->a1 = s[4] * inv;
+        e->a2 = s[5] * inv;
+    }
+    nuevo.n_etapas = n_etapas;
+    nuevo.ganancia = 1.0f;
+    if (!todas_estables(&nuevo)) return ASM_ERROR;
+    *f = nuevo;
+    return ASM_OK;
 }
 
 int iir_procesar(iir_t *f, const float *x, float *y, int n) {
-    (void)f; (void)x; (void)y; (void)n;
-    return ASM_PENDIENTE;  // TODO (Santiago): DF2T por etapa
+    if (!f || !x || !y || n < 0 || f->n_etapas < 1 || f->n_etapas > IIR_MAX_ETAPAS)
+        return ASM_ERROR;
+    const float g = f->ganancia;
+    for (int i = 0; i < n; i++) {
+        float v = x[i];                       // se lee antes de escribir: x e y pueden ser el mismo
+        for (int k = 0; k < f->n_etapas; k++) {
+            biquad_t *s = &f->etapas[k];
+            const float salida = s->b0 * v + s->z1;
+            s->z1 = s->b1 * v - s->a1 * salida + s->z2;
+            s->z2 = s->b2 * v - s->a2 * salida;
+            v = salida;
+        }
+        y[i] = g * v;
+    }
+    return ASM_OK;
 }
