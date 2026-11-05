@@ -37,11 +37,11 @@ FIGURAS = SALIDAS / 'figuras'
 METODOS = ('temporal', 'espectral')
 COLOR = {'entrada': '#eb6834', 'temporal': '#2a78d6', 'espectral': '#1baf7a'}
 
-# Tonos del emisor en cada modo, para reconstruir la referencia de P1 y P2
-MODOS = {'P1': ([440.0], [1.0]), 'P2': ([440.0, 880.0, 1320.0], [1.0, 0.55, 0.3])}
-ANCHO_TONO_HZ = 60.0
-BANDA_UTIL_AUDIO = (300.0, 1500.0)   # banda de paso del filtro temporal (Tarea 1)
-BANDA_FUERA = (2000.0, FS/2)         # donde se mide la atenuacion de la interferencia
+# Todo sale de los JSON: aqui no se escribe ninguna frecuencia a mano
+EMISOR = PRUEBAS['emisor']
+ANCHO_TONO_HZ = EMISOR['ancho_tono_hz']
+BANDA_UTIL_AUDIO = tuple(PRUEBAS['bandas']['banda_util_audio_hz'])
+BANDA_FUERA = tuple(PRUEBAS['bandas']['banda_fuera_hz'])
 
 filas = []
 
@@ -77,11 +77,22 @@ def escribir_tabla_criterios():
     (SALIDAS / 'tabla_criterios.tex').write_text('\n'.join(lineas) + '\n', encoding='utf-8')
 
 
+def tonos_utiles_de(prueba):
+    """Tonos que cuentan como senal util; en el modo 4 el ultimo es la interferencia."""
+    modo = prueba.get('modo_emisor')
+    if not modo:
+        return None
+    cuantos = EMISOR['tonos_utiles_del_modo'][modo]
+    datos = EMISOR['modos'][modo]
+    return datos['frecuencias_hz'][:cuantos], datos['amplitudes'][:cuantos]
+
+
 def bandas_utiles_de(prueba):
     import metricas
-    if prueba['id'] in MODOS:
-        return metricas.bandas_utiles_de(MODOS[prueba['id']][0], ANCHO_TONO_HZ)
-    return [BANDA_UTIL_AUDIO]
+    tonos = tonos_utiles_de(prueba)
+    if tonos is None:
+        return [BANDA_UTIL_AUDIO]
+    return metricas.bandas_utiles_de(tonos[0], ANCHO_TONO_HZ)
 
 
 def leer_wav(ruta):
@@ -93,14 +104,16 @@ def leer_wav(ruta):
 
 def referencia_de(prueba, n_muestras):
     """Senal limpia esperada: sintetizada para P1 y P2, leida del WAV para P3-P5."""
-    if prueba['id'] in MODOS:
+    tonos = tonos_utiles_de(prueba)
+    if tonos is not None:
         import senales
-        frecuencias, amplitudes = MODOS[prueba['id']]
+        frecuencias, amplitudes = tonos
         t = np.arange(n_muestras)/FS
         x = senales.multitono(t, frecuencias, amplitudes, [0.0]*len(frecuencias))
         return x/np.max(np.abs(x))
     if not prueba.get('wav'):
-        raise NotImplementedError(f"{prueba['id']} no tiene WAV de referencia en pruebas.json")
+        raise NotImplementedError(
+            f"{prueba['id']} no tiene ni modo_emisor ni wav en pruebas.json")
     ruta = PROYECTO / prueba['wav']
     if not ruta.exists():
         raise NotImplementedError(f'falta {ruta.relative_to(RAIZ)}')

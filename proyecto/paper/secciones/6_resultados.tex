@@ -56,6 +56,16 @@ repeticiones.}
   {\pendiente{campaña sin correr: falta la evidencia de P1--P5}}
 \end{table}
 
+\begin{figure}[t]
+\centering
+\IfFileExists{campana_p1.png}
+  {\includegraphics[width=\columnwidth]{campana_p1}}
+  {\framebox[\columnwidth]{\rule{0pt}{3cm}\pendiente{figura de P1}}}
+\caption{P1: espectro de lo capturado frente a la salida de cada método. La banda
+sombreada es la banda útil; la interferencia queda fuera de ella.}
+\label{fig:p1}
+\end{figure}
+
 \subsection{Comparación de los dos métodos}
 La caracterización de escritorio que precedió al diseño ya anticipaba que ninguno
 de los dos métodos gana en todos los escenarios, y es la razón por la que el
@@ -68,6 +78,7 @@ de ruido blanco costó un 13,3\,\% de la energía útil, mientras el temporal
 conserva casi toda la que deja pasar su banda. El compromiso
 ruido--distorsión es, entonces, asimétrico entre los dos métodos, y el
 diagnóstico del Nodo~1 es lo que decide cuál de los dos conviene por bloque.
+La Figura~\ref{fig:p1} muestra ese contraste sobre el espectro medido.
 
 \pendiente{Kevin: latencia medida, memoria y carga de cada nodo, con los datos
 que reporten los bloques 1, 2 y 3 al integrar en placa.}

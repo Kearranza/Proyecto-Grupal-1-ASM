@@ -4,7 +4,7 @@
   "pruebas": [
     {
       "id": "P1",
-      "senal": "tono 440 Hz (emisor Pico, modo 1)",
+      "senal": "tono 440 Hz (emisor en modo 1)",
       "condicion": "interferencia sinusoidal separada",
       "evidencia": "espectros y atenuacion",
       "wav": null,
@@ -12,59 +12,65 @@
         "delta_snr_min_db": 15.0,
         "atenuacion_interferencia_min_db": 30.0,
         "_nota": "La interferencia esta separada de la banda util, que es el caso facil: en la Tarea 1 el equivalente dio entre 22 y 27 dB. Se exige 15 para dejar margen a la cadena real"
-      }
+      },
+      "modo_emisor": "1"
     },
     {
       "id": "P2",
-      "senal": "tres tonos 440/880/1320 Hz (emisor Pico, modo 2)",
+      "senal": "tres tonos 440/880/1320 Hz (emisor en modo 3)",
       "condicion": "ruido de alta frecuencia",
       "evidencia": "reconstruccion y delta SNR",
       "wav": null,
       "criterios": {
         "delta_snr_min_db": 10.0,
         "_nota": "Ruido de alta frecuencia, tambien fuera de la banda util, pero repartido en vez de concentrado en un tono"
-      }
+      },
+      "modo_emisor": "3"
     },
     {
       "id": "P3",
-      "senal": "audio o señal arbitraria",
+      "senal": "señal arbitraria reproducida desde la computadora",
       "condicion": "ruido de banda ancha",
       "evidencia": "MSE, energia y prueba auditiva",
       "wav": "senales/p3.wav",
       "criterios": {
         "delta_snr_min_db": 3.0,
         "_nota": "Ruido de banda ancha: parte cae dentro de la banda util y esa parte no se puede quitar. En la Tarea 1 el caso de ruido blanco dio 5,5 dB"
-      }
+      },
+      "modo_emisor": null
     },
     {
       "id": "P4",
-      "senal": "señal transitoria",
+      "senal": "tres tonos con ruido impulsivo inyectado",
       "condicion": "ruido impulsivo",
       "evidencia": "respuesta temporal y latencia",
-      "wav": "senales/p4.wav",
+      "wav": null,
       "criterios": {
         "delta_snr_min_db": 3.0,
         "_nota": "Ruido impulsivo. La SNR global mejora poco porque el impulso dura poco; lo que importa es la respuesta temporal y que no se deforme el transitorio"
-      }
+      },
+      "modo_emisor": "3"
     },
     {
       "id": "P5",
-      "senal": "seleccionada",
+      "senal": "tres tonos con ruido de banda que los solapa",
       "condicion": "superposición parcial señal-ruido",
       "evidencia": "analisis de compromiso",
-      "wav": "senales/p5.wav",
+      "wav": null,
       "criterios": {
         "delta_snr_min_db": 0.0,
         "energia_util_min_pct": 70.0,
         "_nota": "Senal y ruido comparten frecuencia, asi que el criterio no es mejorar sino NO empeorar: se exige que la SNR no baje y que se conserve al menos el 70 % de la energia util. En la Tarea 1 el caso analogo llego apenas a +0,5 dB, y eso es el limite del problema, no del metodo"
-      }
+      },
+      "modo_emisor": "3"
     },
     {
       "id": "P6",
       "senal": "desconocida",
       "condicion": "definida por el profesor en la defensa",
       "evidencia": "adaptacion y justificacion",
-      "wav": null
+      "wav": null,
+      "modo_emisor": null
     }
   ],
   "criterios_aceptacion": {
@@ -82,5 +88,62 @@
     "carpeta": "resultados",
     "patron": "{id}_r{repeticion}",
     "_nota": "registrar.py escribe <patron>.npz con las muestras y los diagnosticos, y <patron>.json con los contadores del enlace. campana.py los lee para calcular las metricas con src/metricas.py"
+  },
+  "emisor": {
+    "_nota": "Copia de la tabla MODOS de taller_semana12/c_emisor/emisor_pico/emisor_pico.ino. Los modos del emisor se identifican por su cantidad de tonos (1, 3, 4), no por su posicion en la tabla. El modo 4 ya trae la interferencia de 3500 Hz incluida.",
+    "modos": {
+      "1": {
+        "frecuencias_hz": [
+          440.0
+        ],
+        "amplitudes": [
+          1.0
+        ]
+      },
+      "3": {
+        "frecuencias_hz": [
+          440.0,
+          880.0,
+          1320.0
+        ],
+        "amplitudes": [
+          1.0,
+          0.55,
+          0.3
+        ]
+      },
+      "4": {
+        "frecuencias_hz": [
+          440.0,
+          880.0,
+          1320.0,
+          3500.0
+        ],
+        "amplitudes": [
+          1.0,
+          0.55,
+          0.3,
+          0.9373
+        ],
+        "_nota": "el cuarto tono es la interferencia, no senal util"
+      }
+    },
+    "tonos_utiles_del_modo": {
+      "1": 1,
+      "3": 3,
+      "4": 3
+    },
+    "ancho_tono_hz": 60.0
+  },
+  "bandas": {
+    "_nota": "banda_util_audio es la banda de paso del filtro temporal de la Tarea 1; banda_fuera es donde se mide la atenuacion de la interferencia",
+    "banda_util_audio_hz": [
+      300.0,
+      1500.0
+    ],
+    "banda_fuera_hz": [
+      2000.0,
+      8000.0
+    ]
   }
 }
