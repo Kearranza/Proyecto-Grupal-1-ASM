@@ -73,3 +73,16 @@ número de bloque ocurrió.
 - `pruebas_c/test_trama.c` cubre el contrato en C: vector del CRC, formato,
   rechazo de carga grande, ida y vuelta, resincronización, detección de un bit
   cambiado y conteo de bloques perdidos.
+
+## Sonda del enlace
+
+`firmware/sonda_pico/` convierte una Pico comun en el adaptador USB-TTL que necesita
+`pc/registrar.py`. Escucha en GP9 la misma linea que el nodo 1 manda al ESP32 por GP8 y
+vuelca los bytes al USB sin transmitir nada, asi que el ESP32 sigue recibiendo igual y no
+hay que tocar su firmware.
+
+La sonda no imprime texto por el USB a proposito. El lector de `trama.py` resincroniza con
+`AA 55` y descarta lo que no cuadre, asi que texto *entre* tramas no estorba (40 de 40
+recuperadas en la prueba), pero texto que parte una trama por la mitad las pierde todas
+(0 de 40, 40 errores de CRC). El estado de la sonda va por el LED: fijo si esta llegando
+flujo, parpadeo lento si no llega nada.
