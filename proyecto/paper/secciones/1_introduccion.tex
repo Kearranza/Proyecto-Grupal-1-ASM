@@ -1,3 +1,29 @@
 % Kevin. ~0,3 paginas: problema, por que importa, que se hizo y como sigue el paper.
 \section{Introducción}
-\pendiente{Kevin: contexto, objetivo y aportes.}
+\label{sec:introduccion}
+Reducir ruido en tiempo real obliga a decidir entre trabajar en el dominio del
+tiempo o en el de la frecuencia, y esa decisión no tiene una respuesta única: el
+mejor método depende de cuánto se solapen en frecuencia la señal útil y la
+interferencia. Un filtro de banda fija sobresale cuando el ruido cae fuera de su
+banda de paso y no aporta nada cuando cae dentro; un atenuador espectral actúa
+sobre cualquier componente, pero paga con la energía de la señal que comparte
+esos bins. En un sistema embebido esa elección además compite con la memoria, la
+carga de cómputo y la latencia disponibles.
+
+Este trabajo implementa y mide un sistema distribuido de tres nodos que convierte
+esa disyuntiva en una decisión automática y verificable. El Nodo~1 adquiere la
+señal contaminada, la bloquea, estima su espectro y diagnostica el tipo de ruido;
+los Nodos~2 y~3 aplican, respectivamente, la reducción temporal y la espectral
+sobre el mismo bloque, de modo que las dos rutas se comparan con la misma entrada
+y las mismas métricas. El enlace entre placas usa una trama con numeración de
+secuencia y CRC, lo que permite distinguir una métrica degradada por el filtrado
+de una degradada por pérdida de datos.
+
+Los aportes son tres: la arquitectura de diagnóstico y conmutación entre métodos
+(Sección~\ref{sec:arquitectura}), la caracterización de cada ruta de filtrado
+frente a su respuesta teórica (Secciones~\ref{sec:temporal}
+y~\ref{sec:espectral}) y una campaña de pruebas con criterios de aceptación
+fijados antes de medir y repeticiones para estimar variabilidad
+(Sección~\ref{sec:resultados}). La Sección~\ref{sec:teoria} resume los
+fundamentos y la Sección~\ref{sec:conclusiones} cierra con las limitaciones
+observadas.

@@ -2,18 +2,85 @@
   "_nota": "Pruebas obligatorias (Tabla 1 del enunciado). Kevin coordina la campana; los criterios de aceptacion se fijan ANTES de medir (seccion 3.5) y no se cambian despues.",
   "repeticiones": 3,
   "pruebas": [
-    {"id": "P1", "senal": "tono 440 Hz (emisor Pico, modo 1)", "condicion": "interferencia sinusoidal separada", "evidencia": "espectros y atenuacion", "wav": null},
-    {"id": "P2", "senal": "tres tonos 440/880/1320 Hz (emisor Pico, modo 2)", "condicion": "ruido de alta frecuencia", "evidencia": "reconstruccion y delta SNR", "wav": null},
-    {"id": "P3", "senal": "audio o senal arbitraria", "condicion": "ruido de banda ancha", "evidencia": "MSE, energia y prueba auditiva", "wav": "senales/p3.wav"},
-    {"id": "P4", "senal": "senal transitoria", "condicion": "ruido impulsivo", "evidencia": "respuesta temporal y latencia", "wav": "senales/p4.wav"},
-    {"id": "P5", "senal": "seleccionada", "condicion": "superposicion parcial senal-ruido", "evidencia": "analisis de compromiso", "wav": "senales/p5.wav"},
-    {"id": "P6", "senal": "desconocida", "condicion": "definida por el profesor en la defensa", "evidencia": "adaptacion y justificacion", "wav": null}
+    {
+      "id": "P1",
+      "senal": "tono 440 Hz (emisor Pico, modo 1)",
+      "condicion": "interferencia sinusoidal separada",
+      "evidencia": "espectros y atenuacion",
+      "wav": null,
+      "criterios": {
+        "delta_snr_min_db": 15.0,
+        "atenuacion_interferencia_min_db": 30.0,
+        "_nota": "La interferencia esta separada de la banda util, que es el caso facil: en la Tarea 1 el equivalente dio entre 22 y 27 dB. Se exige 15 para dejar margen a la cadena real"
+      }
+    },
+    {
+      "id": "P2",
+      "senal": "tres tonos 440/880/1320 Hz (emisor Pico, modo 2)",
+      "condicion": "ruido de alta frecuencia",
+      "evidencia": "reconstruccion y delta SNR",
+      "wav": null,
+      "criterios": {
+        "delta_snr_min_db": 10.0,
+        "_nota": "Ruido de alta frecuencia, tambien fuera de la banda util, pero repartido en vez de concentrado en un tono"
+      }
+    },
+    {
+      "id": "P3",
+      "senal": "audio o señal arbitraria",
+      "condicion": "ruido de banda ancha",
+      "evidencia": "MSE, energia y prueba auditiva",
+      "wav": "senales/p3.wav",
+      "criterios": {
+        "delta_snr_min_db": 3.0,
+        "_nota": "Ruido de banda ancha: parte cae dentro de la banda util y esa parte no se puede quitar. En la Tarea 1 el caso de ruido blanco dio 5,5 dB"
+      }
+    },
+    {
+      "id": "P4",
+      "senal": "señal transitoria",
+      "condicion": "ruido impulsivo",
+      "evidencia": "respuesta temporal y latencia",
+      "wav": "senales/p4.wav",
+      "criterios": {
+        "delta_snr_min_db": 3.0,
+        "_nota": "Ruido impulsivo. La SNR global mejora poco porque el impulso dura poco; lo que importa es la respuesta temporal y que no se deforme el transitorio"
+      }
+    },
+    {
+      "id": "P5",
+      "senal": "seleccionada",
+      "condicion": "superposición parcial señal-ruido",
+      "evidencia": "analisis de compromiso",
+      "wav": "senales/p5.wav",
+      "criterios": {
+        "delta_snr_min_db": 0.0,
+        "energia_util_min_pct": 70.0,
+        "_nota": "Senal y ruido comparten frecuencia, asi que el criterio no es mejorar sino NO empeorar: se exige que la SNR no baje y que se conserve al menos el 70 % de la energia util. En la Tarea 1 el caso analogo llego apenas a +0,5 dB, y eso es el limite del problema, no del metodo"
+      }
+    },
+    {
+      "id": "P6",
+      "senal": "desconocida",
+      "condicion": "definida por el profesor en la defensa",
+      "evidencia": "adaptacion y justificacion",
+      "wav": null
+    }
   ],
   "criterios_aceptacion": {
-    "delta_snr_min_db": null,
-    "energia_util_min_pct": null,
-    "atenuacion_interferencia_min_db": null,
-    "latencia_max_ms": null,
-    "_nota": "Kevin propone, el grupo aprueba el martes. Justificar cada uno (dependen del grado de superposicion, por eso pueden ser distintos por prueba)"
+    "delta_snr_min_db": 3.0,
+    "_nota_delta_snr": "Piso general. Menos de 3 dB de mejora no se distingue a oido ni sobresale de la variabilidad entre repeticiones. Cada prueba puede exigir mas segun cuanto se solapen senal y ruido: eso va en 'criterios' de cada prueba",
+    "energia_util_min_pct": 80.0,
+    "_nota_energia": "Fraccion de la energia de la senal util que debe sobrevivir, medida en +-60 Hz de cada componente. En la Tarea 1 el metodo espectral costo 13,3 % en el caso de ruido blanco, asi que 80 % deja margen y a la vez descarta un filtro que se lleve la senal por delante",
+    "atenuacion_interferencia_min_db": 20.0,
+    "_nota_atenuacion": "Solo donde hay una interferencia identificable. En la Tarea 1 el filtro temporal logro 65 dB y el espectral 25 dB sobre un tono separado; 20 dB es un piso que los dos metodos superan con holgura",
+    "latencia_max_ms": 150.0,
+    "_nota_latencia": "Un bloque de 1024 a 16 kHz son 64 ms de ventana mas 32 ms de salto; el resto es transmision y procesamiento. 150 ms deja margen y sigue siendo tiempo cuasi real",
+    "_nota": "Fijados por Kevin el 5 de noviembre, ANTES de medir, como pide la seccion 3.5. No se cambian despues de ver los resultados: si una prueba no los cumple, se reporta que no los cumple y se explica por que"
+  },
+  "evidencia": {
+    "carpeta": "resultados",
+    "patron": "{id}_r{repeticion}",
+    "_nota": "registrar.py escribe <patron>.npz con las muestras y los diagnosticos, y <patron>.json con los contadores del enlace. campana.py los lee para calcular las metricas con src/metricas.py"
   }
 }

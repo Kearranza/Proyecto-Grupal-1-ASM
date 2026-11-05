@@ -1,3 +1,24 @@
 % Kevin, con un aporte de cada bloque. ~0,2 paginas.
 \section{Conclusiones}
-\pendiente{Kevin: qué se logró, limitaciones y trabajo futuro.}
+\label{sec:conclusiones}
+El sistema cumple el objetivo de decidir automáticamente entre dos estrategias de
+reducción de ruido y de medir esa decisión con criterios fijados antes de
+observar los resultados. La comparación cuantitativa confirma que la elección no
+es cosmética: la diferencia entre métodos llega a decenas de decibelios según
+dónde caiga la interferencia respecto de la banda útil, de modo que un sistema
+con un único filtro fijo quedaría acertado en unos escenarios y ciego en otros.
+
+Las limitaciones son claras. El tratamiento del ruido impulsivo se hace con
+herramientas espectrales y no garantiza preservar transitorios. Cuando la señal
+y el ruido comparten frecuencia, ningún método del sistema puede separarlos y el
+criterio realista pasa a ser no degradar la señal. Las métricas requieren una
+referencia limpia sincronizada, disponible en el banco de pruebas pero no en un
+despliegue real. Por último, la comparación de niveles es relativa y no absoluta,
+porque la ganancia de la cadena de salida y de la entrada del ADC no está
+calibrada.
+
+Como trabajo futuro, la estimación del ruido podría actualizarse en forma
+recursiva en lugar de bloque a bloque, lo que reduciría el retraso con que el
+sistema reacciona a un cambio de interferencia; y la supresión de transitorios
+pediría un tratamiento explícito en el dominio del tiempo, en paralelo con la
+ruta espectral.
