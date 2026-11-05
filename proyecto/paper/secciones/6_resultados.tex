@@ -1,6 +1,84 @@
 % Kevin integra; cada bloque aporta sus figuras. ~1 pagina.
+% Las dos tablas las genera proyecto/pc/campana.py: no editarlas a mano aqui.
 \section{Resultados}
 \label{sec:resultados}
-\pendiente{Kevin: criterios de aceptación (fijados antes de medir); P1--P5 con
-promedio y variabilidad de 3 repeticiones; comparación cuantitativa de los dos
-métodos; latencia, memoria y carga; análisis del compromiso ruido--distorsión.}
+
+\subsection{Criterios de aceptación}
+Los criterios se fijaron antes de medir y quedaron versionados en
+\texttt{config/pruebas.json}; no se ajustaron al ver los resultados. El piso
+general es $\Delta\mathrm{SNR}\geq3$~dB, porque una mejora menor no se distingue
+a oído ni sobresale de la variabilidad entre repeticiones, y conservar al menos
+el 80\,\% de la energía útil, medida en $\pm60$~Hz de cada componente de la
+señal. Cada prueba endurece o relaja ese piso según cuánto se solapen señal y
+ruido (Tabla~\ref{tab:criterios}): P1 exige 15~dB porque la interferencia está
+separada de la banda útil, y P5 exige solamente no empeorar, porque ahí señal y
+ruido comparten frecuencia y el límite lo impone el problema, no el método. La
+latencia extremo a extremo se acota a 150~ms, que deja margen sobre los 96~ms de
+ventana y salto de un bloque de 1024 muestras a 16~kHz.
+
+\begin{table}[t]
+\caption{Criterios de aceptación fijados antes de medir.}
+\label{tab:criterios}
+\centering\small
+\IfFileExists{../resultados/tabla_criterios.tex}
+  {\input{../resultados/tabla_criterios}}
+  {\pendiente{correr \texttt{pc/campana.py} para generar la tabla}}
+\end{table}
+
+\subsection{Enlace entre nodos}
+Cada trama añade nueve bytes de control (sincronización, tipo, secuencia,
+longitud y CRC-16/CCITT) a una carga de 2048~bytes, un 0,44\,\% de sobrecarga.
+A 16~kHz y 921\,600~baud el flujo de muestras ocupa cerca del 35\,\% del enlace,
+de modo que la numeración de secuencia y la detección de errores no compiten con
+el ancho de banda útil. Las tramas de estado se envían a lo sumo una vez por
+segundo y solo cuando algún contador cambia, con un costo de 21~bytes por
+segundo. El valor de esto no es el ahorro: la secuencia permite contar bloques
+perdidos y el CRC descartar bloques corruptos, así que una métrica degradada se
+atribuye al filtrado y no a una pérdida de datos silenciosa.
+
+\subsection{Campaña experimental}
+Cada caso se repitió tres veces y se reporta el promedio con su desviación
+estándar (Tabla~\ref{tab:campana}). Las métricas se calculan en la computadora
+sobre lo que registró \texttt{pc/registrar.py}, con la misma implementación de
+MSE, SNR y energía por bandas usada en la caracterización previa, y después de
+compensar por correlación cruzada el retardo entre la referencia y lo capturado.
+La ganancia de la cadena PWM--RC--ADC es desconocida, así que se estima por
+mínimos cuadrados dentro de la banda útil; estimarla sobre todo el ancho de banda
+la contamina con la interferencia y descalibra la referencia.
+
+\begin{table}[t]
+\caption{Resultados de la campaña: promedio $\pm$ desviación estándar de tres
+repeticiones.}
+\label{tab:campana}
+\centering\small
+\IfFileExists{../resultados/tabla_campana.tex}
+  {\input{../resultados/tabla_campana}}
+  {\pendiente{campaña sin correr: falta la evidencia de P1--P5}}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\IfFileExists{campana_p1.png}
+  {\includegraphics[width=\columnwidth]{campana_p1}}
+  {\framebox[\columnwidth]{\rule{0pt}{3cm}\pendiente{figura de P1}}}
+\caption{P1: espectro de lo capturado frente a la salida de cada método. La banda
+sombreada es la banda útil; la interferencia queda fuera de ella.}
+\label{fig:p1}
+\end{figure}
+
+\subsection{Comparación de los dos métodos}
+La caracterización de escritorio que precedió al diseño ya anticipaba que ninguno
+de los dos métodos gana en todos los escenarios, y es la razón por la que el
+sistema conmuta entre ambos en vez de elegir uno. Con una interferencia tonal
+fuera de la banda de paso, el filtrado temporal mejoró la SNR en 27,5~dB frente
+a 22,2~dB del espectral; con ruido blanco y con solapamiento parcial, en cambio,
+el temporal no aportó mejora apreciable (0,18 y 0,00~dB) mientras el espectral
+mantuvo 5,5 y 0,5~dB. Esa uniformidad del método espectral se paga: en el caso
+de ruido blanco costó un 13,3\,\% de la energía útil, mientras el temporal
+conserva casi toda la que deja pasar su banda. El compromiso
+ruido--distorsión es, entonces, asimétrico entre los dos métodos, y el
+diagnóstico del Nodo~1 es lo que decide cuál de los dos conviene por bloque.
+La Figura~\ref{fig:p1} muestra ese contraste sobre el espectro medido.
+
+\pendiente{Kevin: latencia medida, memoria y carga de cada nodo, con los datos
+que reporten los bloques 1, 2 y 3 al integrar en placa.}
