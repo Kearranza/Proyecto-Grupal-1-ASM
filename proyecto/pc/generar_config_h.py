@@ -46,6 +46,13 @@ def main():
         'ESP_PIN_DAC_ESPECTRAL': p['esp32']['dac_espectral'],
         'ADC_BITS': c['adc']['bits'],
         'DAC_BITS': c['dac']['bits'],
+        'DIAG_N_UTILES': len(c['diagnostico']['utiles_hz']),
+        'DIAG_UTILES_HZ': '{' + ', '.join(f'{f:.1f}f' for f in c['diagnostico']['utiles_hz']) + '}',
+        'DIAG_ANCHO_UTIL_HZ': f"{c['diagnostico']['ancho_util_hz']:.1f}f",
+        'SIM_N_TONOS': len(c['fuente_sim']['frecuencias_hz']),
+        'SIM_FRECUENCIAS_HZ': '{' + ', '.join(str(int(f)) for f in c['fuente_sim']['frecuencias_hz']) + '}',
+        'SIM_AMPLITUDES': '{' + ', '.join(f'{a}f' for a in c['fuente_sim']['amplitudes']) + '}',
+        'SIM_NIVEL_PICO': f"{c['fuente_sim']['nivel_pico']}f",
     }
     lineas = ['// Generado por pc/generar_config_h.py desde config/sistema.json. No editar a mano.',
               '#pragma once', '']

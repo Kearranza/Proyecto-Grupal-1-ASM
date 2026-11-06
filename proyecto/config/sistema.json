@@ -32,6 +32,19 @@
     "_nota": "Pico W GP8 (TX de UART1) -> ESP32 GPIO16 (RX de UART2), con tierra comun. GP9 <- GPIO17 queda para comandos de vuelta si hacen falta"
   },
 
+  "diagnostico": {
+    "utiles_hz": [440, 880, 1320],
+    "ancho_util_hz": 60,
+    "_nota": "Bandas de la senal util que el nodo 1 excluye al buscar el ruido (+-ancho alrededor de cada frecuencia). Sin esto el tono de 440 Hz parece la interferencia, que es el error del clasificador de la Tarea 1. Se cambian en vivo con el comando UTIL del nodo 1"
+  },
+
+  "fuente_sim": {
+    "frecuencias_hz": [440, 880, 1320, 3500],
+    "amplitudes": [1.0, 0.55, 0.3, 0.9373],
+    "nivel_pico": 0.8,
+    "_nota": "Modo 3 del emisor del taller (caso_1). El nodo 1 lo genera con el comando FUENTE SIM para probar el enlace y el diagnostico sin senal analogica. Frecuencias enteras: la fase se repite cada fs muestras"
+  },
+
   "adc": {"bits": 12, "vref_v": 3.3},
   "dac": {"bits": 8},
 
