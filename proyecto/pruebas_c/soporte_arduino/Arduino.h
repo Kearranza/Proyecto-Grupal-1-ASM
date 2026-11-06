@@ -46,7 +46,13 @@ inline hw_timer_t *timerBegin(unsigned)
 inline void timerAttachInterrupt(hw_timer_t *, void (*)()) {}
 inline void timerAlarm(hw_timer_t *, unsigned, bool, unsigned) {}
 inline void dacWrite(int, uint8_t) {}
-inline uint32_t micros() { return 0; }
+// Reloj simulado: lo avanza el doble del DAC continuo (driver/dac_continuous.h)
+inline uint32_t &reloj_prueba_us()
+{
+    static uint32_t t;
+    return t;
+}
+inline uint32_t micros() { return reloj_prueba_us(); }
 inline void delay(int) {}
 struct SerialPrueba
 {

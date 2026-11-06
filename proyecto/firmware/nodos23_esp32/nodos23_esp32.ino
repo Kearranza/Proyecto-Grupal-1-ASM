@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <asm_comun.h>
 #include <nodo3.h>
+#include "driver/dac_continuous.h"
 
 struct configuracion_t
 {
@@ -37,8 +38,8 @@ static trama_t trama;
 static uint32_t tramas_ok, errores_crc, perdidas, descartes, descartes_temporal;
 static bool protocolo_pendiente;
 static QueueHandle_t cola_temporal, cola_espectral;
-static TaskHandle_t tarea_salida_handle;
-static hw_timer_t *temporizador;
+static dac_continuous_handle_t dac;
+static uint32_t dac_frecuencia, dac_bytes_por_s;
 static volatile bool listo;
 
 // Prototipo explicito: evita que Arduino lo adelante a la definicion del tipo.
@@ -52,18 +53,38 @@ static configuracion_t leer_configuracion()
     return c;
 }
 
-// Se convierten las muestras fuera de la seccion critica, la ISR solo despierta
-// una tarea, porque dacWrite no se asume seguro dentro de una interrupcion.
+// Los dos DAC salen por DMA (dac_continuous, canales alternados: DAC1, DAC2, DAC1...).
+// Antes una interrupcion despertaba una tarea 16 000 veces por segundo para hacer
+// dacWrite: eso se comia el nucleo 0, la recepcion no alcanzaba a vaciar la UART y
+// se perdian tramas (574 de 664 con error de CRC) hasta disparar el watchdog.
 static const unsigned CAPACIDAD_DAC = 2 * N_MAX;
 struct salida_t
 {
     uint8_t datos[CAPACIDAD_DAC];
-    unsigned lectura, cantidad;
-    bool activa;
-    uint32_t vacios, llenos;
+    unsigned lectura, cantidad, salto;
+    bool activa, cebando;   // cebando: espera un salto completo antes de sonar
+    uint32_t vacios, llenos, recortes;   // vacios: veces que se quedo sin muestras
 };
 static salida_t salidas[2];
-static uint32_t ticks_atrasados;
+static uint32_t temporal_max_us, temporal_redisenos;   // diagnostico del nodo 2
+static int temporal_tipo = -1;
+static uint32_t ticks_atrasados;   // trozos que el DMA no acepto a tiempo
+static const unsigned TROZO_DAC = 128;   // muestras por canal en cada escritura: 8 ms
+
+// Grabacion de lo que sale por los dos DAC, para la demo con un solo amplificador: con
+// el ampli en la emisora suena la senal con ruido y aqui quedan los ultimos segundos de
+// cada metodo; al pasar el ampli al DAC, REPETIR los toca desde memoria. Repetir desde
+// memoria, y no en vivo, evita el lazo parlante -> microfono -> DAC (requisito 5.7).
+// En bloques de 4 KB: la RAM libre del ESP32 esta repartida en regiones y no da 32 KB
+// seguidos.
+static const unsigned BLOQUE_GRAB = 4000, BLOQUES_GRAB = 4 * FS_HZ / BLOQUE_GRAB;   // 4 s
+static uint8_t *grabacion[2][BLOQUES_GRAB];
+static unsigned grab_n, grab_pos, rep_pos;
+static inline uint8_t &grabada(int canal, unsigned i)
+{
+    return grabacion[canal][i / BLOQUE_GRAB][i % BLOQUE_GRAB];
+}
+static volatile int repitiendo = -1;   // -1 en vivo, 0 temporal, 1 espectral, 2 tono de prueba
 
 static void vaciar_salida(int canal)
 {
@@ -100,49 +121,129 @@ static void encolar_salida(int canal, const float *x, unsigned n, uint32_t versi
     memcpy(s.datos + escritura, convertido, primero);
     memcpy(s.datos, convertido + primero, n - primero);
     s.cantidad += n;
+    s.salto = n;
+    if (!s.activa)
+        s.cebando = true;
+    // La cola oscila entre uno y dos saltos; mas de tres es atraso acumulado (arranque,
+    // una rafaga) que el DAC nunca recupera porque consume al mismo ritmo: se descarta
+    // lo mas viejo.
+    if (s.cantidad > 3 * n)
+    {
+        unsigned sobra = s.cantidad - 3 * n;
+        s.lectura = (s.lectura + sobra) % CAPACIDAD_DAC;
+        s.cantidad -= sobra;
+        s.recortes++;
+    }
     s.activa = true;
     portEXIT_CRITICAL(&candado);
 }
 
-void IRAM_ATTR al_muestrear()
+// Crea el DAC continuo y mide a que ritmo consume: segun la version del driver, en modo
+// alternado la frecuencia es por canal o total. Se prueba FS_HZ y, si cada canal sale a
+// la mitad, 2*FS_HZ. APLL porque el reloj por defecto no baja de 19,6 kHz.
+static bool iniciar_dac()
 {
-    BaseType_t despertar = pdFALSE;
-    vTaskNotifyGiveFromISR(tarea_salida_handle, &despertar);
-    if (despertar)
-        portYIELD_FROM_ISR();
+    static uint8_t silencio[2 * TROZO_DAC];
+    memset(silencio, 128, sizeof silencio);
+    const uint32_t opciones[2] = {FS_HZ, 2 * FS_HZ};
+    for (uint32_t f : opciones)
+    {
+        dac_continuous_config_t cfg = {DAC_CHANNEL_MASK_ALL, 4, 1024, f, 0,
+                                       DAC_DIGI_CLK_SRC_APLL, DAC_CHANNEL_MODE_ALTER};
+        if (dac_continuous_new_channels(&cfg, &dac) != ESP_OK)
+            continue;
+        dac_continuous_enable(dac);
+        for (int i = 0; i < 24; i++)   // llenar los 4 KB del DMA antes de medir
+            dac_continuous_write(dac, silencio, sizeof silencio, nullptr, -1);
+        uint32_t inicio = micros(), bytes = 0;
+        while (bytes < FS_HZ)   // medio segundo con los dos canales
+        {
+            size_t cargados = 0;
+            dac_continuous_write(dac, silencio, sizeof silencio, &cargados, -1);
+            bytes += cargados;
+        }
+        dac_frecuencia = f;
+        dac_bytes_por_s = (uint32_t)(bytes * 1e6 / (micros() - inicio));
+        if (dac_bytes_por_s > 1.8f * FS_HZ && dac_bytes_por_s < 2.2f * FS_HZ)
+            return true;   // 2 canales x FS_HZ
+        dac_continuous_disable(dac);
+        dac_continuous_del_channels(dac);
+    }
+    return false;
 }
 
+// Arma trozos intercalados (temporal, espectral) y se bloquea en el DMA: el ritmo lo
+// pone el hardware, asi que la tarea casi no usa CPU.
 static void tarea_salida(void *)
 {
     while (!listo)
         vTaskDelay(1);
+    static uint8_t trozo[2 * TROZO_DAC];
     for (;;)
     {
-        uint32_t ticks = ulTaskNotifyTake(pdTRUE, portMAX_DELAY);
-        uint8_t valores[2] = {128, 128};
         portENTER_CRITICAL(&candado);
-        ticks_atrasados += ticks - 1;
-        for (int canal = 0; canal < 2; canal++)
+        for (unsigned i = 0; i < TROZO_DAC; i++)
         {
-            salida_t &s = salidas[canal];
-            if (!s.activa)
-                continue;
-            // No reproducir una rafaga de muestras si la tarea incumplio el plazo.
-            unsigned omitir = ticks - 1 < s.cantidad ? ticks - 1 : s.cantidad;
-            s.lectura = (s.lectura + omitir) % CAPACIDAD_DAC;
-            s.cantidad -= omitir;
-            if (s.cantidad)
+            for (int canal = 0; canal < 2; canal++)
             {
-                valores[canal] = s.datos[s.lectura];
-                s.lectura = (s.lectura + 1) % CAPACIDAD_DAC;
-                s.cantidad--;
+                salida_t &s = salidas[canal];
+                uint8_t valor = 128;
+                if (s.activa && s.cebando && s.cantidad >= s.salto)
+                    s.cebando = false;
+                if (s.activa && !s.cebando)
+                {
+                    if (s.cantidad)
+                    {
+                        valor = s.datos[s.lectura];
+                        s.lectura = (s.lectura + 1) % CAPACIDAD_DAC;
+                        s.cantidad--;
+                    }
+                    else
+                    {
+                        // Sin colchon un salto atrasado deja huecos: se vuelve a cebar
+                        s.vacios++;
+                        s.cebando = true;
+                    }
+                }
+                trozo[2 * i + canal] = valor;
             }
-            else
-                s.vacios++;
         }
         portEXIT_CRITICAL(&candado);
-        dacWrite(ESP_PIN_DAC_TEMPORAL, valores[0]);
-        dacWrite(ESP_PIN_DAC_ESPECTRAL, valores[1]);
+        int canal = repitiendo;
+        if (canal < 0)
+        {
+            for (unsigned i = 0; i < TROZO_DAC && grab_n; i++)
+            {
+                grabada(0, grab_pos) = trozo[2 * i];
+                grabada(1, grab_pos) = trozo[2 * i + 1];
+                grab_pos = (grab_pos + 1) % grab_n;
+            }
+        }
+        else if (canal == 2)
+        {
+            // Tono de 500 Hz a 80 % de escala: prueba la cadena DAC -> filtro -> ampli
+            static uint32_t fase;
+            for (unsigned i = 0; i < TROZO_DAC; i++, fase = (fase + 1) % FS_HZ)
+                trozo[2 * i] = trozo[2 * i + 1] =
+                    (uint8_t)(128 + lroundf(100.0f * sinf(6.2831853f * 500.0f * fase / FS_HZ)));
+        }
+        else
+        {
+            // El metodo elegido sale por los dos DAC: suena donde este el filtro
+            for (unsigned i = 0; i < TROZO_DAC; i++)
+            {
+                trozo[2 * i] = trozo[2 * i + 1] = grabada(canal, (grab_pos + rep_pos) % grab_n);
+                rep_pos = (rep_pos + 1) % grab_n;
+            }
+        }
+        size_t cargados = 0;
+        dac_continuous_write(dac, trozo, sizeof trozo, &cargados, 100);
+        if (cargados < sizeof trozo)
+        {
+            portENTER_CRITICAL(&candado);
+            ticks_atrasados++;
+            portEXIT_CRITICAL(&candado);
+        }
     }
 }
 
@@ -251,10 +352,13 @@ static void tarea_temporal(void *)
         id = s.id;
         epoca = s.epoca;
         int r = ASM_ERROR;
+        uint32_t inicio = micros();
+        bool redisenado = false;
         if (s.diagnostico.n_bloque == 2 * s.n)
         {
             if (!valido || memcmp(&anterior, &s.diagnostico, sizeof anterior))
             {
+                redisenado = true;
                 r = iir_disenar(&filtro, &s.diagnostico, FS_HZ);
                 valido = r == ASM_OK;
                 if (valido)
@@ -266,8 +370,13 @@ static void tarea_temporal(void *)
             if (valido)
                 r = iir_procesar(&filtro, s.x, y, s.n);
         }
+        uint32_t tiempo = micros() - inicio;
         portENTER_CRITICAL(&candado);
         estado.codigo_temporal = r;
+        if (tiempo > temporal_max_us)
+            temporal_max_us = tiempo;
+        temporal_redisenos += redisenado;
+        temporal_tipo = s.diagnostico.tipo;
         portEXIT_CRITICAL(&candado);
         if (r == ASM_OK)
             encolar_salida(0, y, s.n, s.version);
@@ -399,7 +508,7 @@ static void imprimir_metrica(const char *nombre, float valor)
 static void imprimir_estado()
 {
     estado_t e;
-    uint32_t ok, crc, perdidos, drops, drops_t, atrasados, vacios[2], llenos[2];
+    uint32_t ok, crc, perdidos, drops, drops_t, atrasados, vacios[2], llenos[2], recortes[2];
     unsigned pendientes[2];
     bool protocolo;
     portENTER_CRITICAL(&candado);
@@ -415,6 +524,7 @@ static void imprimir_estado()
     {
         vacios[i] = salidas[i].vacios;
         llenos[i] = salidas[i].llenos;
+        recortes[i] = salidas[i].recortes;
         pendientes[i] = salidas[i].cantidad;
     }
     portEXIT_CRITICAL(&candado);
@@ -430,11 +540,16 @@ static void imprimir_estado()
                   (unsigned long)ok, (unsigned long)crc, (unsigned long)perdidos, (unsigned long)drops,
                   (unsigned long)drops_t, protocolo ? "PENDIENTE" : "disponible");
     Serial.println(c.demo ? "temporal=desactivado_en_demo" : "metricas_temporal=sin_referencia_sincronizada");
-    Serial.printf("temporal_codigo=%d ticks_DAC_atrasados=%lu memoria_nodo3_bytes=%u\n",
+    Serial.printf("dac_frecuencia=%lu dac_bytes_por_s=%lu repetir=%s grabacion_s=%.1f\n",
+                  (unsigned long)dac_frecuencia, (unsigned long)dac_bytes_por_s,
+                  repitiendo < 0 ? "NO" : repitiendo == 2 ? "TONO" : repitiendo ? "ESPECTRAL" : "TEMPORAL", grab_n / (float)FS_HZ);
+    Serial.printf("temporal_max_us=%lu temporal_redisenos=%lu temporal_tipo=%d\n",
+                  (unsigned long)temporal_max_us, (unsigned long)temporal_redisenos, temporal_tipo);
+    Serial.printf("temporal_codigo=%d trozos_DAC_atrasados=%lu memoria_nodo3_bytes=%u\n",
                   e.codigo_temporal, (unsigned long)atrasados, (unsigned)sizeof(nodo3_t));
     for (int i = 0; i < 2; i++)
-        Serial.printf("DAC%d pendientes=%u vacios=%lu llenos=%lu\n", i + 1, pendientes[i],
-                      (unsigned long)vacios[i], (unsigned long)llenos[i]);
+        Serial.printf("DAC%d pendientes=%u vacios=%lu llenos=%lu recortes=%lu\n", i + 1, pendientes[i],
+                      (unsigned long)vacios[i], (unsigned long)llenos[i], (unsigned long)recortes[i]);
     Serial.printf("referencia=%s muestras_evaluadas=%ld\n", e.tiene_referencia ? "DEMO_LOCAL" : "NO_DISPONIBLE", e.muestras);
     imprimir_metrica("MSE", e.tiene_referencia ? e.resultados.mse : NAN);
     imprimir_metrica("SNR_entrada_dB", e.tiene_referencia ? e.resultados.snr_entrada_db : NAN);
@@ -447,8 +562,33 @@ static void imprimir_estado()
     imprimir_metrica("carga_computo_pct", e.saltos ? 100.0 * e.suma_us / e.saltos / (1e6 * e.n / (2 * FS_HZ)) : NAN);
 }
 
+// REPETIR TEMPORAL | ESPECTRAL | NO. Devuelve false si la linea no es un REPETIR.
+static bool comando_repetir(const char *linea)
+{
+    if (strncmp(linea, "REPETIR", 7) != 0)
+        return false;
+    const char *arg = linea + 7;
+    while (*arg == ' ')
+        arg++;
+    int canal = !strcmp(arg, "TEMPORAL") ? 0 : !strcmp(arg, "ESPECTRAL") ? 1 : !strcmp(arg, "TONO") ? 2
+              : !strcmp(arg, "NO") ? -1 : -2;
+    if (canal == -2)
+        Serial.println("ERROR REPETIR TEMPORAL|ESPECTRAL|TONO|NO");
+    else if ((canal == 0 || canal == 1) && !grab_n)
+        Serial.println("ERROR no hay memoria para la grabacion");
+    else
+    {
+        rep_pos = 0;   // desde lo mas viejo grabado
+        repitiendo = canal;
+        Serial.printf("OK REPETIR %s (%.1f s)\n", arg, grab_n / (float)FS_HZ);
+    }
+    return true;
+}
+
 static void ejecutar_comando(const char *linea)
 {
+    if (comando_repetir(linea))
+        return;
     comando_nodo3_t orden;
     if (nodo3_leer_comando(linea, &orden) != ASM_OK)
     {
@@ -464,6 +604,8 @@ static void ejecutar_comando(const char *linea)
     {
         Serial.println("ESTADO | DEMO | VIVO | REINICIAR | N 256/512/1024/2048");
         Serial.println("UMBRAL 0..1 | ANCHO 0..16000 | METODO ESPECTRAL/PASO");
+        Serial.println("REPETIR TEMPORAL|ESPECTRAL|NO: toca por los dos DAC los ultimos segundos grabados");
+        Serial.println("REPETIR TONO: 500 Hz por los dos DAC, para probar la salida");
         Serial.println("En VIVO, N se configura en la Pico; el ESP32 sigue el largo recibido.");
         return;
     }
@@ -556,22 +698,43 @@ void setup()
         Serial.println("ERROR memoria para colas");
         return;
     }
-    temporizador = timerBegin(16000000);
-    if (!temporizador)
+    if (!iniciar_dac())
     {
-        Serial.println("ERROR temporizador DAC");
+        Serial.println("ERROR DAC continuo");
         return;
     }
-    if (xTaskCreatePinnedToCore(tarea_salida, "salida", 3072, nullptr, 5, &tarea_salida_handle, 0) != pdPASS ||
+    if (xTaskCreatePinnedToCore(tarea_salida, "salida", 3072, nullptr, 5, nullptr, 0) != pdPASS ||
         xTaskCreatePinnedToCore(tarea_recepcion, "recepcion", 6144, nullptr, 3, nullptr, 0) != pdPASS ||
-        xTaskCreatePinnedToCore(tarea_temporal, "temporal", 6144, nullptr, 2, nullptr, 0) != pdPASS ||
+        xTaskCreatePinnedToCore(tarea_temporal, "temporal", 6144, nullptr, 2, nullptr, 1) != pdPASS ||
         xTaskCreatePinnedToCore(tarea_espectral, "espectral", 8192, nullptr, 2, nullptr, 1) != pdPASS)
     {
         Serial.println("ERROR creacion de tareas; reinicie la placa");
         return;
     }
-    timerAttachInterrupt(temporizador, &al_muestrear);
-    timerAlarm(temporizador, 16000000 / FS_HZ, true, 0);
+    // Hasta 4 s por canal, con lo que sobre despues del DMA y las tareas. Se apartan
+    // 20 KB mientras tanto para que la grabacion nunca deje al resto sin memoria.
+    void *reserva[5];
+    for (int i = 0; i < 5; i++)
+        reserva[i] = malloc(BLOQUE_GRAB);
+    unsigned bloques = 0;
+    while (bloques < BLOQUES_GRAB)
+    {
+        uint8_t *a = (uint8_t *)malloc(BLOQUE_GRAB), *b = (uint8_t *)malloc(BLOQUE_GRAB);
+        if (!a || !b)
+        {
+            free(a);
+            free(b);
+            break;
+        }
+        memset(a, 128, BLOQUE_GRAB);
+        memset(b, 128, BLOQUE_GRAB);
+        grabacion[0][bloques] = a;
+        grabacion[1][bloques] = b;
+        bloques++;
+    }
+    grab_n = bloques * BLOQUE_GRAB;
+    for (int i = 0; i < 5; i++)
+        free(reserva[i]);
     listo = true;
     Serial.println("Nodo 3 ready.");
 }
