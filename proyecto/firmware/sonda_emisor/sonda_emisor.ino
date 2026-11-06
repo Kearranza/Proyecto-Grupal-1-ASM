@@ -4,15 +4,20 @@
 // el nodo 1 y el ESP32 son los nodos 2 y 3, asi que la Pico que queda tiene que
 // hacer las dos cosas. Se puede porque son periféricos distintos y no se estorban:
 //
-//   PWM en GP15  -> RC de 2 etapas -> Pico W GPIO26    emite la senal de prueba
+//   PWM en GP15  -> RC -> ampli -> parlante -> aire -> microfono -> Pico W GPIO26
 //   UART1 en GP9 <- Pico W GP8                         escucha el enlace
 //   USB          -> pc/registrar.py                    entrega las tramas
 //
 // La interrupcion de muestreo solo hace una lectura de tabla y una escritura de PWM,
 // y como interrumpe al lazo principal, el reenvio de bytes no le altera el tiempo.
 //
+// Como el cuarto y el parlante colorean lo que llega al microfono, la referencia de
+// las metricas no puede ser el WAV: se graba una pasada con la senal limpia y otra con
+// la contaminada, por el mismo camino. Las dos tablas estan en flash y se elige por
+// comando, sin recompilar entre pasadas.
+//
 // Comandos por USB (115200, una orden por linea):
-//   TOCAR | PARAR | LAZO ON|OFF | ESTADO
+//   TOCAR LIMPIA | TOCAR CONTAMINADA | PARAR | LAZO ON|OFF | ESTADO
 //
 // CUIDADO con el texto: el lector de trama.py resincroniza con AA 55, asi que texto
 // ENTRE tramas no estorba (40 de 40 recuperadas al medirlo), pero texto que parte
@@ -36,6 +41,7 @@ static uint slice_portadora, slice_reloj = 0;
 static double fs_real;
 static volatile uint32_t indice, vueltas;
 static volatile bool tocando, en_lazo = true;
+static const uint8_t *volatile tabla = TABLA_LIMPIA;   // la pasada de referencia
 
 static uint8_t buzon[TROZO];
 static uint32_t bytes_reenviados, ultimo_parpadeo;
@@ -62,7 +68,7 @@ static bool entre_tramas() { return etapa == 0; }
 static void al_muestrear() {
     pwm_clear_irq(slice_reloj);
     if (!tocando) { pwm_set_chan_level(slice_portadora, PWM_CHAN_B, REPOSO); return; }
-    pwm_set_chan_level(slice_portadora, PWM_CHAN_B, TABLA_SENAL[indice]);
+    pwm_set_chan_level(slice_portadora, PWM_CHAN_B, tabla[indice]);
     if (++indice >= TABLA_N) {
         indice = 0; vueltas++;
         if (!en_lazo) tocando = false;
@@ -100,7 +106,15 @@ static void responder(const char *texto) { strncpy(pendiente, texto, sizeof pend
 static void atender(char *linea) {
     char *orden = strtok(linea, " \t");
     if (!orden) return;
-    if (!strcmp(orden, "TOCAR"))      { indice = 0; vueltas = 0; tocando = true;  responder("OK TOCAR"); }
+    if (!strcmp(orden, "TOCAR")) {
+        const char *cual = strtok(NULL, " \t");
+        if (!cual || (strcmp(cual, "LIMPIA") && strcmp(cual, "CONTAMINADA"))) {
+            responder("ERROR TOCAR LIMPIA|CONTAMINADA"); return;
+        }
+        tabla = strcmp(cual, "LIMPIA") ? TABLA_CONTAMINADA : TABLA_LIMPIA;
+        indice = 0; vueltas = 0; tocando = true;
+        responder(strcmp(cual, "LIMPIA") ? "OK TOCAR CONTAMINADA" : "OK TOCAR LIMPIA");
+    }
     else if (!strcmp(orden, "PARAR")) { tocando = false;                          responder("OK PARAR"); }
     else if (!strcmp(orden, "LAZO")) {
         const char *v = strtok(NULL, " \t");
@@ -109,9 +123,9 @@ static void atender(char *linea) {
         responder(en_lazo ? "OK LAZO ON" : "OK LAZO OFF");
     } else if (!strcmp(orden, "ESTADO")) {
         static char buf[96];
-        snprintf(buf, sizeof buf, "tocando=%d lazo=%d vueltas=%lu fs=%.1f bytes=%lu",
-                 tocando ? 1 : 0, en_lazo ? 1 : 0, (unsigned long)vueltas,
-                 fs_real, (unsigned long)bytes_reenviados);
+        snprintf(buf, sizeof buf, "prueba=%s tabla=%s tocando=%d lazo=%d vueltas=%lu fs=%.1f",
+                 TABLA_PRUEBA, tabla == TABLA_LIMPIA ? "LIMPIA" : "CONTAMINADA",
+                 tocando ? 1 : 0, en_lazo ? 1 : 0, (unsigned long)vueltas, fs_real);
         responder(buf);
     } else responder("ERROR use TOCAR|PARAR|LAZO ON|OFF|ESTADO");
 }

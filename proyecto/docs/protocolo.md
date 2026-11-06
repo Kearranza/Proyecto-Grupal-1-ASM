@@ -101,11 +101,24 @@ marca los 3 limites exactos y ninguno de mas, incluso con una carga que empieza 
 Comandos por USB: `TOCAR`, `PARAR`, `LAZO ON|OFF`, `ESTADO`. El LED queda fijo si esta
 llegando flujo y parpadea lento si no llega nada.
 
-## La senal de P3
 
-P3 pide una senal que no sea multitono. En vez de meterla por la tarjeta de sonido,
-`pc/tabla_senal.py` convierte `senales/p3.wav` en una tabla de PWM de 8 bits que la
-emisora reproduce desde flash: 32 768 muestras, 32 kB de los 2 MB de la Pico. El error
-contra el WAV es de medio nivel de 255, solo el redondeo a 8 bits, y el WAV sigue siendo
-la referencia con la que `campana.py` calcula las metricas. Asi la senal es identica en
-las tres repeticiones y no hacen falta capacitor de acople, divisor ni cable de audio.
+## La ruta acustica y la referencia
+
+La senal va de la emisora al microfono por el aire: PWM en GP15 -> RC -> amplificador ->
+parlante -> aire -> microfono -> GPIO26 de la Pico W.
+
+Eso obliga a cambiar de donde sale la referencia de las metricas. El parlante y el cuarto
+colorean lo que llega, asi que comparar contra el WAV original mediria tambien la sala.
+Se graban dos pasadas por el mismo camino, sin mover nada entre una y otra:
+
+1. `TOCAR LIMPIA` y se registra en `{id}_ref`: esa captura es la referencia.
+2. `TOCAR CONTAMINADA` y se registran `{id}_r1`, `{id}_r2` y `{id}_r3`.
+
+Lo que el cuarto agrega esta en las dos por igual y se cancela al comparar. Si se mueve el
+microfono, el parlante o el volumen, hay que repetir la referencia.
+
+`campana.py` usa la captura de referencia cuando existe y lo anota en la columna `ruta`
+del CSV. Si falta, avisa en vez de medir contra el WAV y dar un numero que parece bueno
+pero incluye la sala. Las dos tablas, limpia y contaminada, viven juntas en el flash y se
+eligen por comando: 4 segundos de cada una son 125 kB de los 2048 kB disponibles.
+`pc/tabla_senal.py p3|p4|p5` las genera desde los WAV de `senales/`.

@@ -1,0 +1,65 @@
+{
+  "id": "p4",
+  "semilla": 3004,
+  "snr_objetivo_db": 6.0,
+  "descripcion": "P4: rafagas de tono (transitorios) con ruido impulsivo",
+  "senal_util": "rafagas",
+  "eventos": [
+    [
+      880,
+      0.4,
+      80
+    ],
+    [
+      440,
+      1.4,
+      80
+    ],
+    [
+      1320,
+      2.4,
+      60
+    ],
+    [
+      660,
+      3.4,
+      80
+    ],
+    [
+      880,
+      4.4,
+      80
+    ],
+    [
+      440,
+      5.4,
+      100
+    ],
+    [
+      1320,
+      6.4,
+      60
+    ],
+    [
+      880,
+      7.4,
+      80
+    ]
+  ],
+  "tipo_ruido": "impulsivo",
+  "tasa_impulsos_hz": 8.0,
+  "duracion_impulso_ms": 0.5,
+  "frecuencia_interferencia_hz": null,
+  "banda_ruido_hz": null,
+  "fs_hz": 16000,
+  "muestras": 131072,
+  "duracion_s": 8.192,
+  "ganancia_comun": 0.2748708529416565,
+  "snr_obtenida_db": 6.0,
+  "snr_tras_cuantizar_db": 5.999548,
+  "archivos": {
+    "limpia": "limpia.wav",
+    "ruido": "ruido.wav",
+    "contaminada": "contaminada.wav"
+  }
+}

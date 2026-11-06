@@ -107,8 +107,24 @@ def leer_wav(ruta):
     return np.frombuffer(crudo, dtype='<i2').astype(float)/32768.0, fs
 
 
+def referencia_capturada(prueba, carpeta):
+    """La pasada en la que la emisora toco LIMPIA, grabada por el mismo camino.
+
+    Con el microfono de por medio, el parlante y el cuarto colorean lo que llega. El WAV
+    ya no sirve de referencia: lo que sirve es la misma senal limpia pasada por la misma
+    cadena. Lo que el cuarto agrega esta en las dos capturas y se cancela al comparar.
+    """
+    patron = PRUEBAS['evidencia'].get('patron_referencia')
+    if not patron:
+        return None
+    base = carpeta / patron.format(id=prueba['id'])
+    if not base.with_suffix('.npz').exists():
+        return None
+    return np.load(base.with_suffix('.npz'))['muestras'].astype(float)/32768.0
+
+
 def referencia_de(prueba, n_muestras):
-    """Senal limpia esperada: sintetizada para P1 y P2, leida del WAV para P3-P5."""
+    """Referencia de la ruta electrica: sintetizada para P1 y P2, del WAV para P3-P5."""
     tonos = tonos_utiles_de(prueba)
     if tonos is not None:
         import senales
@@ -242,8 +258,13 @@ def medir_prueba(prueba, carpeta=None):
         if capturada.size < 4096:
             raise ValueError(f'{base.name}: solo {capturada.size} muestras')
         bandas = bandas_utiles_de(prueba)
-        limpia, entrada, desfase = alinear(referencia_de(prueba, capturada.size), capturada,
-                                           bandas)
+        ref = referencia_capturada(prueba, carpeta)
+        if ref is None:
+            ref = referencia_de(prueba, capturada.size)
+            origen = 'electrica'
+        else:
+            origen = 'acustica'
+        limpia, entrada, desfase = alinear(ref, capturada, bandas)
         for metodo in METODOS:
             try:
                 salida = filtrar(entrada, metodo, prueba)
@@ -251,7 +272,7 @@ def medir_prueba(prueba, carpeta=None):
                 pendientes.append(str(e))
                 continue
             filas.append({'prueba': prueba['id'], 'repeticion': repeticion, 'metodo': metodo,
-                          'desfase_muestras': desfase,
+                          'ruta': origen, 'desfase_muestras': desfase,
                           'errores_crc': contadores.get('errores_crc', 0),
                           'bloques_perdidos': contadores.get('bloques_perdidos', 0),
                           'latencia_ms': latencia_de(contadores),
@@ -263,6 +284,11 @@ def medir_prueba(prueba, carpeta=None):
     if not hechas:
         ejemplo = (carpeta / patron.format(id=prueba['id'], repeticion=1)).relative_to(RAIZ)
         raise NotImplementedError(f'falta la evidencia: registrar.py --salida {ejemplo}')
+    if PRUEBAS.get('ruta') == 'acustica' and referencia_capturada(prueba, carpeta) is None:
+        ref = (carpeta / PRUEBAS['evidencia']['patron_referencia'].format(
+            id=prueba['id'])).relative_to(RAIZ)
+        raise NotImplementedError(
+            f'medido con el WAV, no con la cadena real: falta la pasada LIMPIA en {ref}')
     if pendientes:
         raise NotImplementedError(f'{hechas} repeticion(es) medidas, pero {pendientes[0]}')
 
@@ -348,22 +374,35 @@ def resumen():
           f'y {len(list(FIGURAS.glob("campana_*.png")))} figura(s)')
 
 
+def _guardar_falsa(base, x, n):
+    np.savez(base.with_suffix('.npz'),
+             muestras=np.clip(x*32767, -32768, 32767).astype('<i2'),
+             seq=np.arange(n//512, dtype='<u2'))
+    base.with_suffix('.json').write_text(json.dumps(
+        {'errores_crc': 0, 'bloques_perdidos': 0,
+         'estado': [{'latencia_ms': 42.0}]}), encoding='utf-8')
+
+
 def evidencia_sintetica(carpeta, prueba, repeticiones):
-    """Evidencia inventada para revisar la maquinaria: no sirve como resultado."""
+    """Evidencia inventada para revisar la maquinaria: no sirve como resultado.
+
+    Imita la ruta acustica: el parlante y el cuarto colorean igual las dos pasadas,
+    asi que la de LIMPIA sirve de referencia y lo que agregan se cancela.
+    """
     generador = np.random.default_rng(7)
     patron = PRUEBAS['evidencia']['patron']
     n = 32768
+    limpia = referencia_de(prueba, n)
+    cuarto = np.array([1.0, 0.0, 0.35, 0.0, 0.12])        # eco corto del cuarto
+    colorear = lambda s: np.convolve(s, cuarto)[:n]
+
+    base = carpeta / PRUEBAS['evidencia']['patron_referencia'].format(id=prueba['id'])
+    _guardar_falsa(base, np.roll(0.3*colorear(limpia), 17), n)
+
     for repeticion in range(1, repeticiones + 1):
-        limpia = referencia_de(prueba, n)
         ruido = 2.0*np.sin(2*np.pi*6000.0*np.arange(n)/FS) + 0.05*generador.standard_normal(n)
-        x = np.roll(0.3*(limpia + ruido), 17)
-        base = carpeta / patron.format(id=prueba['id'], repeticion=repeticion)
-        np.savez(base.with_suffix('.npz'),
-                 muestras=np.clip(x*32767, -32768, 32767).astype('<i2'),
-                 seq=np.arange(n//512, dtype='<u2'))
-        base.with_suffix('.json').write_text(json.dumps(
-            {'errores_crc': 0, 'bloques_perdidos': 0,
-             'estado': [{'latencia_ms': 42.0}]}), encoding='utf-8')
+        x = np.roll(0.3*colorear(limpia + ruido), 17)
+        _guardar_falsa(carpeta / patron.format(id=prueba['id'], repeticion=repeticion), x, n)
 
 
 def autoprueba():
@@ -380,11 +419,13 @@ def autoprueba():
     propias = [f for f in filas if f['prueba'] == prueba['id']]
     if len(propias) < int(PRUEBAS['repeticiones']):
         raise AssertionError(f'se esperaban al menos {PRUEBAS["repeticiones"]} filas')
-    if abs(propias[0]['desfase_muestras']) != 17:
+    if propias[0]['ruta'] != 'acustica':
+        raise AssertionError('no uso la referencia capturada')
+    if abs(propias[0]['desfase_muestras']) > 2:
         raise AssertionError(f"desfase mal estimado: {propias[0]['desfase_muestras']}")
     if propias[0]['delta_snr_db'] <= 0:
         raise AssertionError('el filtrado deberia mejorar la SNR de la senal inventada')
-    print(f"  (autoprueba) desfase {propias[0]['desfase_muestras']} muestras, "
+    print(f"  (autoprueba) ruta {propias[0]['ruta']}, desfase {propias[0]['desfase_muestras']}, "
           f"dSNR {propias[0]['delta_snr_db']:.1f} dB en {len(propias)} fila(s)")
 
 

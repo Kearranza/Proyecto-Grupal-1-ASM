@@ -1,0 +1,51 @@
+{
+  "id": "zumbido_60hz",
+  "semilla": 3060,
+  "snr_objetivo_db": 5.0,
+  "descripcion": "Extra (no es P1-P6): tres tonos con zumbido de 60 Hz y 4 armonicos",
+  "senal_util": "multitono",
+  "frecuencias_utiles_hz": [
+    440,
+    880,
+    1320
+  ],
+  "amplitudes_utiles": [
+    1.0,
+    0.55,
+    0.3
+  ],
+  "fases_utiles_grados": [
+    0,
+    40,
+    80
+  ],
+  "tipo_ruido": "red",
+  "frecuencia_red_hz": 60.0,
+  "armonicos_red": [
+    1,
+    2,
+    3,
+    4,
+    5
+  ],
+  "amplitudes_red": [
+    1.0,
+    0.5,
+    0.35,
+    0.2,
+    0.15
+  ],
+  "frecuencia_interferencia_hz": null,
+  "banda_ruido_hz": null,
+  "fs_hz": 16000,
+  "muestras": 131072,
+  "duracion_s": 8.192,
+  "ganancia_comun": 0.32014098780345007,
+  "snr_obtenida_db": 5.0,
+  "snr_tras_cuantizar_db": 5.00001,
+  "archivos": {
+    "limpia": "limpia.wav",
+    "ruido": "ruido.wav",
+    "contaminada": "contaminada.wav"
+  }
+}

@@ -34,7 +34,7 @@
       "senal": "señal arbitraria reproducida por la emisora desde una tabla",
       "condicion": "ruido de banda ancha",
       "evidencia": "MSE, energia y prueba auditiva",
-      "wav": "senales/p3.wav",
+      "wav": "senales/p3/limpia.wav",
       "criterios": {
         "delta_snr_min_db": 3.0,
         "_nota": "Ruido de banda ancha: parte cae dentro de la banda util y esa parte no se puede quitar. En la Tarea 1 el caso de ruido blanco dio 5,5 dB"
@@ -47,27 +47,27 @@
       "senal": "tres tonos con ruido impulsivo inyectado",
       "condicion": "ruido impulsivo",
       "evidencia": "respuesta temporal y latencia",
-      "wav": null,
+      "wav": "senales/p4/limpia.wav",
       "criterios": {
         "delta_snr_min_db": 3.0,
         "_nota": "Ruido impulsivo. La SNR global mejora poco porque el impulso dura poco; lo que importa es la respuesta temporal y que no se deforme el transitorio"
       },
       "modo_emisor": "3",
-      "fuente": "emisor_tonos"
+      "fuente": "emisor_tabla"
     },
     {
       "id": "P5",
       "senal": "tres tonos con ruido de banda que los solapa",
       "condicion": "superposición parcial señal-ruido",
       "evidencia": "analisis de compromiso",
-      "wav": null,
+      "wav": "senales/p5/limpia.wav",
       "criterios": {
         "delta_snr_min_db": 0.0,
         "energia_util_min_pct": 70.0,
         "_nota": "Senal y ruido comparten frecuencia, asi que el criterio no es mejorar sino NO empeorar: se exige que la SNR no baje y que se conserve al menos el 70 % de la energia util. En la Tarea 1 el caso analogo llego apenas a +0,5 dB, y eso es el limite del problema, no del metodo"
       },
       "modo_emisor": "3",
-      "fuente": "emisor_tonos"
+      "fuente": "emisor_tabla"
     },
     {
       "id": "P6",
@@ -93,7 +93,9 @@
   "evidencia": {
     "carpeta": "resultados",
     "patron": "{id}_r{repeticion}",
-    "_nota": "registrar.py escribe <patron>.npz con las muestras y los diagnosticos, y <patron>.json con los contadores del enlace. campana.py los lee para calcular las metricas con src/metricas.py"
+    "_nota": "registrar.py escribe <patron>.npz con las muestras y los diagnosticos, y <patron>.json con los contadores del enlace. campana.py los lee para calcular las metricas con src/metricas.py",
+    "patron_referencia": "{id}_ref",
+    "_nota_referencia": "Ruta acustica: el parlante y el cuarto colorean lo que llega al microfono, asi que la referencia no puede ser el WAV. Se graba una pasada tocando LIMPIA en {id}_ref y las repeticiones tocando CONTAMINADA en {id}_r1..r3, por el mismo camino y sin mover nada. Lo que el cuarto agrega esta en las dos por igual y se cancela al comparar."
   },
   "emisor": {
     "_nota": "Copia de la tabla MODOS de taller_semana12/c_emisor/emisor_pico/emisor_pico.ino. Los modos del emisor se identifican por su cantidad de tonos (1, 3, 4), no por su posicion en la tabla. El modo 4 ya trae la interferencia de 3500 Hz incluida.",
@@ -152,5 +154,7 @@
       8000.0
     ]
   },
-  "_nota_fuente": "'fuente' dice de donde sale fisicamente la senal: emisor_tonos es el sketch de tonos del taller, emisor_tabla es firmware/emisor_tabla/ reproduciendo senales/p3.wav desde flash. En los dos casos la señal sale por GP15 y el mismo RC, y el WAV sigue siendo la referencia de las metricas."
+  "_nota_fuente": "'fuente' dice de donde sale fisicamente la senal: emisor_tonos es el sketch de tonos del taller, emisor_tabla es firmware/emisor_tabla/ reproduciendo senales/p3.wav desde flash. En los dos casos la señal sale por GP15 y el mismo RC, y el WAV sigue siendo la referencia de las metricas.",
+  "ruta": "acustica",
+  "_nota_ruta": "acustica: emisora -> RC -> ampli -> parlante -> aire -> microfono -> ADC. Si no hay captura de referencia, campana.py cae a la ruta electrica y usa el WAV o los tonos sintetizados."
 }
