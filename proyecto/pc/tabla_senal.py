@@ -17,7 +17,7 @@ PROYECTO = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(PROYECTO.parent / 'src'))
 import senales  # noqa: E402
 
-DESTINO = PROYECTO / 'firmware' / 'emisor_tabla' / 'tabla_senal.h'
+DESTINO = PROYECTO / 'firmware' / 'sonda_emisor' / 'tabla_senal.h'
 POR_LINEA = 16
 
 

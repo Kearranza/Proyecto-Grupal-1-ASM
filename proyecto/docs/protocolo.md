@@ -74,29 +74,38 @@ número de bloque ocurrió.
   rechazo de carga grande, ida y vuelta, resincronización, detección de un bit
   cambiado y conteo de bloques perdidos.
 
-## Sonda del enlace
 
-`firmware/sonda_pico/` convierte una Pico comun en el adaptador USB-TTL que necesita
-`pc/registrar.py`. Escucha en GP9 la misma linea que el nodo 1 manda al ESP32 por GP8 y
-vuelca los bytes al USB sin transmitir nada, asi que el ESP32 sigue recibiendo igual y no
-hay que tocar su firmware.
+## Sonda y emisora en la misma Pico
 
-La sonda no imprime texto por el USB a proposito. El lector de `trama.py` resincroniza con
-`AA 55` y descarta lo que no cuadre, asi que texto *entre* tramas no estorba (40 de 40
-recuperadas en la prueba), pero texto que parte una trama por la mitad las pierde todas
-(0 de 40, 40 errores de CRC). El estado de la sonda va por el LED: fijo si esta llegando
-flujo, parpadeo lento si no llega nada.
+Con tres placas no alcanza para tener emisora y sonda por separado: la Pico W es el nodo 1
+y el ESP32 son los nodos 2 y 3, asi que la Pico que queda hace las dos cosas a la vez.
+`firmware/sonda_emisor/` emite por PWM en GP15 y escucha el enlace en GP9. Son perifericos
+distintos y no se estorban: la interrupcion de muestreo solo hace una lectura de tabla y
+una escritura de PWM, y como interrumpe al lazo principal, reenviar bytes no le altera el
+tiempo.
 
-## Emisora de senal arbitraria (P3)
+    PWM GP15  -> RC de 2 etapas -> Pico W GPIO26    emite la senal de prueba
+    UART GP9  <- Pico W GP8                          escucha el enlace, en paralelo con el ESP32
+    USB       -> pc/registrar.py                     entrega las tramas
+
+El UART1 TX se manda a GP4, un pin sin conectar, para no pelear con el GP8 del nodo 1,
+que es una salida.
+
+**El texto no puede partir una trama.** El lector de `trama.py` resincroniza con `AA 55`,
+asi que texto *entre* tramas no estorba (40 de 40 recuperadas al medirlo) pero texto que
+parte una trama las pierde todas (0 de 40, 40 errores de CRC). Por eso el sketch sigue la
+estructura de la trama —sync, tipo, seq, largo, carga, CRC— y guarda las respuestas de los
+comandos hasta que no hay ninguna a medias. Probado contra tramas reales: sobre 4635 bytes
+marca los 3 limites exactos y ninguno de mas, incluso con una carga que empieza en `0xAA`.
+
+Comandos por USB: `TOCAR`, `PARAR`, `LAZO ON|OFF`, `ESTADO`. El LED queda fijo si esta
+llegando flujo y parpadea lento si no llega nada.
+
+## La senal de P3
 
 P3 pide una senal que no sea multitono. En vez de meterla por la tarjeta de sonido,
-`firmware/emisor_tabla/` la reproduce desde una tabla en flash por el mismo PWM de GP15 y
-el mismo RC que P1 y P2. `pc/tabla_senal.py` genera la tabla desde `senales/p3.wav`, que
-sigue siendo la referencia con la que `campana.py` calcula las metricas.
-
-Son 32 768 muestras de 8 bits, 32 kB de los 2 MB de flash de la Pico. El error contra el
-WAV es de medio nivel de 255, solo el redondeo a 8 bits. Asi la senal de P3 es identica en
-las tres repeticiones, cosa que reproduciendo desde la computadora no se puede garantizar,
-y no hacen falta ni capacitor de acople ni divisor ni cable de audio.
-
-Comandos por USB: `TOCAR`, `PARAR`, `LAZO ON|OFF`, `ESTADO`.
+`pc/tabla_senal.py` convierte `senales/p3.wav` en una tabla de PWM de 8 bits que la
+emisora reproduce desde flash: 32 768 muestras, 32 kB de los 2 MB de la Pico. El error
+contra el WAV es de medio nivel de 255, solo el redondeo a 8 bits, y el WAV sigue siendo
+la referencia con la que `campana.py` calcula las metricas. Asi la senal es identica en
+las tres repeticiones y no hacen falta capacitor de acople, divisor ni cable de audio.
