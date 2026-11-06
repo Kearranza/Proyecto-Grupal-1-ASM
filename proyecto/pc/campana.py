@@ -42,6 +42,11 @@ EMISOR = PRUEBAS['emisor']
 ANCHO_TONO_HZ = EMISOR['ancho_tono_hz']
 BANDA_UTIL_AUDIO = tuple(PRUEBAS['bandas']['banda_util_audio_hz'])
 BANDA_FUERA = tuple(PRUEBAS['bandas']['banda_fuera_hz'])
+# La suma solapada no normaliza el primer ni el ultimo medio bloque, asi que ahi la
+# salida tiene un transitorio que no es comportamiento del filtro. Se recorta un bloque
+# de cada punta, igual en referencia, entrada y salida, para que la comparacion siga
+# siendo justa. Sobre 32768 muestras es el 6 %.
+MARGEN = int(SISTEMA['bloque']['n_por_defecto'])
 
 filas = []
 
@@ -162,11 +167,32 @@ def alinear(referencia, medido, bandas):
     return referencia, medido*escala, desfase
 
 
-def filtrar(entrada, metodo):
+def frecuencias_utiles_de(prueba):
+    """Rejilla que cubre la banda util, del paso de un bin.
+
+    El filtro espectral protege una lista de frecuencias y ataca el pico mas fuerte
+    fuera de ellas. Con tonos basta con los tonos, pero una senal de banda como la de
+    P3 necesita toda su banda declarada: si no, el filtro elige la propia senal como
+    interferencia. Es lo mismo que en la placa se declara con UTIL y ANCHO_UTIL.
+    """
+    tonos = tonos_utiles_de(prueba)
+    if tonos is not None:
+        return tonos[0]
+    paso = 2*FS/SISTEMA['bloque']['n_por_defecto']       # dos bins: el margen que usa
+    bajo, alto = BANDA_UTIL_AUDIO
+    return list(np.arange(bajo, alto + paso, paso))
+
+
+def filtrar(entrada, metodo, prueba):
     """Corre el metodo de la Tarea 1 sobre lo capturado."""
     if metodo == 'espectral':
         import filtrado_espectral
-        return np.asarray(filtrado_espectral.reducir_ruido(entrada, FS))[:entrada.size]
+        previas = filtrado_espectral.FRECUENCIAS_UTILES
+        filtrado_espectral.FRECUENCIAS_UTILES = frecuencias_utiles_de(prueba)
+        try:
+            return np.asarray(filtrado_espectral.reducir_ruido(entrada, FS))[:entrada.size]
+        finally:
+            filtrado_espectral.FRECUENCIAS_UTILES = previas
     try:
         import filtros_temporales as ft
     except ImportError as e:
@@ -176,10 +202,17 @@ def filtrar(entrada, metodo):
     return np.asarray(ft.filtrar_sos_manual(sos, entrada))[:entrada.size]
 
 
+def recortar(*senales):
+    # Quita el transitorio de la suma solapada de las dos puntas
+    n = min(s.size for s in senales)
+    if n <= 2*MARGEN:
+        raise ValueError(f'hacen falta mas de {2*MARGEN} muestras para medir, hay {n}')
+    return [s[MARGEN:n-MARGEN] for s in senales]
+
+
 def medir(limpia, entrada, salida, bandas):
     import metricas
-    n = min(limpia.size, entrada.size, salida.size)
-    limpia, entrada, salida = limpia[:n], entrada[:n], salida[:n]
+    limpia, entrada, salida = recortar(limpia, entrada, salida)
     return {
         'mse': metricas.mse(limpia, salida),
         'snr_db': metricas.snr_db(limpia, salida),
@@ -213,7 +246,7 @@ def medir_prueba(prueba, carpeta=None):
                                            bandas)
         for metodo in METODOS:
             try:
-                salida = filtrar(entrada, metodo)
+                salida = filtrar(entrada, metodo, prueba)
             except NotImplementedError as e:
                 pendientes.append(str(e))
                 continue
@@ -224,7 +257,8 @@ def medir_prueba(prueba, carpeta=None):
                           'latencia_ms': latencia_de(contadores),
                           **medir(limpia, entrada, salida, bandas)})
             if repeticion == 1:
-                figura(prueba, entrada, {metodo: salida})
+                e_fig, s_fig = recortar(entrada, salida)
+                figura(prueba, e_fig, {metodo: s_fig})
         hechas += 1
     if not hechas:
         ejemplo = (carpeta / patron.format(id=prueba['id'], repeticion=1)).relative_to(RAIZ)
