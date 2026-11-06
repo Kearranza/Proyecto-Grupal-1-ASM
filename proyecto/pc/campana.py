@@ -47,6 +47,9 @@ BANDA_FUERA = tuple(PRUEBAS['bandas']['banda_fuera_hz'])
 # de cada punta, igual en referencia, entrada y salida, para que la comparacion siga
 # siendo justa. Sobre 32768 muestras es el 6 %.
 MARGEN = int(SISTEMA['bloque']['n_por_defecto'])
+# El nodo 1 manda cuentas del ADC centradas: 2^(bits-1) es el fondo de escala, no 32768.
+# Las metricas son relativas y no cambian, pero el numero crudo si.
+FONDO_ESCALA = float(1 << (SISTEMA['adc']['bits'] - 1))
 
 filas = []
 
@@ -120,7 +123,7 @@ def referencia_capturada(prueba, carpeta):
     base = carpeta / patron.format(id=prueba['id'])
     if not base.with_suffix('.npz').exists():
         return None
-    return np.load(base.with_suffix('.npz'))['muestras'].astype(float)/32768.0
+    return np.load(base.with_suffix('.npz'))['muestras'].astype(float)/FONDO_ESCALA
 
 
 def referencia_de(prueba, n_muestras):
@@ -254,7 +257,7 @@ def medir_prueba(prueba, carpeta=None):
             continue
         datos = np.load(base.with_suffix('.npz'))
         contadores = json.loads(base.with_suffix('.json').read_text(encoding='utf-8'))
-        capturada = datos['muestras'].astype(float)/32768.0
+        capturada = datos['muestras'].astype(float)/FONDO_ESCALA
         if capturada.size < 4096:
             raise ValueError(f'{base.name}: solo {capturada.size} muestras')
         bandas = bandas_utiles_de(prueba)

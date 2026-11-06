@@ -44,6 +44,9 @@ def procesar(recolectado, tramas):
             recolectado['estado'].append({'seq': seq, **dict(zip(ESTADO, valores.tolist()))})
 
 
+FONDO_ESCALA = 1 << (T.SISTEMA['adc']['bits'] - 1)   # el nodo 1 manda cuentas centradas
+
+
 def diagnostico_nivel(recolectado):
     """Aviso de nivel: saturar o quedarse corto arruina la captura y no se ve en los contadores."""
     import numpy as np
@@ -52,11 +55,11 @@ def diagnostico_nivel(recolectado):
         print('  nivel: no llegaron muestras')
         return
     pico = int(np.max(np.abs(x)))
-    uso = 100.0*pico/32767
-    recortadas = int(np.sum(np.abs(x) >= 32700))
+    uso = 100.0*pico/FONDO_ESCALA
+    recortadas = int(np.sum(np.abs(x) >= FONDO_ESCALA - 8))
     continua = float(np.mean(x))
     print(f'  nivel: pico {uso:.0f} % de la escala, continua {continua:+.0f} '
-          f'de 32768, {recortadas} muestras al tope')
+          f'de {FONDO_ESCALA}, {recortadas} muestras al tope')
     if recortadas > 0:
         print('    ATENCION: esta recortando. Bajar el volumen o alejar el microfono')
     elif uso < 10:
