@@ -1,0 +1,2589 @@
+{
+  "puerto": "COM5",
+  "segundos": 10.0,
+  "fecha": "2026-11-06 04:00:05",
+  "origen": "COM5",
+  "baudios": 921600,
+  "orden": "TOCAR CONTAMINADA",
+  "muestras": 160768,
+  "tramas_ok": 638,
+  "errores_crc": 0,
+  "bloques_perdidos": 0,
+  "bytes_descartados": 563,
+  "diagnostico": [
+    {
+      "seq": 32306,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0858521461486816
+    },
+    {
+      "seq": 32308,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.606556415557861
+    },
+    {
+      "seq": 32310,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.4615907669067383
+    },
+    {
+      "seq": 32312,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1232192516326904
+    },
+    {
+      "seq": 32314,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0871386528015137
+    },
+    {
+      "seq": 32316,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.4711525440216064
+    },
+    {
+      "seq": 32319,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2547249794006348
+    },
+    {
+      "seq": 32321,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7566075325012207
+    },
+    {
+      "seq": 32323,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.332090377807617
+    },
+    {
+      "seq": 32325,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.210584878921509
+    },
+    {
+      "seq": 32327,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.116482734680176
+    },
+    {
+      "seq": 32329,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.8917338848114014
+    },
+    {
+      "seq": 32331,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.1506195068359375
+    },
+    {
+      "seq": 32333,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 1.096527099609375
+    },
+    {
+      "seq": 32335,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1672496795654297
+    },
+    {
+      "seq": 32337,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.929228782653809
+    },
+    {
+      "seq": 32339,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.7453315258026123
+    },
+    {
+      "seq": 32341,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.111482620239258
+    },
+    {
+      "seq": 32343,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.7524805068969727
+    },
+    {
+      "seq": 32345,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.193066120147705
+    },
+    {
+      "seq": 32347,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.984795570373535
+    },
+    {
+      "seq": 32349,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.9313876628875732
+    },
+    {
+      "seq": 32351,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.888930320739746
+    },
+    {
+      "seq": 32353,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.7463088035583496
+    },
+    {
+      "seq": 32355,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.382473945617676
+    },
+    {
+      "seq": 32357,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.017511367797852
+    },
+    {
+      "seq": 32359,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7838616371154785
+    },
+    {
+      "seq": 32361,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.9347825050354004
+    },
+    {
+      "seq": 32363,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.657120704650879
+    },
+    {
+      "seq": 32365,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.379199504852295
+    },
+    {
+      "seq": 32367,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.487903118133545
+    },
+    {
+      "seq": 32369,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.436851978302002
+    },
+    {
+      "seq": 32371,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.8040220737457275
+    },
+    {
+      "seq": 32373,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0893306732177734
+    },
+    {
+      "seq": 32375,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.515181541442871
+    },
+    {
+      "seq": 32377,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.686598777770996
+    },
+    {
+      "seq": 32379,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.5912022590637207
+    },
+    {
+      "seq": 32381,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.4371705055236816
+    },
+    {
+      "seq": 32384,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.5518014430999756
+    },
+    {
+      "seq": 32386,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.3039212226867676
+    },
+    {
+      "seq": 32388,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.903210163116455
+    },
+    {
+      "seq": 32390,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.8591160774230957
+    },
+    {
+      "seq": 32392,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.3910584449768066
+    },
+    {
+      "seq": 32394,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.029107093811035
+    },
+    {
+      "seq": 32396,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.86336088180542
+    },
+    {
+      "seq": 32398,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.149580478668213
+    },
+    {
+      "seq": 32400,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.103275299072266
+    },
+    {
+      "seq": 32402,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6481332778930664
+    },
+    {
+      "seq": 32404,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.073878765106201
+    },
+    {
+      "seq": 32406,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7357890605926514
+    },
+    {
+      "seq": 32408,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.5128560066223145
+    },
+    {
+      "seq": 32410,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4834744930267334
+    },
+    {
+      "seq": 32412,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.067615509033203
+    },
+    {
+      "seq": 32414,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.795764207839966
+    },
+    {
+      "seq": 32416,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.543590068817139
+    },
+    {
+      "seq": 32418,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.14745569229126
+    },
+    {
+      "seq": 32420,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.27750825881958
+    },
+    {
+      "seq": 32422,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.164795398712158
+    },
+    {
+      "seq": 32424,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4870262145996094
+    },
+    {
+      "seq": 32426,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4888076782226562
+    },
+    {
+      "seq": 32428,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.283692836761475
+    },
+    {
+      "seq": 32430,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.9386260509490967
+    },
+    {
+      "seq": 32432,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.9863224029541016
+    },
+    {
+      "seq": 32434,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.054548263549805
+    },
+    {
+      "seq": 32436,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.816976547241211
+    },
+    {
+      "seq": 32438,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.371124505996704
+    },
+    {
+      "seq": 32440,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.873649597167969
+    },
+    {
+      "seq": 32442,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 1.7145440578460693
+    },
+    {
+      "seq": 32444,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.8816323280334473
+    },
+    {
+      "seq": 32446,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.794368028640747
+    },
+    {
+      "seq": 32449,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.834815263748169
+    },
+    {
+      "seq": 32451,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.188159465789795
+    },
+    {
+      "seq": 32453,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.838554382324219
+    },
+    {
+      "seq": 32455,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6049697399139404
+    },
+    {
+      "seq": 32457,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.2202165126800537
+    },
+    {
+      "seq": 32459,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.059188365936279
+    },
+    {
+      "seq": 32461,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.174443244934082
+    },
+    {
+      "seq": 32463,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.366403102874756
+    },
+    {
+      "seq": 32465,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.3675737380981445
+    },
+    {
+      "seq": 32467,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.844636917114258
+    },
+    {
+      "seq": 32469,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.344438076019287
+    },
+    {
+      "seq": 32471,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7472689151763916
+    },
+    {
+      "seq": 32473,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.69978404045105
+    },
+    {
+      "seq": 32475,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2234838008880615
+    },
+    {
+      "seq": 32477,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.0318379402160645
+    },
+    {
+      "seq": 32479,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.955545663833618
+    },
+    {
+      "seq": 32481,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0228283405303955
+    },
+    {
+      "seq": 32483,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4625771045684814
+    },
+    {
+      "seq": 32485,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.491501808166504
+    },
+    {
+      "seq": 32487,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.8604016304016113
+    },
+    {
+      "seq": 32489,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.014468669891357
+    },
+    {
+      "seq": 32491,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2785608768463135
+    },
+    {
+      "seq": 32493,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4361956119537354
+    },
+    {
+      "seq": 32495,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.004220485687256
+    },
+    {
+      "seq": 32497,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1936120986938477
+    },
+    {
+      "seq": 32499,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.9563698768615723
+    },
+    {
+      "seq": 32501,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.687760829925537
+    },
+    {
+      "seq": 32503,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.671566009521484
+    },
+    {
+      "seq": 32505,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.746859550476074
+    },
+    {
+      "seq": 32507,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.095916748046875
+    },
+    {
+      "seq": 32509,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.732522487640381
+    },
+    {
+      "seq": 32511,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.591376304626465
+    },
+    {
+      "seq": 32514,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7160885334014893
+    },
+    {
+      "seq": 32516,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4696686267852783
+    },
+    {
+      "seq": 32518,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.463024854660034
+    },
+    {
+      "seq": 32520,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.462763786315918
+    },
+    {
+      "seq": 32522,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.751909255981445
+    },
+    {
+      "seq": 32524,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.722170829772949
+    },
+    {
+      "seq": 32526,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7985329627990723
+    },
+    {
+      "seq": 32528,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.124244451522827
+    },
+    {
+      "seq": 32530,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0843148231506348
+    },
+    {
+      "seq": 32532,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.5575718879699707
+    },
+    {
+      "seq": 32534,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.455042839050293
+    },
+    {
+      "seq": 32536,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.397172451019287
+    },
+    {
+      "seq": 32538,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.283413887023926
+    },
+    {
+      "seq": 32540,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.29934024810791
+    },
+    {
+      "seq": 32542,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.664655685424805
+    },
+    {
+      "seq": 32544,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.258626937866211
+    },
+    {
+      "seq": 32546,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.6727488040924072
+    },
+    {
+      "seq": 32548,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.87278413772583
+    },
+    {
+      "seq": 32550,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.63323450088501
+    },
+    {
+      "seq": 32552,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.236177444458008
+    },
+    {
+      "seq": 32554,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.5052011013031006
+    },
+    {
+      "seq": 32556,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.177173137664795
+    },
+    {
+      "seq": 32558,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.399118423461914
+    },
+    {
+      "seq": 32560,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.94140362739563
+    },
+    {
+      "seq": 32562,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.74460506439209
+    },
+    {
+      "seq": 32564,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.4915666580200195
+    },
+    {
+      "seq": 32566,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.7324676513671875
+    },
+    {
+      "seq": 32568,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.647412061691284
+    },
+    {
+      "seq": 32570,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2394394874572754
+    },
+    {
+      "seq": 32572,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.3972487449646
+    },
+    {
+      "seq": 32574,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.188365936279297
+    },
+    {
+      "seq": 32576,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.622257709503174
+    },
+    {
+      "seq": 32579,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.427769184112549
+    },
+    {
+      "seq": 32581,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.8506877422332764
+    },
+    {
+      "seq": 32583,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6136116981506348
+    },
+    {
+      "seq": 32585,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.5048089027404785
+    },
+    {
+      "seq": 32587,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.230179786682129
+    },
+    {
+      "seq": 32589,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.428971290588379
+    },
+    {
+      "seq": 32591,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.504789352416992
+    },
+    {
+      "seq": 32593,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.846691131591797
+    },
+    {
+      "seq": 32595,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.865054130554199
+    },
+    {
+      "seq": 32597,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1954410076141357
+    },
+    {
+      "seq": 32599,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.8564093112945557
+    },
+    {
+      "seq": 32601,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.1484174728393555
+    },
+    {
+      "seq": 32603,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7158286571502686
+    },
+    {
+      "seq": 32605,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.273255348205566
+    },
+    {
+      "seq": 32607,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.9153084754943848
+    },
+    {
+      "seq": 32609,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.8254318237304688
+    },
+    {
+      "seq": 32611,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.529510498046875
+    },
+    {
+      "seq": 32613,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.75398588180542
+    },
+    {
+      "seq": 32615,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.7699432373046875
+    },
+    {
+      "seq": 32617,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.9211952686309814
+    },
+    {
+      "seq": 32619,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0530521869659424
+    },
+    {
+      "seq": 32621,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.762176513671875
+    },
+    {
+      "seq": 32623,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.427602767944336
+    },
+    {
+      "seq": 32625,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1591010093688965
+    },
+    {
+      "seq": 32627,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.151832103729248
+    },
+    {
+      "seq": 32629,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.505239963531494
+    },
+    {
+      "seq": 32631,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.700349807739258
+    },
+    {
+      "seq": 32633,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.344095230102539
+    },
+    {
+      "seq": 32635,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.9197049140930176
+    },
+    {
+      "seq": 32637,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.035259246826172
+    },
+    {
+      "seq": 32639,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.3942394256591797
+    },
+    {
+      "seq": 32641,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.932469844818115
+    },
+    {
+      "seq": 32644,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.341142654418945
+    },
+    {
+      "seq": 32646,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.302063941955566
+    },
+    {
+      "seq": 32648,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.179999351501465
+    },
+    {
+      "seq": 32650,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.6715807914733887
+    },
+    {
+      "seq": 32652,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.353262424468994
+    },
+    {
+      "seq": 32654,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 0.9875470995903015
+    },
+    {
+      "seq": 32656,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.525010347366333
+    },
+    {
+      "seq": 32658,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.8212945461273193
+    },
+    {
+      "seq": 32660,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.727904796600342
+    },
+    {
+      "seq": 32662,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2197465896606445
+    },
+    {
+      "seq": 32664,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0174975395202637
+    },
+    {
+      "seq": 32666,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1385767459869385
+    },
+    {
+      "seq": 32668,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2439637184143066
+    },
+    {
+      "seq": 32670,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.566862106323242
+    },
+    {
+      "seq": 32672,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.657681465148926
+    },
+    {
+      "seq": 32674,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.7370083332061768
+    },
+    {
+      "seq": 32676,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.327547311782837
+    },
+    {
+      "seq": 32678,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.140758514404297
+    },
+    {
+      "seq": 32680,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.565579414367676
+    },
+    {
+      "seq": 32682,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.398260116577148
+    },
+    {
+      "seq": 32684,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.8972039222717285
+    },
+    {
+      "seq": 32686,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.601359844207764
+    },
+    {
+      "seq": 32688,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.8411428928375244
+    },
+    {
+      "seq": 32690,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2978131771087646
+    },
+    {
+      "seq": 32692,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.0673441886901855
+    },
+    {
+      "seq": 32694,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.9862241744995117
+    },
+    {
+      "seq": 32696,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 1.8138947486877441
+    },
+    {
+      "seq": 32698,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.142533302307129
+    },
+    {
+      "seq": 32700,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.0355377197265625
+    },
+    {
+      "seq": 32702,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1409692764282227
+    },
+    {
+      "seq": 32704,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.886704444885254
+    },
+    {
+      "seq": 32706,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.361992835998535
+    },
+    {
+      "seq": 32709,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.9364333152771
+    },
+    {
+      "seq": 32711,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7143003940582275
+    },
+    {
+      "seq": 32713,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.001888751983643
+    },
+    {
+      "seq": 32715,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.532723903656006
+    },
+    {
+      "seq": 32717,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.5025224685668945
+    },
+    {
+      "seq": 32719,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.062367916107178
+    },
+    {
+      "seq": 32721,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2677559852600098
+    },
+    {
+      "seq": 32723,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.306804656982422
+    },
+    {
+      "seq": 32725,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.802061080932617
+    },
+    {
+      "seq": 32727,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.200579643249512
+    },
+    {
+      "seq": 32729,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.653095245361328
+    },
+    {
+      "seq": 32731,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.5018205642700195
+    },
+    {
+      "seq": 32733,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.042457580566406
+    },
+    {
+      "seq": 32735,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.781217575073242
+    },
+    {
+      "seq": 32737,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.9629907608032227
+    },
+    {
+      "seq": 32739,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.396243095397949
+    },
+    {
+      "seq": 32741,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4410250186920166
+    },
+    {
+      "seq": 32743,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.253305435180664
+    },
+    {
+      "seq": 32745,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.329808235168457
+    },
+    {
+      "seq": 32747,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.19063138961792
+    },
+    {
+      "seq": 32749,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 6.241057395935059
+    },
+    {
+      "seq": 32751,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.82914662361145
+    },
+    {
+      "seq": 32753,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.286611557006836
+    },
+    {
+      "seq": 32755,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.416034698486328
+    },
+    {
+      "seq": 32757,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.482879161834717
+    },
+    {
+      "seq": 32759,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.157097816467285
+    },
+    {
+      "seq": 32761,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.351231813430786
+    },
+    {
+      "seq": 32763,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6704514026641846
+    },
+    {
+      "seq": 32765,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.604175567626953
+    },
+    {
+      "seq": 32767,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.314665794372559
+    },
+    {
+      "seq": 32769,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 1.8728278875350952
+    },
+    {
+      "seq": 32771,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.7625155448913574
+    },
+    {
+      "seq": 32774,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.40010929107666
+    },
+    {
+      "seq": 32776,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.142813205718994
+    },
+    {
+      "seq": 32778,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.5280585289001465
+    },
+    {
+      "seq": 32780,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1142380237579346
+    },
+    {
+      "seq": 32782,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 1.9200868606567383
+    },
+    {
+      "seq": 32784,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.173335552215576
+    },
+    {
+      "seq": 32786,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.717766761779785
+    },
+    {
+      "seq": 32788,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2320287227630615
+    },
+    {
+      "seq": 32790,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.399112701416016
+    },
+    {
+      "seq": 32792,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.426142692565918
+    },
+    {
+      "seq": 32794,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.735593318939209
+    },
+    {
+      "seq": 32796,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.125752925872803
+    },
+    {
+      "seq": 32798,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.8180644512176514
+    },
+    {
+      "seq": 32800,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1296846866607666
+    },
+    {
+      "seq": 32802,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.250627517700195
+    },
+    {
+      "seq": 32804,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.9798078536987305
+    },
+    {
+      "seq": 32806,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 1.914331316947937
+    },
+    {
+      "seq": 32808,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4412858486175537
+    },
+    {
+      "seq": 32810,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.393988132476807
+    },
+    {
+      "seq": 32812,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.4601945877075195
+    },
+    {
+      "seq": 32814,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.486865997314453
+    },
+    {
+      "seq": 32816,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 7.326102256774902
+    },
+    {
+      "seq": 32818,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7596395015716553
+    },
+    {
+      "seq": 32820,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.461658000946045
+    },
+    {
+      "seq": 32822,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2887215614318848
+    },
+    {
+      "seq": 32824,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7073211669921875
+    },
+    {
+      "seq": 32826,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.620968818664551
+    },
+    {
+      "seq": 32828,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.07346248626709
+    },
+    {
+      "seq": 32830,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.447709560394287
+    },
+    {
+      "seq": 32832,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.4694602489471436
+    },
+    {
+      "seq": 32834,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.4303081035614014
+    },
+    {
+      "seq": 32836,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.0117080211639404
+    },
+    {
+      "seq": 32839,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.420939922332764
+    },
+    {
+      "seq": 32841,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 1.3000391721725464
+    },
+    {
+      "seq": 32843,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2441246509552
+    },
+    {
+      "seq": 32845,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 6.019678115844727
+    },
+    {
+      "seq": 32847,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.8633320331573486
+    },
+    {
+      "seq": 32849,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.1458582878112793
+    },
+    {
+      "seq": 32851,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.80010986328125
+    },
+    {
+      "seq": 32853,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.32679557800293
+    },
+    {
+      "seq": 32855,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.102519989013672
+    },
+    {
+      "seq": 32857,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2261478900909424
+    },
+    {
+      "seq": 32859,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.076314926147461
+    },
+    {
+      "seq": 32861,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.8842239379882812
+    },
+    {
+      "seq": 32863,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6569719314575195
+    },
+    {
+      "seq": 32865,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.209561347961426
+    },
+    {
+      "seq": 32867,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.040822982788086
+    },
+    {
+      "seq": 32869,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2406749725341797
+    },
+    {
+      "seq": 32871,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.8856568336486816
+    },
+    {
+      "seq": 32873,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7770962715148926
+    },
+    {
+      "seq": 32875,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.926728248596191
+    },
+    {
+      "seq": 32877,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.493577241897583
+    },
+    {
+      "seq": 32879,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.04274582862854
+    },
+    {
+      "seq": 32881,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.3808364868164062
+    },
+    {
+      "seq": 32883,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.575835704803467
+    },
+    {
+      "seq": 32885,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.944445610046387
+    },
+    {
+      "seq": 32887,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6669232845306396
+    },
+    {
+      "seq": 32889,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6787822246551514
+    },
+    {
+      "seq": 32891,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.905884027481079
+    },
+    {
+      "seq": 32893,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.4535012245178223
+    },
+    {
+      "seq": 32895,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2639341354370117
+    },
+    {
+      "seq": 32897,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.0296101570129395
+    },
+    {
+      "seq": 32899,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.6651673316955566
+    },
+    {
+      "seq": 32901,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.14274787902832
+    },
+    {
+      "seq": 32904,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.2697548866271973
+    },
+    {
+      "seq": 32906,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.4041645526885986
+    },
+    {
+      "seq": 32908,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.365139007568359
+    },
+    {
+      "seq": 32910,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.9390313625335693
+    },
+    {
+      "seq": 32912,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 5.296159267425537
+    },
+    {
+      "seq": 32914,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.075442314147949
+    },
+    {
+      "seq": 32916,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.7677838802337646
+    },
+    {
+      "seq": 32918,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.544980525970459
+    },
+    {
+      "seq": 32920,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.4228479862213135
+    },
+    {
+      "seq": 32922,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.978142261505127
+    },
+    {
+      "seq": 32924,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.7610650062561035
+    },
+    {
+      "seq": 32926,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.339406967163086
+    },
+    {
+      "seq": 32928,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 3.722989559173584
+    },
+    {
+      "seq": 32930,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.2819719314575195
+    },
+    {
+      "seq": 32932,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.6679182052612305
+    },
+    {
+      "seq": 32934,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 2.582552433013916
+    },
+    {
+      "seq": 32936,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.636021614074707
+    },
+    {
+      "seq": 32938,
+      "tipo": 4,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.272242069244385
+    },
+    {
+      "seq": 32940,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.127034664154053
+    },
+    {
+      "seq": 32942,
+      "tipo": 2,
+      "n_bloque": 1024,
+      "frecuencia_hz": 0.0,
+      "ancho_hz": 0.0,
+      "nivel_db": 4.173783779144287
+    }
+  ],
+  "estado": [
+    {
+      "seq": 32318,
+      "desbordamientos": 0,
+      "saltos_procesados": 15918,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32383,
+      "desbordamientos": 0,
+      "saltos_procesados": 15950,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32448,
+      "desbordamientos": 0,
+      "saltos_procesados": 15982,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32513,
+      "desbordamientos": 0,
+      "saltos_procesados": 16014,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32578,
+      "desbordamientos": 0,
+      "saltos_procesados": 16046,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32643,
+      "desbordamientos": 0,
+      "saltos_procesados": 16078,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32708,
+      "desbordamientos": 0,
+      "saltos_procesados": 16110,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32773,
+      "desbordamientos": 0,
+      "saltos_procesados": 16142,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32838,
+      "desbordamientos": 0,
+      "saltos_procesados": 16174,
+      "latencia_ms": 58
+    },
+    {
+      "seq": 32903,
+      "desbordamientos": 0,
+      "saltos_procesados": 16206,
+      "latencia_ms": 58
+    }
+  ]
+}

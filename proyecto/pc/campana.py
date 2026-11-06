@@ -231,22 +231,37 @@ def recortar(*senales):
     return [s[MARGEN:n-MARGEN] for s in senales]
 
 
-def compensar_retardo(limpia, entrada, salida):
-    # El IIR atrasa la salida (~27 muestras en P3) y sin esto el MSE mide el retardo,
-    # no el filtrado. La latencia se reporta aparte, con la de las placas.
-    n = min(limpia.size, entrada.size, salida.size)
+def compensar_retardo(limpia, entrada, salida, limpia_filtrada):
+    # El IIR atrasa la salida (~28 muestras) y sin esto el MSE mide el retardo, no el
+    # filtrado. La latencia se reporta aparte, con la de las placas. El retardo se mide
+    # con la referencia pasada por el mismo metodo: sin ruido no depende de la repeticion.
+    n = min(limpia.size, entrada.size, salida.size, limpia_filtrada.size)
     tamano = 1
     while tamano < 2*n:
         tamano <<= 1
-    correlacion = np.fft.irfft(np.fft.rfft(salida[:n], tamano)*np.conj(np.fft.rfft(limpia[:n], tamano)),
-                               tamano)
-    retardo = int(np.argmax(correlacion[:RETARDO_MAX + 1]))   # causal: solo atrasos
-    return limpia[:n-retardo], entrada[:n-retardo], salida[retardo:n], retardo
+    c = np.fft.irfft(np.fft.rfft(limpia_filtrada[:n], tamano)*np.conj(np.fft.rfft(limpia[:n], tamano)),
+                     tamano)[:RETARDO_MAX + 2]
+    # Causal: solo atrasos. Con una senal periodica (P5) hay un pico por periodo casi
+    # igual de alto; se toma el primer maximo local cerca del mayor, que es el del filtro
+    picos = [k for k in range(RETARDO_MAX + 1) if c[k] >= c[k + 1] and (k == 0 or c[k] >= c[k - 1])]
+    k = next(k for k in picos if c[k] >= 0.9*c[:RETARDO_MAX + 1].max())
+    # Fraccion de muestra por interpolacion parabolica: con un tono puro, media muestra
+    # de error ya limita el SNR a ~21 dB
+    fraccion = 0.0
+    if k > 0:
+        den = c[k - 1] - 2*c[k] + c[k + 1]
+        if den < 0:
+            fraccion = 0.5*(c[k - 1] - c[k + 1])/den
+    salida = salida[:n]
+    if fraccion:
+        f = np.fft.rfftfreq(n)
+        salida = np.fft.irfft(np.fft.rfft(salida)*np.exp(2j*np.pi*f*fraccion), n)
+    return limpia[:n-k], entrada[:n-k], salida[k:n], round(k + fraccion, 2)
 
 
-def medir(limpia, entrada, salida, bandas):
+def medir(limpia, entrada, salida, bandas, limpia_filtrada):
     import metricas
-    limpia, entrada, salida, retardo = compensar_retardo(limpia, entrada, salida)
+    limpia, entrada, salida, retardo = compensar_retardo(limpia, entrada, salida, limpia_filtrada)
     limpia, entrada, salida = recortar(limpia, entrada, salida)
     return {
         'retardo_filtro_muestras': retardo,
@@ -288,6 +303,7 @@ def medir_prueba(prueba, carpeta=None):
         for metodo in METODOS:
             try:
                 salida = filtrar(entrada, metodo, prueba)
+                limpia_filtrada = filtrar(limpia, metodo, prueba)
             except NotImplementedError as e:
                 pendientes.append(str(e))
                 continue
@@ -296,7 +312,7 @@ def medir_prueba(prueba, carpeta=None):
                           'errores_crc': contadores.get('errores_crc', 0),
                           'bloques_perdidos': contadores.get('bloques_perdidos', 0),
                           'latencia_ms': latencia_de(contadores),
-                          **medir(limpia, entrada, salida, bandas)})
+                          **medir(limpia, entrada, salida, bandas, limpia_filtrada)})
             if repeticion == 1:
                 e_fig, s_fig = recortar(entrada, salida)
                 figura(prueba, e_fig, {metodo: s_fig})
