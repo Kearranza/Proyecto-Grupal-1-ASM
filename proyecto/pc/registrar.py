@@ -1,7 +1,8 @@
 """Registra por serial lo que mandan las placas, como evidencia de las pruebas (Kevin).
 
     pip install pyserial
-    python proyecto/pc/registrar.py --puerto COM7 --segundos 10 --salida proyecto/resultados/P1_r1
+    python proyecto/pc/registrar.py --puerto COM5 --segundos 10 --salida proyecto/resultados/P3_ref \
+        --orden "TOCAR LIMPIA"
 
 Guarda las tramas decodificadas (muestras, diagnostico, estado) y los contadores
 del lector (errores de CRC, bloques perdidos) para el paper.
@@ -127,7 +128,7 @@ def flujo_simulado(segundos, fs=16000, n=1024):
     return bytes(datos)
 
 
-def registrar(puerto, segundos, salida, archivo=None, simular=False):
+def registrar(puerto, segundos, salida, archivo=None, simular=False, orden=None):
     lector, recolectado, crudo_todo = T.Lector(), _vacio(), bytearray()
     metadatos = {'puerto': puerto, 'segundos': segundos,
                  'fecha': time.strftime('%Y-%m-%d %H:%M:%S')}
@@ -145,6 +146,12 @@ def registrar(puerto, segundos, salida, archivo=None, simular=False):
         metadatos['origen'] = puerto
         metadatos['baudios'] = T.SISTEMA['enlace']['baudios']
         with serial.Serial(puerto, T.SISTEMA['enlace']['baudios'], timeout=0.1) as puerto_serie:
+            if orden:
+                # Mandar la orden desde aqui evita abrir y cerrar el monitor serie,
+                # y deja la respuesta dentro de la captura, donde se puede leer
+                puerto_serie.write((orden + '\n').encode('ascii'))
+                puerto_serie.flush()
+                metadatos['orden'] = orden
             fin = time.time() + segundos
             while time.time() < fin:
                 datos = puerto_serie.read(4096)
@@ -168,9 +175,11 @@ def main():
     ap.add_argument('--segundos', type=float, default=10.0)
     ap.add_argument('--salida', required=True)
     ap.add_argument('--archivo', help='volcado crudo de la UART, en vez del puerto')
+    ap.add_argument('--orden', help="orden para la sonda antes de capturar, "
+                                    "p. ej. 'TOCAR CONTAMINADA' o 'ESTADO'")
     ap.add_argument('--simular', action='store_true', help='flujo de prueba, sin placa')
     a = ap.parse_args()
-    registrar(a.puerto, a.segundos, a.salida, a.archivo, a.simular)
+    registrar(a.puerto, a.segundos, a.salida, a.archivo, a.simular, a.orden)
 
 
 if __name__ == '__main__':
