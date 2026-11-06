@@ -7,27 +7,27 @@
       "senal": "tono 440 Hz (emisor en modo 1)",
       "condicion": "interferencia sinusoidal separada",
       "evidencia": "espectros y atenuacion",
-      "wav": null,
+      "wav": "senales/p1/limpia.wav",
       "criterios": {
         "delta_snr_min_db": 15.0,
         "atenuacion_interferencia_min_db": 30.0,
         "_nota": "La interferencia esta separada de la banda util, que es el caso facil: en la Tarea 1 el equivalente dio entre 22 y 27 dB. Se exige 15 para dejar margen a la cadena real"
       },
       "modo_emisor": "1",
-      "fuente": "emisor_tonos"
+      "fuente": "emisor_tabla"
     },
     {
       "id": "P2",
       "senal": "tres tonos 440/880/1320 Hz (emisor en modo 3)",
       "condicion": "ruido de alta frecuencia",
       "evidencia": "reconstruccion y delta SNR",
-      "wav": null,
+      "wav": "senales/p2/limpia.wav",
       "criterios": {
         "delta_snr_min_db": 10.0,
         "_nota": "Ruido de alta frecuencia, tambien fuera de la banda util, pero repartido en vez de concentrado en un tono"
       },
       "modo_emisor": "3",
-      "fuente": "emisor_tonos"
+      "fuente": "emisor_tabla"
     },
     {
       "id": "P3",
@@ -154,7 +154,7 @@
       8000.0
     ]
   },
-  "_nota_fuente": "'fuente' dice de donde sale fisicamente la senal: emisor_tonos es el sketch de tonos del taller, emisor_tabla es firmware/emisor_tabla/ reproduciendo senales/p3.wav desde flash. En los dos casos la señal sale por GP15 y el mismo RC, y el WAV sigue siendo la referencia de las metricas.",
+  "_nota_fuente": "'fuente' dice de donde sale fisicamente la senal: emisor_tonos es el sketch de tonos del taller, emisor_tabla es firmware/sonda_emisor/ reproduciendo senales/pN/*.wav desde flash. P1 y P2 pasaron a emisor_tabla el 6 de noviembre (pc/wav_p1_p2.py, con los mismos tonos del emisor) porque el sketch de tonos no tiene sonda y no se podian capturar; los criterios no cambiaron. En los dos casos la señal sale por GP15 y el mismo RC, y el WAV sigue siendo la referencia de las metricas.",
   "ruta": "acustica",
   "_nota_ruta": "acustica: emisora -> RC -> ampli -> parlante -> aire -> microfono -> ADC. Si no hay captura de referencia, campana.py cae a la ruta electrica y usa el WAV o los tonos sintetizados."
 }
