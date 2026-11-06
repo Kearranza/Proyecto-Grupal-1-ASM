@@ -86,3 +86,17 @@ La sonda no imprime texto por el USB a proposito. El lector de `trama.py` resinc
 recuperadas en la prueba), pero texto que parte una trama por la mitad las pierde todas
 (0 de 40, 40 errores de CRC). El estado de la sonda va por el LED: fijo si esta llegando
 flujo, parpadeo lento si no llega nada.
+
+## Emisora de senal arbitraria (P3)
+
+P3 pide una senal que no sea multitono. En vez de meterla por la tarjeta de sonido,
+`firmware/emisor_tabla/` la reproduce desde una tabla en flash por el mismo PWM de GP15 y
+el mismo RC que P1 y P2. `pc/tabla_senal.py` genera la tabla desde `senales/p3.wav`, que
+sigue siendo la referencia con la que `campana.py` calcula las metricas.
+
+Son 32 768 muestras de 8 bits, 32 kB de los 2 MB de flash de la Pico. El error contra el
+WAV es de medio nivel de 255, solo el redondeo a 8 bits. Asi la senal de P3 es identica en
+las tres repeticiones, cosa que reproduciendo desde la computadora no se puede garantizar,
+y no hacen falta ni capacitor de acople ni divisor ni cable de audio.
+
+Comandos por USB: `TOCAR`, `PARAR`, `LAZO ON|OFF`, `ESTADO`.

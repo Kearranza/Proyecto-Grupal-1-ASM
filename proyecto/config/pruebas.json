@@ -13,7 +13,8 @@
         "atenuacion_interferencia_min_db": 30.0,
         "_nota": "La interferencia esta separada de la banda util, que es el caso facil: en la Tarea 1 el equivalente dio entre 22 y 27 dB. Se exige 15 para dejar margen a la cadena real"
       },
-      "modo_emisor": "1"
+      "modo_emisor": "1",
+      "fuente": "emisor_tonos"
     },
     {
       "id": "P2",
@@ -25,11 +26,12 @@
         "delta_snr_min_db": 10.0,
         "_nota": "Ruido de alta frecuencia, tambien fuera de la banda util, pero repartido en vez de concentrado en un tono"
       },
-      "modo_emisor": "3"
+      "modo_emisor": "3",
+      "fuente": "emisor_tonos"
     },
     {
       "id": "P3",
-      "senal": "señal arbitraria reproducida desde la computadora",
+      "senal": "señal arbitraria reproducida por la emisora desde una tabla",
       "condicion": "ruido de banda ancha",
       "evidencia": "MSE, energia y prueba auditiva",
       "wav": "senales/p3.wav",
@@ -37,7 +39,8 @@
         "delta_snr_min_db": 3.0,
         "_nota": "Ruido de banda ancha: parte cae dentro de la banda util y esa parte no se puede quitar. En la Tarea 1 el caso de ruido blanco dio 5,5 dB"
       },
-      "modo_emisor": null
+      "modo_emisor": null,
+      "fuente": "emisor_tabla"
     },
     {
       "id": "P4",
@@ -49,7 +52,8 @@
         "delta_snr_min_db": 3.0,
         "_nota": "Ruido impulsivo. La SNR global mejora poco porque el impulso dura poco; lo que importa es la respuesta temporal y que no se deforme el transitorio"
       },
-      "modo_emisor": "3"
+      "modo_emisor": "3",
+      "fuente": "emisor_tonos"
     },
     {
       "id": "P5",
@@ -62,7 +66,8 @@
         "energia_util_min_pct": 70.0,
         "_nota": "Senal y ruido comparten frecuencia, asi que el criterio no es mejorar sino NO empeorar: se exige que la SNR no baje y que se conserve al menos el 70 % de la energia util. En la Tarea 1 el caso analogo llego apenas a +0,5 dB, y eso es el limite del problema, no del metodo"
       },
-      "modo_emisor": "3"
+      "modo_emisor": "3",
+      "fuente": "emisor_tonos"
     },
     {
       "id": "P6",
@@ -70,7 +75,8 @@
       "condicion": "definida por el profesor en la defensa",
       "evidencia": "adaptacion y justificacion",
       "wav": null,
-      "modo_emisor": null
+      "modo_emisor": null,
+      "fuente": null
     }
   ],
   "criterios_aceptacion": {
@@ -145,5 +151,6 @@
       2000.0,
       8000.0
     ]
-  }
+  },
+  "_nota_fuente": "'fuente' dice de donde sale fisicamente la senal: emisor_tonos es el sketch de tonos del taller, emisor_tabla es firmware/emisor_tabla/ reproduciendo senales/p3.wav desde flash. En los dos casos la señal sale por GP15 y el mismo RC, y el WAV sigue siendo la referencia de las metricas."
 }
