@@ -13,6 +13,7 @@ Sin placa:
 import argparse
 import json
 import sys
+import re
 import time
 from pathlib import Path
 
@@ -45,6 +46,26 @@ def procesar(recolectado, tramas):
 
 
 FONDO_ESCALA = 1 << (T.SISTEMA['adc']['bits'] - 1)   # el nodo 1 manda cuentas centradas
+
+
+def texto_suelto(crudo):
+    """Lo que viaja entre tramas y no es trama: las respuestas de los comandos.
+
+    Con el enlace activo la consola de la sonda es ilegible, porque las tramas son
+    binario. Aqui se rescatan las lineas de texto que quedaron entre medio, que es
+    donde salen las respuestas a TOCAR, PARAR y ESTADO.
+    """
+    lineas = []
+    for trozo in re.findall(rb'[\x20-\x7e]{10,}', crudo):
+        texto = trozo.decode('ascii', 'ignore')
+        # la respuesta puede venir pegada a bytes de una trama vecina que son imprimibles
+        for marca in ('OK ', 'ERROR ', 'prueba='):
+            if marca in texto:
+                linea = texto[texto.index(marca):].strip()
+                if linea not in lineas:
+                    lineas.append(linea)
+                break
+    return lineas
 
 
 def diagnostico_nivel(recolectado):
@@ -106,13 +127,14 @@ def flujo_simulado(segundos, fs=16000, n=1024):
 
 
 def registrar(puerto, segundos, salida, archivo=None, simular=False):
-    lector, recolectado = T.Lector(), _vacio()
+    lector, recolectado, crudo_todo = T.Lector(), _vacio(), bytearray()
     metadatos = {'puerto': puerto, 'segundos': segundos,
                  'fecha': time.strftime('%Y-%m-%d %H:%M:%S')}
 
     if simular or archivo:
         crudo = flujo_simulado(segundos) if simular else Path(archivo).read_bytes()
         metadatos['origen'] = 'simulado' if simular else str(archivo)
+        crudo_todo += crudo
         procesar(recolectado, lector.alimentar(crudo))
     else:
         try:
@@ -126,6 +148,7 @@ def registrar(puerto, segundos, salida, archivo=None, simular=False):
             while time.time() < fin:
                 datos = puerto_serie.read(4096)
                 if datos:
+                    crudo_todo += datos
                     procesar(recolectado, lector.alimentar(datos))
 
     resumen = guardar(recolectado, lector, salida, metadatos)
@@ -133,6 +156,8 @@ def registrar(puerto, segundos, salida, archivo=None, simular=False):
           f"{resumen['errores_crc']} errores de CRC | "
           f"{resumen['bloques_perdidos']} bloques perdidos")
     diagnostico_nivel(recolectado)
+    for linea in texto_suelto(bytes(crudo_todo)):
+        print(f'  dijo la placa: {linea}')
     return resumen
 
 
