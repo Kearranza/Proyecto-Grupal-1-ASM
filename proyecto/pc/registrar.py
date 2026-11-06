@@ -76,12 +76,18 @@ def diagnostico_nivel(recolectado):
     if x.size == 0:
         print('  nivel: no llegaron muestras')
         return
-    pico = int(np.max(np.abs(x)))
+    continua = float(np.mean(x))
+    # El pico que importa es el de la senal, no el del continuo: con un microfono
+    # descentrado el crudo da un numero sano que es casi todo continua y nada de senal
+    pico = int(np.max(np.abs(x - continua)))
     uso = 100.0*pico/FONDO_ESCALA
     recortadas = int(np.sum(np.abs(x) >= FONDO_ESCALA - 8))
-    continua = float(np.mean(x))
-    print(f'  nivel: pico {uso:.0f} % de la escala, continua {continua:+.0f} '
+    margen = min(FONDO_ESCALA - continua, FONDO_ESCALA + continua)
+    print(f'  nivel: senal {uso:.0f} % de la escala, continua {continua:+.0f} '
           f'de {FONDO_ESCALA}, {recortadas} muestras al tope')
+    if abs(continua) > 0.2*FONDO_ESCALA:
+        print(f'    continua descentrada: solo quedan {margen:.0f} cuentas de margen '
+              f'de un lado, recorta ahi primero')
     if recortadas > 0:
         print('    ATENCION: esta recortando. Bajar el volumen o alejar el microfono')
     elif uso < 10:
