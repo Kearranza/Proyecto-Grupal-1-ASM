@@ -44,6 +44,29 @@ def procesar(recolectado, tramas):
             recolectado['estado'].append({'seq': seq, **dict(zip(ESTADO, valores.tolist()))})
 
 
+def diagnostico_nivel(recolectado):
+    """Aviso de nivel: saturar o quedarse corto arruina la captura y no se ve en los contadores."""
+    import numpy as np
+    x = np.concatenate(recolectado['muestras']) if recolectado['muestras'] else np.array([])
+    if x.size == 0:
+        print('  nivel: no llegaron muestras')
+        return
+    pico = int(np.max(np.abs(x)))
+    uso = 100.0*pico/32767
+    recortadas = int(np.sum(np.abs(x) >= 32700))
+    continua = float(np.mean(x))
+    print(f'  nivel: pico {uso:.0f} % de la escala, continua {continua:+.0f} '
+          f'de 32768, {recortadas} muestras al tope')
+    if recortadas > 0:
+        print('    ATENCION: esta recortando. Bajar el volumen o alejar el microfono')
+    elif uso < 10:
+        print('    ATENCION: muy bajo, el ruido de cuantizacion se va a comer la medida')
+    elif uso > 90:
+        print('    al limite: conviene bajar un poco')
+    else:
+        print('    nivel bien')
+
+
 def guardar(recolectado, lector, salida, metadatos):
     salida = Path(salida)
     salida.parent.mkdir(parents=True, exist_ok=True)
@@ -106,6 +129,7 @@ def registrar(puerto, segundos, salida, archivo=None, simular=False):
     print(f"  {resumen['muestras']} muestras | {resumen['tramas_ok']} tramas | "
           f"{resumen['errores_crc']} errores de CRC | "
           f"{resumen['bloques_perdidos']} bloques perdidos")
+    diagnostico_nivel(recolectado)
     return resumen
 
 
