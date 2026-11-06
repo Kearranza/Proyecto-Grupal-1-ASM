@@ -1,0 +1,230 @@
+diff --git a/proyecto/firmware/libraries/asm_comun/src/diagnostico.c b/proyecto/firmware/libraries/asm_comun/src/diagnostico.c
+index 39f1374..6a42c25 100644
+--- a/proyecto/firmware/libraries/asm_comun/src/diagnostico.c
++++ b/proyecto/firmware/libraries/asm_comun/src/diagnostico.c
+@@ -90,22 +90,23 @@ int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *d
+     memset(d, 0, sizeof *d);
+     d->n_bloque = (uint16_t)n;
+ 
+-    // Energias, pico y media de log(magnitud) sobre los bins de ruido
+-    double e_util = 0.0, e_ruido = 0.0, suma_mag = 0.0, suma_log = 0.0;
++    // Energias, pico y media de log(magnitud) sobre los bins de ruido.
++    // En float: el RP2040 no tiene FPU y double cuesta varias veces mas.
++    float e_util = 0.0f, e_ruido = 0.0f, suma_mag = 0.0f, suma_log = 0.0f;
+     int bins_ruido = 0, kp = -1;
+     for (int k = 0; k <= mitad; k++) {
+-        double e = (double)magnitud[k] * magnitud[k];
++        float e = magnitud[k] * magnitud[k];
+         if (es_util(k, df)) { e_util += e; continue; }
+-        if (!es_ruido(k, df)) continue;
++        if (k < K_MIN) continue;
+         e_ruido += e;
+         suma_mag += magnitud[k];
+-        suma_log += log(fmax(magnitud[k], 1e-12));
++        suma_log += logf(fmaxf(magnitud[k], 1e-12f));
+         bins_ruido++;
+         if (kp < 0 || magnitud[k] > magnitud[kp]) kp = k;
+     }
+     if (bins_ruido == 0) return ASM_ERROR;   // las bandas utiles cubren todo
+ 
+-    d->nivel_db = (float)(10.0 * log10((e_ruido + 1e-30) / (e_util + 1e-30)));
++    d->nivel_db = 10.0f * log10f((e_ruido + 1e-30f) / (e_util + 1e-30f));
+     if (d->nivel_db < NIVEL_MIN_DB) {
+         d->tipo = RUIDO_NINGUNO;
+         return ASM_OK;
+@@ -130,20 +131,20 @@ int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *d
+     }
+ 
+     // 3. Planitud: media geometrica / media aritmetica de la magnitud
+-    float planitud = (float)(exp(suma_log / bins_ruido) / (suma_mag / bins_ruido + 1e-30));
++    float planitud = expf(suma_log / bins_ruido) / (suma_mag / bins_ruido + 1e-30f);
+     if (planitud > PLANITUD_BLANCO) {
+         d->tipo = RUIDO_BLANCO;
+         return ASM_OK;
+     }
+ 
+     // 4. Banda: del 5 % al 95 % de la energia de ruido acumulada
+-    double acumulada = 0.0;
++    float acumulada = 0.0f;
+     int k_bajo = -1, k_alto = mitad;
+     for (int k = 0; k <= mitad; k++) {
+         if (!es_ruido(k, df)) continue;
+-        acumulada += (double)magnitud[k] * magnitud[k];
+-        if (k_bajo < 0 && acumulada >= 0.05 * e_ruido) k_bajo = k;
+-        if (acumulada >= 0.95 * e_ruido) { k_alto = k; break; }
++        acumulada += magnitud[k] * magnitud[k];
++        if (k_bajo < 0 && acumulada >= 0.05f * e_ruido) k_bajo = k;
++        if (acumulada >= 0.95f * e_ruido) { k_alto = k; break; }
+     }
+     d->tipo = RUIDO_BANDA;
+     d->frecuencia_hz = 0.5f * (k_bajo + k_alto) * df;
+@@ -154,15 +155,15 @@ int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *d
+ // Curtosis de la primera diferencia: la diferencia atenua los tonos (bajas
+ // frecuencias) y deja intactos los impulsos, que son pocos y enormes.
+ static float curtosis_diferencia(const float *x, int n) {
+-    double m2 = 0.0, m4 = 0.0;
++    float m2 = 0.0f, m4 = 0.0f;
+     for (int i = 1; i < n; i++) {
+-        double v = (double)x[i] - x[i - 1];
+-        m2 += v * v;
+-        m4 += v * v * v * v;
++        float v = x[i] - x[i - 1], v2 = v * v;
++        m2 += v2;
++        m4 += v2 * v2;
+     }
+     m2 /= (n - 1);
+     m4 /= (n - 1);
+-    return m2 > 0.0 ? (float)(m4 / (m2 * m2)) : 0.0f;
++    return m2 > 0.0f ? m4 / (m2 * m2) : 0.0f;
+ }
+ 
+ int diagnostico_estimar_bloque(const float *x, const float *magnitud, int n, float fs,
+diff --git a/proyecto/firmware/libraries/asm_comun/src/nodo1.c b/proyecto/firmware/libraries/asm_comun/src/nodo1.c
+index ad61d84..f95dae2 100644
+--- a/proyecto/firmware/libraries/asm_comun/src/nodo1.c
++++ b/proyecto/firmware/libraries/asm_comun/src/nodo1.c
+@@ -19,22 +19,30 @@ int nodo1_iniciar(nodo1_t *p, int n) {
+     return ASM_OK;
+ }
+ 
+-int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d) {
+-    if (!p || !nuevas || !d || !n_es_valido(p->n)) return ASM_ERROR;
++int nodo1_deslizar(nodo1_t *p, const int16_t *nuevas) {
++    if (!p || !nuevas || !n_es_valido(p->n)) return ASM_ERROR;
+     const int n = p->n, salto = n / 2;
+-
+-    // 1. La mitad nueva del bloque anterior pasa a ser la mitad vieja de este
++    // La mitad nueva del bloque anterior pasa a ser la mitad vieja de este
+     memmove(p->bloque, p->bloque + salto, salto * sizeof(float));
+     for (int i = 0; i < salto; i++) p->bloque[salto + i] = nuevas[i] * ESCALA_ADC;
+     if (p->muestras_validas < n) {
+         p->muestras_validas += salto;
+         if (p->muestras_validas < n) return NODO1_ARRANCANDO;
+     }
++    return ASM_OK;
++}
++
++int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d) {
++    if (!d) return ASM_ERROR;
++    // 1. Deslizar el bloque
++    int r = nodo1_deslizar(p, nuevas);
++    if (r != ASM_OK) return r;
++    const int n = p->n;
+ 
+     // 2. Quitar DC
+-    double suma = 0.0;
++    float suma = 0.0f;
+     for (int i = 0; i < n; i++) suma += p->bloque[i];
+-    const float media = (float)(suma / n);
++    const float media = suma / n;
+     for (int i = 0; i < n; i++) p->x[i] = p->bloque[i] - media;
+ 
+     // 3. Ventana, FFT y magnitud
+@@ -42,9 +50,10 @@ int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d) {
+         p->re[i] = p->x[i] * p->ventana[i];
+         p->im[i] = 0.0f;
+     }
+-    int r = fft(p->re, p->im, n);
++    r = fft(p->re, p->im, n);
+     if (r != ASM_OK) return r;
+-    for (int k = 0; k <= n / 2; k++) p->magnitud[k] = hypotf(p->re[k], p->im[k]);
++    // sqrtf y no hypotf: hypotf se cuida de desbordes que aqui no pueden pasar
++    for (int k = 0; k <= n / 2; k++) p->magnitud[k] = sqrtf(p->re[k] * p->re[k] + p->im[k] * p->im[k]);
+ 
+     // 4. Diagnostico
+     return diagnostico_estimar_bloque(p->x, p->magnitud, n, FS_HZ, d);
+diff --git a/proyecto/firmware/libraries/asm_comun/src/nodo1.h b/proyecto/firmware/libraries/asm_comun/src/nodo1.h
+index 46f6f9c..f6f6fe1 100644
+--- a/proyecto/firmware/libraries/asm_comun/src/nodo1.h
++++ b/proyecto/firmware/libraries/asm_comun/src/nodo1.h
+@@ -26,6 +26,10 @@ int nodo1_iniciar(nodo1_t *p, int n);
+ // (lectura - 2^(ADC_BITS-1)). Devuelve ASM_OK con 'd' listo, NODO1_ARRANCANDO
+ // mientras no se llena el primer bloque, o ASM_ERROR.
+ int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d);
++// Solo el paso 1 (deslizar el bloque), sin FFT ni diagnostico. Para cuando el nodo va
++// atrasado: el bloque queda al dia y el salto siguiente se puede analizar normal.
++// Devuelve ASM_OK, NODO1_ARRANCANDO o ASM_ERROR.
++int nodo1_deslizar(nodo1_t *p, const int16_t *nuevas);
+ // Fuente simulada (comando FUENTE SIM): los tonos de config "fuente_sim" en cuentas
+ // del ADC centradas, desde la muestra 'primera'. Sirve para probar sin senal analogica.
+ void nodo1_generar_sim(uint32_t primera, int cantidad, int16_t *salida);
+diff --git a/proyecto/firmware/nodo1_pico_w/nodo1_pico_w.ino b/proyecto/firmware/nodo1_pico_w/nodo1_pico_w.ino
+index 9e94ea5..258ec76 100644
+--- a/proyecto/firmware/nodo1_pico_w/nodo1_pico_w.ino
++++ b/proyecto/firmware/nodo1_pico_w/nodo1_pico_w.ino
+@@ -12,6 +12,10 @@
+ // El orden importa: el ESP32 le pega a cada salto el ultimo DIAGNOSTICO recibido,
+ // y el nodo 2 solo filtra si diagnostico.n_bloque == 2 x muestras del salto.
+ //
++// Si al tomar un salto el otro bufer ya esta lleno, el nodo va atrasado: ese salto
++// se manda y desliza el bloque pero no se analiza (saltos_sin_analizar). Asi las
++// muestras llegan siempre continuas y solo baja la tasa de diagnosticos.
++//
+ // Requisito 5.3: si el DMA vuelve a llenar un bufer que todavia no se proceso, se
+ // cuenta un desbordamiento; si la cola hacia el core 1 esta llena, un envio
+ // descartado. Los dos se ven con ESTADO y viajan en la trama ESTADO.
+@@ -79,7 +83,7 @@ static void arrancar_dma() {
+ static nodo1_t nodo;
+ static bool fuente_sim = false;
+ static uint32_t muestra_sim, proximo_sim_us;
+-static uint32_t saltos_procesados, us_ultimo, us_max;
++static uint32_t saltos_procesados, saltos_sin_analizar, us_ultimo, us_max;
+ static diagnostico_t ultimo_diagnostico;
+ static int ultimo_codigo = NODO1_ARRANCANDO;
+ 
+@@ -108,7 +112,14 @@ static void enviar_estado() {
+     encolar(TRAMA_TIPO_ESTADO, carga, sizeof carga);
+ }
+ 
+-static void procesar_salto(const int16_t *nuevas) {
++static void procesar_salto(const int16_t *nuevas, bool analizar) {
++    if (!analizar) {
++        nodo1_deslizar(&nodo, nuevas);
++        encolar(TRAMA_TIPO_MUESTRAS, nuevas, (uint16_t)(salto * sizeof(int16_t)));
++        saltos_sin_analizar++;
++        saltos_procesados++;
++        return;
++    }
+     uint32_t inicio = micros();
+     diagnostico_t d;
+     int r = nodo1_procesar_salto(&nodo, nuevas, &d);
+@@ -130,6 +141,7 @@ static void reiniciar(int n) {
+     lleno[0] = lleno[1] = false;
+     siguiente = 0;
+     us_max = 0;
++    saltos_sin_analizar = 0;
+     ultimo_codigo = NODO1_ARRANCANDO;
+     if (fuente_sim) {
+         muestra_sim = 0;
+@@ -144,9 +156,10 @@ static void reiniciar(int n) {
+ static void imprimir_estado() {
+     const uint32_t presupuesto = 1000000UL * salto / FS_HZ;
+     static const char *tipos[] = {"ninguno", "tonal", "blanco", "banda", "impulsivo"};
+-    Serial.printf("N=%d fuente=%s saltos=%lu desbordamientos=%lu envios_descartados=%lu\n",
++    Serial.printf("N=%d fuente=%s saltos=%lu sin_analizar=%lu desbordamientos=%lu envios_descartados=%lu\n",
+                   nodo.n, fuente_sim ? "SIM" : "ADC", (unsigned long)saltos_procesados,
+-                  (unsigned long)desbordamientos, (unsigned long)envios_descartados);
++                  (unsigned long)saltos_sin_analizar, (unsigned long)desbordamientos,
++                  (unsigned long)envios_descartados);
+     Serial.printf("computo_us ultimo=%lu max=%lu presupuesto=%lu carga=%.1f%%\n",
+                   (unsigned long)us_ultimo, (unsigned long)us_max, (unsigned long)presupuesto,
+                   100.0f * us_ultimo / presupuesto);
+@@ -252,7 +265,7 @@ void loop() {
+             proximo_sim_us += 1000000UL * salto / FS_HZ;
+             nodo1_generar_sim(muestra_sim, salto, nuevas);
+             muestra_sim += salto;
+-            procesar_salto(nuevas);
++            procesar_salto(nuevas, true);
+         }
+     } else if (lleno[siguiente]) {
+         // Se copia y se libera enseguida: el DMA puede volver a este bufer mientras
+@@ -261,7 +274,8 @@ void loop() {
+         for (int i = 0; i < salto; i++) nuevas[i] = (int16_t)crudo[siguiente][i] - centro;
+         lleno[siguiente] = false;
+         siguiente = 1 - siguiente;
+-        procesar_salto(nuevas);
++        // El otro bufer ya lleno: vamos un salto atrasados, este no se analiza
++        procesar_salto(nuevas, !lleno[siguiente]);
+     }
+ 
+     // ESTADO como maximo una vez por segundo (docs/protocolo.md)

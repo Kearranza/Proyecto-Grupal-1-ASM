@@ -1,0 +1,28 @@
+% Kevin. 150 a 250 palabras EN INGLES + maximo 6 palabras clave.
+\begin{abstract}
+Real-time noise reduction on embedded hardware forces a choice between filtering
+strategies whose relative merit depends on how the interference overlaps the
+signal of interest. This work reports a three-node distributed system that makes
+that choice explicit and measurable. A first node samples the contaminated signal
+at 16~kHz, computes a 1024-point FFT and classifies the interference as tonal,
+broadband or band-limited from its spectral flatness and peak-to-median ratio.
+The diagnosis routes each block to one of two reduction paths: a cascaded IIR
+filter operating in the time domain, or a spectral attenuator that modifies FFT
+magnitudes while preserving Hermitian symmetry and reconstructs the signal by
+50\,\% overlap-add. The nodes exchange blocks over a framed serial link with
+sequence numbering and CRC-16/CCITT error detection, which costs nine bytes per
+block and allows lost or corrupted blocks to be counted instead of being silently
+averaged into the reported metrics. Acceptance criteria were fixed before
+measuring, with per-test thresholds derived from desktop experiments in which the
+time-domain filter reached 27.5~dB of SNR improvement when the interference fell
+outside its passband but none at all when it did not, while the spectral method
+remained uniformly moderate at the cost of 13.3\,\% of the useful energy. Five
+test cases, three repetitions each, are evaluated on mean squared error, SNR
+improvement, useful-energy conservation, interference attenuation and end-to-end
+latency, and each result is reported with its variability across repetitions.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Adaptive noise reduction, fast Fourier transform, IIR filters, overlap-add,
+spectral subtraction, embedded systems.
+\end{IEEEkeywords}

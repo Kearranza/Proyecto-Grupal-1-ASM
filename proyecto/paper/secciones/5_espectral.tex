@@ -1,0 +1,26 @@
+% Gretchell. Solo resultados de escritorio; no atribuirlos al hardware.
+\section{Filtrado espectral y métricas}
+\label{sec:espectral}
+El Nodo 3 procesa bloques de $N\in\{256,512,1024,2048\}$ con salto $N/2$,
+ventana Hann periódica y FFT/IFFT en \texttt{float32}. La síntesis suma
+las mitades solapadas sin aplicar otra ventana: $w[n]+w[n+N/2]=1$.
+Sin reducción, la salida reproduce la entrada con retraso de $N/2$ muestras,
+de acuerdo con la reconstrucción descrita en la Sección~\ref{sec:teoria}.
+A 16 kHz este retraso es de 8 a 64 ms; no representa toda la latencia ADC--DAC.
+
+El diagnóstico del Nodo 1 selecciona la reducción. Para ruido tonal o de banda,
+se atenúa alrededor de la frecuencia estimada, con ancho ajustable, margen de
+dos bins y transición cosenoidal de un bin. Para banda ancha se sustrae potencia
+estimada, conservando fase y simetría conjugada. Un parámetro entre cero y uno
+controla la intensidad. El tratamiento impulsivo usa esa aproximación espectral
+y no garantiza preservar transitorios; tampoco se separan fuentes superpuestas.
+
+Las métricas acumulan sumas en \texttt{double} sobre referencia, entrada y salida
+alineadas. La interfaz USB permite cambiar parámetros y consultar estado,
+errores, tiempos y métricas. El modo DEMO dispone de referencia sintética;
+el modo VIVO indica ausencia de medición cuando no hay referencia sincronizada.
+En pruebas de escritorio, la demostración de 500 Hz con interferencia de
+3500 Hz obtuvo aproximadamente 31,78 dB de mejora de SNR en los cuatro tamaños,
+incluyendo el transitorio inicial evaluable. Esto valida el flujo implementado,
+pero no sustituye la campaña experimental ni la compilación y medición en placa,
+que permanecen pendientes.

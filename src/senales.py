@@ -1,4 +1,8 @@
-# Generacion reproducible de los tres casos de prueba de la tarea 1
+# Generacion reproducible de los casos de prueba (Tarea 1 y pruebas P3-P5 del proyecto)
+#
+# Ampliado para el proyecto (Santiago): ruido impulsivo, zumbido de red (60 Hz con
+# armonicos) y dos senales utiles nuevas (melodia y rafagas). Lo que ya existia no
+# cambia: un caso que no pida nada de esto sale bit a bit igual que antes.
 
 import json
 import wave
@@ -22,6 +26,53 @@ def multitono(t, frecuencias, amplitudes, fases_grados):
                for f, a, p in zip(frecuencias, amplitudes, fases_grados))
 
 
+def melodia(t, notas, armonicos=(1, 2, 3), amplitudes=(1.0, 0.4, 0.2), ataque_ms=10.0):
+    # Senal tipo audio: cada nota es (frecuencia_hz, inicio_s, duracion_s) y suena como
+    # un timbre simple (fundamental y armonicos) 
+    x = np.zeros_like(t)
+    for frecuencia, inicio, duracion in notas:
+        local = t - inicio
+        dentro = (local >= 0) & (local < duracion)
+        tl = local[dentro]
+        envolvente = (np.minimum(tl/(ataque_ms/1000), 1.0)
+                      * np.minimum((duracion - tl)/0.010, 1.0)
+                      * np.exp(-2.5*tl/duracion))
+        timbre = sum(a * np.sin(2*np.pi*h*frecuencia*tl)
+                     for h, a in zip(armonicos, amplitudes))
+        x[dentro] += envolvente * timbre
+    return x
+
+
+def rafagas(t, eventos):
+    # Senal transitoria: cada evento es (frecuencia_hz, inicio_s, duracion_ms), un tono
+    # de ataque casi instantaneo (1 ms) que decae exponencialmente (constante = duracion/3)
+    x = np.zeros_like(t)
+    for frecuencia, inicio, duracion_ms in eventos:
+        tau = duracion_ms/1000/3
+        local = t - inicio
+        dentro = (local >= 0) & (local < 10*tau)
+        tl = local[dentro]
+        x[dentro] += (np.minimum(tl/0.001, 1.0) * np.exp(-tl/tau)
+                      * np.sin(2*np.pi*frecuencia*tl))
+    return x
+
+
+def generar_util(caso, t, fs):
+    # Senal util del caso. Sin 'senal_util' en el caso es el multitono de siempre.
+    tipo = caso.get('senal_util', 'multitono')
+    if tipo == 'multitono':
+        return multitono(t, caso['frecuencias_utiles_hz'],
+                         caso['amplitudes_utiles'],
+                         caso['fases_utiles_grados'])
+    if tipo == 'melodia':
+        return melodia(t, caso['notas'],
+                       caso.get('armonicos_melodia', (1, 2, 3)),
+                       caso.get('amplitudes_armonicos', (1.0, 0.4, 0.2)))
+    if tipo == 'rafagas':
+        return rafagas(t, caso['eventos'])
+    raise ValueError(f'Senal util no reconocida: {tipo}')
+
+
 def desvanecer(x, fs, milisegundos):
     # Rampas de entrada y salida para que la reproduccion no empiece con un salto
     n = min(int(fs*milisegundos/1000), x.size//2)
@@ -35,7 +86,7 @@ def desvanecer(x, fs, milisegundos):
 
 
 def _mascara_de_banda(f, bajo, alto, transicion):
-    # Paso banda ideal con bordes de coseno elevado
+    # Paso banda ideal con transicion suave (coseno) para que no haya ringing en el tiempo
     mascara = np.zeros_like(f)
     mascara[(f >= bajo) & (f <= alto)] = 1.0
     subida = (f > bajo - transicion) & (f < bajo)
@@ -63,6 +114,31 @@ def ruido_de_banda(n, fs, banda, generador, transicion=50.0):
     return np.fft.irfft(espectro * _mascara_de_banda(frecuencias, bajo, alto, transicion), n)
 
 
+def ruido_impulsivo(n, fs, generador, tasa_hz=8.0, duracion_ms=0.5):
+    # Clics al azar: llegan en instantes aleatorios (en promedio tasa_hz por segundo),
+    # con signo y amplitud al azar (exponencial: de vez en cuando sale uno muy grande).
+    # Cada clic es un pulso corto de media cero, (1 - k/tau) exp(-k/tau), con
+    # tau = duracion_ms. La energia queda concentrada en pocas muestras, a diferencia
+    # del ruido blanco, y eso es lo que lo distingue en el tiempo (curtosis alta).
+    tau = max(duracion_ms*fs/1000, 1.0)
+    llegada = generador.random(n) < tasa_hz/fs
+    if not llegada.any():                    
+        llegada[n//2] = True
+    amplitud = generador.choice([-1.0, 1.0], n) * generador.exponential(1.0, n)
+    impulsos = np.where(llegada, amplitud, 0.0)
+    k = np.arange(int(np.ceil(8*tau)))
+    pulso = (1 - k/tau) * np.exp(-k/tau)
+    return np.convolve(impulsos, pulso)[:n]
+
+
+def interferencia_red(t, generador, frecuencia=60.0, armonicos=(1, 2, 3, 4, 5),
+                      amplitudes=(1.0, 0.5, 0.35, 0.2, 0.15)):
+    # Zumbido de la red electrica: la fundamental (60 Hz) y sus armonicos
+    fases = generador.uniform(-np.pi, np.pi, len(armonicos))
+    return sum(a * np.sin(2*np.pi*k*frecuencia*t + p)
+               for k, a, p in zip(armonicos, amplitudes, fases))
+
+
 def generar_ruido(caso, t, fs, generador):
     tipo = caso['tipo_ruido']
     if tipo == 'tonal':
@@ -71,6 +147,15 @@ def generar_ruido(caso, t, fs, generador):
         return ruido_blanco(t.size, generador)
     if tipo == 'banda':
         return ruido_de_banda(t.size, fs, caso['banda_ruido_hz'], generador)
+    if tipo == 'impulsivo':
+        return ruido_impulsivo(t.size, fs, generador,
+                               caso.get('tasa_impulsos_hz', 8.0),
+                               caso.get('duracion_impulso_ms', 0.5))
+    if tipo == 'red':
+        return interferencia_red(t, generador,
+                                 caso.get('frecuencia_red_hz', 60.0),
+                                 caso.get('armonicos_red', (1, 2, 3, 4, 5)),
+                                 caso.get('amplitudes_red', (1.0, 0.5, 0.35, 0.2, 0.15)))
     raise ValueError(f'Tipo de ruido no reconocido: {tipo}')
 
 
@@ -89,11 +174,20 @@ def normalizar(senales, pico):
 
 
 def verificar_nyquist(caso, fs):
-    presentes = list(caso['frecuencias_utiles_hz'])
-    if caso['frecuencia_interferencia_hz']:
+    # La componente mas alta de la senal util y del ruido tiene que quedar bajo fs/2
+    presentes = list(caso.get('frecuencias_utiles_hz') or [])
+    if caso.get('notas'):
+        presentes.append(max(n[0] for n in caso['notas'])
+                         * max(caso.get('armonicos_melodia', (1, 2, 3))))
+    if caso.get('eventos'):
+        presentes.append(max(e[0] for e in caso['eventos']))
+    if caso.get('frecuencia_interferencia_hz'):
         presentes.append(caso['frecuencia_interferencia_hz'])
-    if caso['banda_ruido_hz']:
+    if caso.get('banda_ruido_hz'):
         presentes.append(caso['banda_ruido_hz'][1])
+    if caso.get('tipo_ruido') == 'red':
+        presentes.append(caso.get('frecuencia_red_hz', 60.0)
+                         * max(caso.get('armonicos_red', (1, 2, 3, 4, 5))))
     if max(presentes) >= fs/2:
         raise ValueError(f"El caso {caso['id']} viola Nyquist: {max(presentes)} Hz con fs/2 = {fs/2} Hz")
 
@@ -109,10 +203,7 @@ def generar_caso(identificador, comun=None, casos=None):
 
     generador = np.random.default_rng(caso['semilla'])
     t = np.arange(n)/fs
-    limpia = desvanecer(multitono(t, caso['frecuencias_utiles_hz'],
-                                  caso['amplitudes_utiles'],
-                                  caso['fases_utiles_grados']),
-                        fs, comun['fade_ms'])
+    limpia = desvanecer(generar_util(caso, t, fs), fs, comun['fade_ms'])
     ruido = escalar_para_snr(limpia, generar_ruido(caso, t, fs, generador),
                              caso['snr_objetivo_db'])
     (limpia, ruido, contaminada), ganancia = normalizar(

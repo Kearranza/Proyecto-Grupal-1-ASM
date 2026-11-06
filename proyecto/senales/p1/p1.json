@@ -1,0 +1,30 @@
+{
+  "id": "p1",
+  "semilla": 3001,
+  "descripcion": "P1: un tono con una interferencia sinusoidal separada",
+  "senal_util": "multitono",
+  "frecuencias_utiles_hz": [
+    440.0
+  ],
+  "amplitudes_utiles": [
+    1.0
+  ],
+  "fases_utiles_grados": [
+    0
+  ],
+  "tipo_ruido": "tonal",
+  "frecuencia_interferencia_hz": 3500.0,
+  "banda_ruido_hz": null,
+  "snr_objetivo_db": 0.5624,
+  "fs_hz": 16000,
+  "muestras": 131072,
+  "duracion_s": 8.192,
+  "ganancia_comun": 0.4140056121875768,
+  "snr_obtenida_db": 0.5624,
+  "snr_tras_cuantizar_db": 0.562208,
+  "archivos": {
+    "limpia": "limpia.wav",
+    "ruido": "ruido.wav",
+    "contaminada": "contaminada.wav"
+  }
+}

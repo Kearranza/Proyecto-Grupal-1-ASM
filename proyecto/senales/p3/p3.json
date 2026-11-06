@@ -1,0 +1,68 @@
+{
+  "id": "p3",
+  "semilla": 3003,
+  "snr_objetivo_db": 5.0,
+  "descripcion": "P3: melodia (audio) con ruido blanco de banda ancha",
+  "senal_util": "melodia",
+  "notas": [
+    [
+      261.63,
+      0.2,
+      0.9
+    ],
+    [
+      329.63,
+      1.2,
+      0.9
+    ],
+    [
+      392.0,
+      2.2,
+      0.9
+    ],
+    [
+      523.25,
+      3.2,
+      1.6
+    ],
+    [
+      440.0,
+      5.0,
+      0.9
+    ],
+    [
+      392.0,
+      6.0,
+      0.9
+    ],
+    [
+      329.63,
+      7.0,
+      0.9
+    ]
+  ],
+  "armonicos_melodia": [
+    1,
+    2,
+    3
+  ],
+  "amplitudes_armonicos": [
+    1.0,
+    0.4,
+    0.2
+  ],
+  "tipo_ruido": "blanco",
+  "frecuencia_interferencia_hz": null,
+  "banda_ruido_hz": null,
+  "fs_hz": 16000,
+  "muestras": 131072,
+  "duracion_s": 8.192,
+  "ganancia_comun": 0.47760526164947426,
+  "snr_obtenida_db": 5.0,
+  "snr_tras_cuantizar_db": 5.000179,
+  "archivos": {
+    "limpia": "limpia.wav",
+    "ruido": "ruido.wav",
+    "contaminada": "contaminada.wav"
+  }
+}

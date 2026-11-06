@@ -1,0 +1,52 @@
+{
+  "_nota": "Fuente unica de los parametros del Proyecto 1. pc/generar_config_h.py escribe firmware/libraries/asm_comun/src/config_generado.h a partir de este archivo. Nadie escribe estos numeros a mano en C ni en Python. Los valores que se pueden cambiar en la defensa sin recompilar estan marcados en 'ajustables_en_ejecucion'.",
+
+  "muestreo": {
+    "fs_hz": 16000,
+    "_nota": "Igual que la Tarea 1 y el taller. La componente mas alta de las pruebas es 3500 Hz, por debajo de Nyquist (8 kHz)"
+  },
+
+  "bloque": {
+    "n_por_defecto": 1024,
+    "n_max": 2048,
+    "n_permitidos": [256, 512, 1024, 2048],
+    "solapamiento": 0.5,
+    "ventana": "hann",
+    "_nota": "Los buferes se reservan para n_max. N se cambia por comando sin recompilar. Con 50 % de solapamiento entra un salto de N/2 muestras nuevas cada N/(2 fs) segundos"
+  },
+
+  "enlace": {
+    "baudios": 921600,
+    "formato": "8N1",
+    "sync": [170, 85],
+    "_nota_sync": "0xAA 0x55",
+    "crc": "CRC-16/CCITT-FALSE: polinomio 0x1021, inicial 0xFFFF, sin reflejar, sin XOR final",
+    "tipos": {"muestras": 1, "diagnostico": 2, "comando": 3, "estado": 4},
+    "carga_max_bytes": 4096,
+    "_nota": "Muestras int16 little-endian. Con fs = 16 kHz son 32 000 B/s = 320 kbit/s en 8N1; 921600 da casi 3 veces de margen"
+  },
+
+  "pines": {
+    "pico_w": {"adc": 26, "uart_tx": 8, "uart_rx": 9},
+    "esp32": {"uart_rx": 16, "uart_tx": 17, "dac_temporal": 25, "dac_espectral": 26},
+    "_nota": "Pico W GP8 (TX de UART1) -> ESP32 GPIO16 (RX de UART2), con tierra comun. GP9 <- GPIO17 queda para comandos de vuelta si hacen falta"
+  },
+
+  "diagnostico": {
+    "utiles_hz": [440, 880, 1320],
+    "ancho_util_hz": 60,
+    "_nota": "Bandas de la senal util que el nodo 1 excluye al buscar el ruido (+-ancho alrededor de cada frecuencia). Sin esto el tono de 440 Hz parece la interferencia, que es el error del clasificador de la Tarea 1. Se cambian en vivo con el comando UTIL del nodo 1"
+  },
+
+  "fuente_sim": {
+    "frecuencias_hz": [440, 880, 1320, 3500],
+    "amplitudes": [1.0, 0.55, 0.3, 0.9373],
+    "nivel_pico": 0.8,
+    "_nota": "Modo 3 del emisor del taller (caso_1). El nodo 1 lo genera con el comando FUENTE SIM para probar el enlace y el diagnostico sin senal analogica. Frecuencias enteras: la fase se repite cada fs muestras"
+  },
+
+  "adc": {"bits": 12, "vref_v": 3.3},
+  "dac": {"bits": 8},
+
+  "ajustables_en_ejecucion": ["n_bloque", "umbral_espectral", "metodo_temporal", "ancho_rechazo_hz"]
+}
