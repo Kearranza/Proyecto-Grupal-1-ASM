@@ -119,7 +119,8 @@ def flujo_simulado(segundos, fs=16000, n=1024):
     salto = n // 2
     total = int(fs*segundos)
     t = np.arange(total)/fs
-    senal = np.int16(np.round(12000*np.sin(2*np.pi*440*t)))
+    # La placa manda cuentas del ADC centradas, no int16 a fondo completo
+    senal = np.int16(np.round(0.65*FONDO_ESCALA*np.sin(2*np.pi*440*t)))
     datos = bytearray()
     for seq, inicio in enumerate(range(0, total - salto + 1, salto)):
         datos += T.armar(T.TIPOS['muestras'], seq, senal[inicio:inicio+salto].tobytes())
