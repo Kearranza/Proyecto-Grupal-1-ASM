@@ -1,7 +1,8 @@
 // Nodo 1 (Luis): por cada salto de n/2 muestras nuevas
 //   1. desliza el bloque (50 % de solapamiento) y escala las cuentas a [-1, 1)
 //   2. quita la componente DC (la media del bloque: el ADC esta centrado en 1,65 V)
-//   3. ventana Hann, fft() compartida y magnitud de k = 0 .. n/2
+//   3. ventana Hann y magnitud de k = 0 .. n/2, con una fft() compartida de n/2 puntos:
+//      el bloque es real, asi que pares e impares van juntos en un solo complejo
 //   4. diagnostico_estimar_bloque(): tipo de ruido, frecuencia, ancho y nivel
 #include <math.h>
 #include <string.h>
@@ -16,6 +17,34 @@ int nodo1_iniciar(nodo1_t *p, int n) {
     p->n = n;
     // Periodica (divide entre n, no n-1): es la misma que usa el nodo 3
     for (int i = 0; i < n; i++) p->ventana[i] = 0.5f - 0.5f * cosf(2.0f * (float)M_PI * i / n);
+    for (int k = 0; k < n / 2; k++) {
+        p->giro_re[k] = cosf(2.0f * (float)M_PI * k / n);
+        p->giro_im[k] = -sinf(2.0f * (float)M_PI * k / n);
+    }
+    return ASM_OK;
+}
+
+// FFT de n puntos reales con una de m = n/2 complejos: z = pares + j impares.
+// Con Z = FFT(z): pares A[k] = (Z[k] + conj Z[m-k]) / 2, impares B[k] = (Z[k] - conj Z[m-k]) / 2j,
+// y X[k] = A[k] + e^(-j 2 pi k / n) B[k]. Cuesta la mitad que la FFT compleja de n puntos.
+static int magnitud_real(nodo1_t *p) {
+    const int m = p->n / 2;
+    for (int i = 0; i < m; i++) {
+        p->re[i] = p->x[2 * i] * p->ventana[2 * i];
+        p->im[i] = p->x[2 * i + 1] * p->ventana[2 * i + 1];
+    }
+    int r = fft(p->re, p->im, m);
+    if (r != ASM_OK) return r;
+    p->magnitud[0] = fabsf(p->re[0] + p->im[0]);
+    p->magnitud[m] = fabsf(p->re[0] - p->im[0]);
+    for (int k = 1; k < m; k++) {
+        float dr = p->re[k] - p->re[m - k], di = p->im[k] + p->im[m - k];
+        float ar = 0.5f * (p->re[k] + p->re[m - k]), ai = 0.5f * (p->im[k] - p->im[m - k]);
+        float br = 0.5f * di, bi = -0.5f * dr;
+        float xr = ar + p->giro_re[k] * br - p->giro_im[k] * bi;
+        float xi = ai + p->giro_re[k] * bi + p->giro_im[k] * br;
+        p->magnitud[k] = sqrtf(xr * xr + xi * xi);
+    }
     return ASM_OK;
 }
 
@@ -46,14 +75,8 @@ int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d) {
     for (int i = 0; i < n; i++) p->x[i] = p->bloque[i] - media;
 
     // 3. Ventana, FFT y magnitud
-    for (int i = 0; i < n; i++) {
-        p->re[i] = p->x[i] * p->ventana[i];
-        p->im[i] = 0.0f;
-    }
-    r = fft(p->re, p->im, n);
+    r = magnitud_real(p);
     if (r != ASM_OK) return r;
-    // sqrtf y no hypotf: hypotf se cuida de desbordes que aqui no pueden pasar
-    for (int k = 0; k <= n / 2; k++) p->magnitud[k] = sqrtf(p->re[k] * p->re[k] + p->im[k] * p->im[k]);
 
     // 4. Diagnostico
     return diagnostico_estimar_bloque(p->x, p->magnitud, n, FS_HZ, d);

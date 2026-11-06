@@ -17,7 +17,8 @@ typedef struct {
     float ventana[N_MAX];         // Hann periodica, se calcula una vez por N
     float bloque[N_MAX];          // ultimas n muestras, escaladas a [-1, 1)
     float x[N_MAX];               // bloque sin DC (lo usa el diagnostico en el tiempo)
-    float re[N_MAX], im[N_MAX];   // trabajo de la FFT
+    float re[N_MAX], im[N_MAX];   // trabajo de la FFT (se usan n/2)
+    float giro_re[N_MAX / 2], giro_im[N_MAX / 2];   // e^(-j 2 pi k / n), para separar la FFT real
     float magnitud[N_MAX / 2 + 1];
 } nodo1_t;
 
