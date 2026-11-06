@@ -12,6 +12,10 @@
 // El orden importa: el ESP32 le pega a cada salto el ultimo DIAGNOSTICO recibido,
 // y el nodo 2 solo filtra si diagnostico.n_bloque == 2 x muestras del salto.
 //
+// Si al tomar un salto el otro bufer ya esta lleno, el nodo va atrasado: ese salto
+// se manda y desliza el bloque pero no se analiza (saltos_sin_analizar). Asi las
+// muestras llegan siempre continuas y solo baja la tasa de diagnosticos.
+//
 // Requisito 5.3: si el DMA vuelve a llenar un bufer que todavia no se proceso, se
 // cuenta un desbordamiento; si la cola hacia el core 1 esta llena, un envio
 // descartado. Los dos se ven con ESTADO y viajan en la trama ESTADO.
@@ -79,7 +83,7 @@ static void arrancar_dma() {
 static nodo1_t nodo;
 static bool fuente_sim = false;
 static uint32_t muestra_sim, proximo_sim_us;
-static uint32_t saltos_procesados, us_ultimo, us_max;
+static uint32_t saltos_procesados, saltos_sin_analizar, us_ultimo, us_max;
 static diagnostico_t ultimo_diagnostico;
 static int ultimo_codigo = NODO1_ARRANCANDO;
 
@@ -108,7 +112,14 @@ static void enviar_estado() {
     encolar(TRAMA_TIPO_ESTADO, carga, sizeof carga);
 }
 
-static void procesar_salto(const int16_t *nuevas) {
+static void procesar_salto(const int16_t *nuevas, bool analizar) {
+    if (!analizar) {
+        nodo1_deslizar(&nodo, nuevas);
+        encolar(TRAMA_TIPO_MUESTRAS, nuevas, (uint16_t)(salto * sizeof(int16_t)));
+        saltos_sin_analizar++;
+        saltos_procesados++;
+        return;
+    }
     uint32_t inicio = micros();
     diagnostico_t d;
     int r = nodo1_procesar_salto(&nodo, nuevas, &d);
@@ -130,6 +141,7 @@ static void reiniciar(int n) {
     lleno[0] = lleno[1] = false;
     siguiente = 0;
     us_max = 0;
+    saltos_sin_analizar = 0;
     ultimo_codigo = NODO1_ARRANCANDO;
     if (fuente_sim) {
         muestra_sim = 0;
@@ -144,9 +156,10 @@ static void reiniciar(int n) {
 static void imprimir_estado() {
     const uint32_t presupuesto = 1000000UL * salto / FS_HZ;
     static const char *tipos[] = {"ninguno", "tonal", "blanco", "banda", "impulsivo"};
-    Serial.printf("N=%d fuente=%s saltos=%lu desbordamientos=%lu envios_descartados=%lu\n",
+    Serial.printf("N=%d fuente=%s saltos=%lu sin_analizar=%lu desbordamientos=%lu envios_descartados=%lu\n",
                   nodo.n, fuente_sim ? "SIM" : "ADC", (unsigned long)saltos_procesados,
-                  (unsigned long)desbordamientos, (unsigned long)envios_descartados);
+                  (unsigned long)saltos_sin_analizar, (unsigned long)desbordamientos,
+                  (unsigned long)envios_descartados);
     Serial.printf("computo_us ultimo=%lu max=%lu presupuesto=%lu carga=%.1f%%\n",
                   (unsigned long)us_ultimo, (unsigned long)us_max, (unsigned long)presupuesto,
                   100.0f * us_ultimo / presupuesto);
@@ -252,7 +265,7 @@ void loop() {
             proximo_sim_us += 1000000UL * salto / FS_HZ;
             nodo1_generar_sim(muestra_sim, salto, nuevas);
             muestra_sim += salto;
-            procesar_salto(nuevas);
+            procesar_salto(nuevas, true);
         }
     } else if (lleno[siguiente]) {
         // Se copia y se libera enseguida: el DMA puede volver a este bufer mientras
@@ -261,7 +274,8 @@ void loop() {
         for (int i = 0; i < salto; i++) nuevas[i] = (int16_t)crudo[siguiente][i] - centro;
         lleno[siguiente] = false;
         siguiente = 1 - siguiente;
-        procesar_salto(nuevas);
+        // El otro bufer ya lleno: vamos un salto atrasados, este no se analiza
+        procesar_salto(nuevas, !lleno[siguiente]);
     }
 
     // ESTADO como maximo una vez por segundo (docs/protocolo.md)

@@ -47,6 +47,8 @@ BANDA_FUERA = tuple(PRUEBAS['bandas']['banda_fuera_hz'])
 # de cada punta, igual en referencia, entrada y salida, para que la comparacion siga
 # siendo justa. Sobre 32768 muestras es el 6 %.
 MARGEN = int(SISTEMA['bloque']['n_por_defecto'])
+# El retardo mas largo que se le compensa a un filtro: 8 ms, de sobra para el IIR
+RETARDO_MAX = MARGEN // 8
 # El nodo 1 manda cuentas del ADC centradas: 2^(bits-1) es el fondo de escala, no 32768.
 # Las metricas son relativas y no cambian, pero el numero crudo si.
 FONDO_ESCALA = float(1 << (SISTEMA['adc']['bits'] - 1))
@@ -216,7 +218,7 @@ def filtrar(entrada, metodo, prueba):
         import filtros_temporales as ft
     except ImportError as e:
         raise NotImplementedError(f'el metodo temporal necesita scipy en esta maquina ({e})')
-    sos = ft.disenar_iir(FS, wp=list(BANDA_UTIL_AUDIO), ws=[200.0, 2200.0],
+    sos, _, _ = ft.disenar_iir(FS, wp=list(BANDA_UTIL_AUDIO), ws=[200.0, 2200.0],
                          gpass=1.0, gstop=40.0)
     return np.asarray(ft.filtrar_sos_manual(sos, entrada))[:entrada.size]
 
@@ -229,10 +231,25 @@ def recortar(*senales):
     return [s[MARGEN:n-MARGEN] for s in senales]
 
 
+def compensar_retardo(limpia, entrada, salida):
+    # El IIR atrasa la salida (~27 muestras en P3) y sin esto el MSE mide el retardo,
+    # no el filtrado. La latencia se reporta aparte, con la de las placas.
+    n = min(limpia.size, entrada.size, salida.size)
+    tamano = 1
+    while tamano < 2*n:
+        tamano <<= 1
+    correlacion = np.fft.irfft(np.fft.rfft(salida[:n], tamano)*np.conj(np.fft.rfft(limpia[:n], tamano)),
+                               tamano)
+    retardo = int(np.argmax(correlacion[:RETARDO_MAX + 1]))   # causal: solo atrasos
+    return limpia[:n-retardo], entrada[:n-retardo], salida[retardo:n], retardo
+
+
 def medir(limpia, entrada, salida, bandas):
     import metricas
+    limpia, entrada, salida, retardo = compensar_retardo(limpia, entrada, salida)
     limpia, entrada, salida = recortar(limpia, entrada, salida)
     return {
+        'retardo_filtro_muestras': retardo,
         'mse': metricas.mse(limpia, salida),
         'snr_db': metricas.snr_db(limpia, salida),
         'delta_snr_db': metricas.delta_snr_db(limpia, entrada, salida),
@@ -334,6 +351,7 @@ def agregar():
                 fila[clave] = round(float(valores.mean()), 6)
                 fila[clave + '_desv'] = round(float(valores.std(ddof=1)) if valores.size > 1
                                               else 0.0, 6)
+            fila['retardo_filtro_muestras'] = max(f['retardo_filtro_muestras'] for f in propias)
             fila['errores_crc'] = sum(f['errores_crc'] for f in propias)
             fila['bloques_perdidos'] = sum(f['bloques_perdidos'] for f in propias)
             fila['cumple'] = bool(

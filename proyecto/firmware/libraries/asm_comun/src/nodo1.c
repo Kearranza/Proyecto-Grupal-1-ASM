@@ -19,22 +19,30 @@ int nodo1_iniciar(nodo1_t *p, int n) {
     return ASM_OK;
 }
 
-int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d) {
-    if (!p || !nuevas || !d || !n_es_valido(p->n)) return ASM_ERROR;
+int nodo1_deslizar(nodo1_t *p, const int16_t *nuevas) {
+    if (!p || !nuevas || !n_es_valido(p->n)) return ASM_ERROR;
     const int n = p->n, salto = n / 2;
-
-    // 1. La mitad nueva del bloque anterior pasa a ser la mitad vieja de este
+    // La mitad nueva del bloque anterior pasa a ser la mitad vieja de este
     memmove(p->bloque, p->bloque + salto, salto * sizeof(float));
     for (int i = 0; i < salto; i++) p->bloque[salto + i] = nuevas[i] * ESCALA_ADC;
     if (p->muestras_validas < n) {
         p->muestras_validas += salto;
         if (p->muestras_validas < n) return NODO1_ARRANCANDO;
     }
+    return ASM_OK;
+}
+
+int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d) {
+    if (!d) return ASM_ERROR;
+    // 1. Deslizar el bloque
+    int r = nodo1_deslizar(p, nuevas);
+    if (r != ASM_OK) return r;
+    const int n = p->n;
 
     // 2. Quitar DC
-    double suma = 0.0;
+    float suma = 0.0f;
     for (int i = 0; i < n; i++) suma += p->bloque[i];
-    const float media = (float)(suma / n);
+    const float media = suma / n;
     for (int i = 0; i < n; i++) p->x[i] = p->bloque[i] - media;
 
     // 3. Ventana, FFT y magnitud
@@ -42,9 +50,10 @@ int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d) {
         p->re[i] = p->x[i] * p->ventana[i];
         p->im[i] = 0.0f;
     }
-    int r = fft(p->re, p->im, n);
+    r = fft(p->re, p->im, n);
     if (r != ASM_OK) return r;
-    for (int k = 0; k <= n / 2; k++) p->magnitud[k] = hypotf(p->re[k], p->im[k]);
+    // sqrtf y no hypotf: hypotf se cuida de desbordes que aqui no pueden pasar
+    for (int k = 0; k <= n / 2; k++) p->magnitud[k] = sqrtf(p->re[k] * p->re[k] + p->im[k] * p->im[k]);
 
     // 4. Diagnostico
     return diagnostico_estimar_bloque(p->x, p->magnitud, n, FS_HZ, d);

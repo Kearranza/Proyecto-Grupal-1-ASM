@@ -1,0 +1,3 @@
+prueba,metodo,repeticiones,delta_snr_db,delta_snr_db_desv,snr_db,snr_db_desv,mse,mse_desv,energia_util_pct,energia_util_pct_desv,atenuacion_db,atenuacion_db_desv,retardo_filtro_muestras,errores_crc,bloques_perdidos,cumple
+P3,temporal,3,4.18114,0.320892,1.642591,0.003089,0.000163,0.0,70.678641,0.699881,42.781777,0.190246,28,0,0,False
+P3,espectral,3,5.215896,0.10056,2.676618,0.358478,0.000129,1.1e-05,53.962779,0.939422,6.372542,0.157472,0,0,0,False

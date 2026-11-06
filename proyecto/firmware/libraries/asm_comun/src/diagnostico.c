@@ -90,22 +90,23 @@ int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *d
     memset(d, 0, sizeof *d);
     d->n_bloque = (uint16_t)n;
 
-    // Energias, pico y media de log(magnitud) sobre los bins de ruido
-    double e_util = 0.0, e_ruido = 0.0, suma_mag = 0.0, suma_log = 0.0;
+    // Energias, pico y media de log(magnitud) sobre los bins de ruido.
+    // En float: el RP2040 no tiene FPU y double cuesta varias veces mas.
+    float e_util = 0.0f, e_ruido = 0.0f, suma_mag = 0.0f, suma_log = 0.0f;
     int bins_ruido = 0, kp = -1;
     for (int k = 0; k <= mitad; k++) {
-        double e = (double)magnitud[k] * magnitud[k];
+        float e = magnitud[k] * magnitud[k];
         if (es_util(k, df)) { e_util += e; continue; }
-        if (!es_ruido(k, df)) continue;
+        if (k < K_MIN) continue;
         e_ruido += e;
         suma_mag += magnitud[k];
-        suma_log += log(fmax(magnitud[k], 1e-12));
+        suma_log += logf(fmaxf(magnitud[k], 1e-12f));
         bins_ruido++;
         if (kp < 0 || magnitud[k] > magnitud[kp]) kp = k;
     }
     if (bins_ruido == 0) return ASM_ERROR;   // las bandas utiles cubren todo
 
-    d->nivel_db = (float)(10.0 * log10((e_ruido + 1e-30) / (e_util + 1e-30)));
+    d->nivel_db = 10.0f * log10f((e_ruido + 1e-30f) / (e_util + 1e-30f));
     if (d->nivel_db < NIVEL_MIN_DB) {
         d->tipo = RUIDO_NINGUNO;
         return ASM_OK;
@@ -130,20 +131,20 @@ int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *d
     }
 
     // 3. Planitud: media geometrica / media aritmetica de la magnitud
-    float planitud = (float)(exp(suma_log / bins_ruido) / (suma_mag / bins_ruido + 1e-30));
+    float planitud = expf(suma_log / bins_ruido) / (suma_mag / bins_ruido + 1e-30f);
     if (planitud > PLANITUD_BLANCO) {
         d->tipo = RUIDO_BLANCO;
         return ASM_OK;
     }
 
     // 4. Banda: del 5 % al 95 % de la energia de ruido acumulada
-    double acumulada = 0.0;
+    float acumulada = 0.0f;
     int k_bajo = -1, k_alto = mitad;
     for (int k = 0; k <= mitad; k++) {
         if (!es_ruido(k, df)) continue;
-        acumulada += (double)magnitud[k] * magnitud[k];
-        if (k_bajo < 0 && acumulada >= 0.05 * e_ruido) k_bajo = k;
-        if (acumulada >= 0.95 * e_ruido) { k_alto = k; break; }
+        acumulada += magnitud[k] * magnitud[k];
+        if (k_bajo < 0 && acumulada >= 0.05f * e_ruido) k_bajo = k;
+        if (acumulada >= 0.95f * e_ruido) { k_alto = k; break; }
     }
     d->tipo = RUIDO_BANDA;
     d->frecuencia_hz = 0.5f * (k_bajo + k_alto) * df;
@@ -154,15 +155,15 @@ int diagnostico_estimar(const float *magnitud, int n, float fs, diagnostico_t *d
 // Curtosis de la primera diferencia: la diferencia atenua los tonos (bajas
 // frecuencias) y deja intactos los impulsos, que son pocos y enormes.
 static float curtosis_diferencia(const float *x, int n) {
-    double m2 = 0.0, m4 = 0.0;
+    float m2 = 0.0f, m4 = 0.0f;
     for (int i = 1; i < n; i++) {
-        double v = (double)x[i] - x[i - 1];
-        m2 += v * v;
-        m4 += v * v * v * v;
+        float v = x[i] - x[i - 1], v2 = v * v;
+        m2 += v2;
+        m4 += v2 * v2;
     }
     m2 /= (n - 1);
     m4 /= (n - 1);
-    return m2 > 0.0 ? (float)(m4 / (m2 * m2)) : 0.0f;
+    return m2 > 0.0f ? m4 / (m2 * m2) : 0.0f;
 }
 
 int diagnostico_estimar_bloque(const float *x, const float *magnitud, int n, float fs,

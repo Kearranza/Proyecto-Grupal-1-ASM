@@ -26,6 +26,10 @@ int nodo1_iniciar(nodo1_t *p, int n);
 // (lectura - 2^(ADC_BITS-1)). Devuelve ASM_OK con 'd' listo, NODO1_ARRANCANDO
 // mientras no se llena el primer bloque, o ASM_ERROR.
 int nodo1_procesar_salto(nodo1_t *p, const int16_t *nuevas, diagnostico_t *d);
+// Solo el paso 1 (deslizar el bloque), sin FFT ni diagnostico. Para cuando el nodo va
+// atrasado: el bloque queda al dia y el salto siguiente se puede analizar normal.
+// Devuelve ASM_OK, NODO1_ARRANCANDO o ASM_ERROR.
+int nodo1_deslizar(nodo1_t *p, const int16_t *nuevas);
 // Fuente simulada (comando FUENTE SIM): los tonos de config "fuente_sim" en cuentas
 // del ADC centradas, desde la muestra 'primera'. Sirve para probar sin senal analogica.
 void nodo1_generar_sim(uint32_t primera, int cantidad, int16_t *salida);
